@@ -1,0 +1,39 @@
+# Ignore Visual Studio temporary files, build results, and
+# user-specific files
+
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+[Bb]uild/
+[Bb]uild[Ll]og.*
+
+# Rider
+.idea/
+
+# NuGet
+*.nupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# VS Code settings
+.vscode/
+
+# Log files
+*.log
+
+# Database
+*.sqlite
+*.db
+
+# Others
+*.pdb
+*.cache
+*.tmp

@@ -1,0 +1,73 @@
+﻿@using AppData.ViewModels;
+@{
+    Layout = "_Layout";
+}
+
+<div class="row" style="margin-top:10px">
+    <div class=col-4></div>
+    <div class="col-4">
+        <h3 style="text-align:center;margin-bottom:10px"><strong>Đăng nhập</strong></h3>
+        <div class="tab-content">
+            <div>
+                @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @ViewBag.ErrorMessage
+                    </div>
+                }
+                <form method="post">
+                    <!-- Email input -->
+                    <div class="form-outline mb-4">
+                        <label class="form-label">Email hoặc SĐT</label>
+                        <input type="text" name="login" class="form-control" />
+@*                        <span class="text-danger"></span>
+*@                    </div>
+
+                    <!-- Password input -->
+                    <div class="form-outline mb-4">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" name="password" class="form-control" />
+@*                        <span asp-validation-for="Password" class="text-danger"></span>
+*@                    </div>
+
+                    <!-- 2 column grid layout -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 d-flex justify-content-center">
+                        </div>
+
+                        <div id="forgotPasswordDiv" class="col-md-6 d-flex justify-content-center">
+                            <!-- Simple link -->
+                            <a href="ForgotPassword">Quên mật khẩu?</a>
+                        </div>
+                    </div>
+
+                    <!-- Submit button -->
+                    <button type="submit" class="btn btn-primary btn-block mb-4">Đăng nhập </button>
+                    <!-- Register buttons -->
+                    <div class="text-center">
+                        <p>Bạn chưa có tài khoản bấm <a type="reset" asp-controller="Home" asp-action="Register" >Đăng ký!</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class=col-4></div>
+    </div>
+</div>
+<script>
+    function showForgotPasswordForm() {
+        var csrfToken = $('input[name="__RequestVerificationToken"]').val();
+        $.ajax({
+            url: '@Url.Action("ForgotPassword", "Home")',
+            type: 'POST',
+            headers: {
+                'RequestVerificationToken': csrfToken
+            },
+            success: function (result) {
+                $('#forgotPasswordDiv').empty().html(result);
+            },
+            error: function () {
+                alert('An error occurred while loading the form.');
+            }
+        });
+    }
+</script>
