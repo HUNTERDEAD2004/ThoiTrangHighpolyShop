@@ -332,7 +332,7 @@ namespace AppView.Controllers
             try
             {
                 string wwwrootPath = _hostEnvironment.WebRootPath;
-                var anh = new Anh() { ID = Guid.NewGuid(), DuongDan = _iFileService.AddFile(file, wwwrootPath).Result, IDSanPham = new Guid(idSanPham), TrangThai = 1 };
+                var anh = new Anh() { ID = Guid.NewGuid(), DuongDan = _iFileService.AddFile(file, wwwrootPath).Result, IDSanPhamChiTiet = new Guid(idSanPham), TrangThai = 1 };
                 var response = _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "SanPham/AddImageNoColor", anh).Result;
                 if (response.IsSuccessStatusCode)
                 {
@@ -567,7 +567,7 @@ namespace AppView.Controllers
                 List<AnhRequest> lstAnhRequest = new List<AnhRequest>();
                 for (var i = 0; i < maMaus.Count; i++)
                 {
-                    lstAnhRequest.Add(new AnhRequest() { IDSanPham = new Guid(idSanPham), MaMau = maMaus[i], DuongDan = images.Count <= i ? "" : _iFileService.AddFile(images[i], wwwrootPath).Result });
+                    lstAnhRequest.Add(new AnhRequest() { IDSanPhamChiTiet = new Guid(idSanPham), MaMau = maMaus[i], DuongDan = images.Count <= i ? "" : _iFileService.AddFile(images[i], wwwrootPath).Result });
                 }
                 HttpResponseMessage response = _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "SanPham/AddAnh", lstAnhRequest).Result;
                 if (response.IsSuccessStatusCode) return RedirectToAction("ProductDetail", new { idSanPham = idSanPham });

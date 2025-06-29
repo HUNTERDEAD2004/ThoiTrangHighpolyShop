@@ -35,7 +35,7 @@ app.UseSession();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=TrangChu}/{action=Index}");
+    pattern: "{controller=Home}/{action=ForgotPassword}");
 
 IWebHostEnvironment env = app.Environment;
 Rotativa.AspNetCore.RotativaConfiguration.Setup(env.WebRootPath, "../Rotativa/Windows");
