@@ -1,0 +1,14 @@
+﻿
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    string? count = TempData.Peek("SoLuong") as string;
+}
+<a href="@Url.Action("ShoppingCart","Home")">
+    <i class="fas fa-shopping-cart text-black" style="color:black"></i>
+    <div class="badge ">
+
+        <div id="tongsoluong" style="color:black"> @count</div>            
+    </div>
+</a>

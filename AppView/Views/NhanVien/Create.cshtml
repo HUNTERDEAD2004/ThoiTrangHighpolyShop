@@ -1,0 +1,278 @@
+﻿@* @model AppData.Models.NhanVien *@
+
+@* @{ *@
+@*     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml"; *@
+@*     ViewData["Title"] = "Create"; *@
+@*     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"> *@
+@*     <link rel="stylesheet" href="~/css/nv.css"> *@
+@*     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.slim.min.js"></script> *@
+@*     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script> *@
+@*     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script> *@
+@*     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous"> *@
+@*     AppData.Models.AssignmentDBContext dBContext = new AppData.Models.AssignmentDBContext(); *@
+@* } *@
+
+@* <h1 style="text-align: center"><b>Thêm mới nhân viên</b></h1> *@
+
+@* <hr /> *@
+@* <div class="row" style="margin-left:150px; margin-right: 150px"> *@
+@*     * <div class="col-md-12">  *@
+@*        @if (ViewBag.ErrorMessage != null)  *@
+@*         {  *@
+@*             <div class="alert alert-danger">  *@
+@*                 @ViewBag.ErrorMessage  *@
+@*              </div>  *@
+@*        }  *@
+@*         <form asp-action="Create"> *@
+@*             <div asp-validation-summary="ModelOnly" class="text-danger"></div> *@
+@*             <div class="row g-2"> *@
+@*                 <div class="col-6"> *@
+@*                     <div class=" p-3"> *@
+@*                         <div class="form-group"> *@
+@*                             <label asp-for="Ten" class="control-label">Tên</label> *@
+@*                             <input asp-for="Ten" class="form-control" autocomplete="off" /> *@
+@*                             <span asp-validation-for="Ten" class="text-danger"></span> *@
+@*                         </div> *@
+@*                     </div> *@
+@*                 </div> *@
+@*                 <div class="col-6"> *@
+@*                     <div class=" p-3"> *@
+@*                         <div class="form-group"> *@
+@*                             <label asp-for="MaNhanVien" class="control-label">Mã Nhân Viên</label> *@
+@*                             <input asp-for="MaNhanVien" class="form-control" autocomplete="off" /> *@
+@*                             <span asp-validation-for="MaNhanVien" class="text-danger"></span> *@
+@*                         </div> *@
+@*                     </div> *@
+@*                 </div> *@
+@*                 <div class="form-group"> *@
+@*                     <label class="control-label">Giới tính</label> *@
+@*                     <div class="form-check"> *@
+@*                         <input class="form-check-input" type="radio" name="gioiTinh" value="1" asp-for="GioiTinh"> *@
+@*                         <label class="form-check-label" for="flexRadioDefault1"> *@
+@*                             Nam *@
+@*                         </label> *@
+@*                     </div> *@
+@*                     <div class="form-check"> *@
+@*                         <input class="form-check-input" type="radio" name="gioiTinh" value="0" asp-for="GioiTinh"> *@
+@*                         <label class="form-check-label" for="flexRadioDefault2"> *@
+@*                             Nữ *@
+@*                         </label> *@
+@*                     </div> *@
+@*                 </div> *@
+
+@*                 <div class="form-group"> *@
+@*                     <label class="control-label">Ngày sinh</label> *@
+@*                     <input asp-for="NgaySinh" class="form-control" /> *@
+
+@*                 </div> *@
+
+@*                 <div class="col-6"> *@
+@*                     <div class="p-3"> *@
+@*                         <div class="form-group"> *@
+@*                             <label asp-for="DiaChi" class="control-label">Địa chỉ</label> *@
+@*                             <input asp-for="DiaChi" class="form-control" autocomplete="off" /> *@
+@*                             <span asp-validation-for="DiaChi" class="text-danger"></span> *@
+@*                         </div> *@
+@*                     </div> *@
+@*                 </div> *@
+@*                 <div class="col-6"> *@
+@*                     <div class="p-3"> *@
+@*                         <div class="form-group"> *@
+@*                             <label asp-for="Email" class="control-label">Email</label> *@
+@*                             <input asp-for="Email" class="form-control" autocomplete="off"  /> *@
+@*                             <span asp-validation-for="Email" class="text-danger"></span> *@
+@*                         </div> *@
+@*                     </div> *@
+@*                 </div><input type="hidden" asp-for="TrangThai" value="1" /> *@
+@*                 <div class="col-6"> *@
+@*                     <div class="p-3"> *@
+@*                         <div class="form-group"> *@
+@*                             <label asp-for="PassWord" class="control-label">Mật khẩu</label> *@
+@*                             <input asp-for="PassWord" type="password" class="form-control" autocomplete="off" /> *@
+@*                             <span asp-validation-for="PassWord" class="text-danger"></span> *@
+@*                             <span class="text-danger" id="passwordErrorMessage"></span> *@
+@*                         </div> *@
+@*                     </div> *@
+@*                 </div> *@
+@*                 <input type="hidden" asp-for="IDVaiTro" value="@(dBContext.VaiTros.FirstOrDefault(x => x.Ten == "Nhân viên").ID)" /> *@
+
+@*                 <div class="col-6"> *@
+@*                     <div class="p-3"> *@
+@*                         <div class="form-group"> *@
+@*                             <label asp-for="SDT" class="control-label">Số điện thoại </label> *@
+@*                             <input asp-for="SDT" class="form-control" autocomplete="off" /> *@
+@*                             <span asp-validation-for="SDT" class="text-danger"></span> *@
+@*                             <span class="text-danger" id="sdtErrorMessage"></span> *@
+@*                         </div> *@
+@*                     </div> *@
+@*                 </div> *@
+@*                 <div class="col-6"> *@
+@*                     <div class="p-3"> *@
+@*                         <div class="form-group" style="text-align: end; margin-top: 30px"> *@
+@*                             <input type="submit" value="Lưu" class="btn btn-primary" /> *@
+@*                         </div> *@
+@*                     </div> *@
+@*                 </div> *@
+@*             </div> *@
+@*         </form> *@
+@*     </div> *@
+@* </div> *@
+@* <script> *@
+@*     $("input[name='SDT']").on("input", function () { *@
+@*         $(this).removeClass("is-invalid"); // Xóa class "is-invalid" khi nhập số điện thoại *@
+@*         $("#sdtErrorMessage").text(""); // Xóa thông báo lỗi *@
+@*     }); *@
+
+@*     $("input[name='PassWord']").on("input", function () { *@
+@*         $(this).removeClass("is-invalid"); // Xóa class "is-invalid" khi nhập password *@
+@*         $("#passwordErrorMessage").text(""); // Xóa thông báo lỗi *@
+@*     }); *@
+@*     $("form").submit(function () { *@
+@*         var passwordInput = $("input[name='PassWord']"); *@
+@*         var passwordValue = passwordInput.val(); *@
+@*         if (passwordValue.trim() !== "" && passwordValue.length < 8) { *@
+@*             passwordInput.addClass("is-invalid"); *@
+@*             $("#passwordErrorMessage").text("Password phai lon hon 8 ki tu."); *@
+@*             return false; *@
+@*         } *@
+
+@*         var sdtInput = $("input[name='SDT']"); *@
+@*         var sdtValue = sdtInput.val(); *@
+@*         var sdtRegex = /^(0)\d{9}$/; *@
+@*         if (sdtValue.trim() !== "" && (!(/^\d+$/.test(sdtValue)) || !sdtRegex.test(sdtValue))) { *@
+@*             sdtInput.addClass("is-invalid"); *@
+@*             $("#sdtErrorMessage").text("Số điện thoại không đúng định dạng."); // Thêm dòng này *@
+@*             return false; *@
+@*         } *@
+@*         return true; *@
+@*     }); *@
+
+@* </script> *@
+@* @section Scripts { *@
+@*     @{ *@
+@*         await Html.RenderPartialAsync("_ValidationScriptsPartial"); *@
+@*     } *@
+@* } *@
+@model AppData.ViewModels.NhanVienViewModel
+
+@{
+    ViewData["Title"] = "Thêm mới nhân viên";
+    Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/nv.css" />
+
+<div class="container mt-5 mb-5">
+    <h2 class="text-center mb-4 fw-bold">Thêm mới nhân viên</h2>
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+    }
+
+    <form asp-controller="NhanVien" asp-action="Create" method="post" class="shadow p-4 rounded bg-light">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="Ten" class="form-label">Tên</label>
+                <input asp-for="Ten" class="form-control" />
+                <span asp-validation-for="Ten" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="MaNhanVien" class="form-label">Mã nhân viên</label>
+                <input asp-for="MaNhanVien" class="form-control" />
+                <span asp-validation-for="MaNhanVien" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label d-block">Giới tính</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="GioiTinh" value="1" checked />
+                    <label class="form-check-label">Nam</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="GioiTinh" value="0" />
+                    <label class="form-check-label">Nữ</label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="NgaySinh" class="form-label">Ngày sinh</label>
+                <input asp-for="NgaySinh" type="date" class="form-control" />
+                <span asp-validation-for="NgaySinh" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
+                <input asp-for="DiaChi" class="form-control" />
+                <span asp-validation-for="DiaChi" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Password" class="form-label">Mật khẩu</label>
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="SDT" class="form-label">Số điện thoại</label>
+                <input asp-for="SDT" class="form-control" />
+                <span asp-validation-for="SDT" class="text-danger small"></span>
+            </div>
+
+            <input type="hidden" asp-for="TrangThai" value="1" />
+             @* <input type="hidden" asp-for="IDVaiTro" value="@(ViewBag.IdVaiTro)" />  *@
+            <input type="hidden" asp-for="IDVaiTro" value="952C1A5D-74FF-4DAF-BA88-135C5440809C" />
+
+
+            <div class="col-12 text-end mt-4">
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="fas fa-save me-2"></i> Lưu
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        $("input[name='SDT']").on("input", function () {
+            $(this).removeClass("is-invalid");
+            $("#sdtErrorMessage").text("");
+        });
+
+        $("input[name='PassWord']").on("input", function () {
+            $(this).removeClass("is-invalid");
+            $("#passwordErrorMessage").text("");
+        });
+
+        $("form").submit(function () {
+            var password = $("input[name='PassWord']").val().trim();
+            if (password !== "" && password.length < 8) {
+                $("input[name='PassWord']").addClass("is-invalid");
+                $("#passwordErrorMessage").text("Password phải lớn hơn 8 ký tự.");
+                return false;
+            }
+
+            var sdt = $("input[name='SDT']").val().trim();
+            var sdtRegex = /^0\d{9}$/;
+            if (sdt !== "" && (!(/^\d+$/.test(sdt)) || !sdtRegex.test(sdt))) {
+                $("input[name='SDT']").addClass("is-invalid");
+                $("#sdtErrorMessage").text("Số điện thoại không đúng định dạng.");
+                return false;
+            }
+
+            return true;
+        });
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
