@@ -103,6 +103,7 @@ namespace AppAPI.Controllers
             khv.IDKhachHang = Guid.NewGuid();
             KhachHang kh = new KhachHang();
             kh.IDKhachHang = khv.IDKhachHang;
+            kh.MaKhachHang = khv.MaKhachHang;
             kh.Ten = khv.Ten?.Trim();
             kh.Password = MaHoaMatKhau(khv.Password).Trim();
             kh.GioiTinh=khv.GioiTinh;

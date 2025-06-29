@@ -902,49 +902,66 @@ namespace AppView.Controllers
                 return View();
             }
         }
+       
         [HttpPost]
-        public async Task<ActionResult> Login(string login, string password)
+        public async Task<IActionResult> Login(string lg, string password)
         {
             try
             {
-                if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
+                if (string.IsNullOrWhiteSpace(lg) || string.IsNullOrWhiteSpace(password))
                 {
                     ViewBag.ErrorMessage = "Vui lòng nhập đầy đủ thông tin đăng nhập.";
                     return View();
                 }
-                if (login.Contains('@'))
-                {
-                    login = login.Replace("@", "%40");
-                }
-                HttpResponseMessage response = _httpClient.GetAsync(_httpClient.BaseAddress + $"QuanLyNguoiDung/DangNhap?lg={login}&password={password}").Result;
+
+                // Encode @ thành %40 nếu cần (dùng Uri.EscapeDataString luôn an toàn hơn)
+                string encodedLg = Uri.EscapeDataString(lg);
+                string encodedPw = Uri.EscapeDataString(password);
+
+                // Gọi API login
+                HttpResponseMessage response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}QuanLyNguoiDung/DangNhap?lg={encodedLg}&password={encodedPw}");
+
                 if (response.IsSuccessStatusCode)
                 {
                     string result = await response.Content.ReadAsStringAsync();
-                    HttpContext.Session.SetString("LoginInfor", result);
                     var user = JsonConvert.DeserializeObject<LoginViewModel>(result);
-                    if (user.vaiTro == 1)
+
+                    HttpContext.Session.SetString("LoginInfor", result);
+
+                    if (user.vaiTro == 1) // Khách hàng
                     {
-                        string actionName = TempData["ActionName"].ToString();
+                        string actionName = TempData["ActionName"] as string;
+
+                        // Nếu có actionName lưu trước đó, có thể redirect đúng
+                        if (!string.IsNullOrEmpty(actionName))
+                        {
+                            return RedirectToAction(actionName, "TrangChu");
+                        }
+
                         return RedirectToAction("Index", "TrangChu");
                     }
-                    else return RedirectToAction("BanHang", "BanHangTaiQuay");
+
+                    // Nhân viên
+                    return RedirectToAction("BanHang", "BanHangTaiQuay");
                 }
                 else if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     ViewBag.ErrorMessage = "Bạn không có quyền truy cập vào tài khoản này.";
-                    return View();
                 }
                 else
                 {
-                    ViewBag.ErrorMessage = "Email hoặc password không chính xác.";
-                    return View();
+                    ViewBag.ErrorMessage = "Email hoặc mật khẩu không chính xác.";
                 }
+
+                return View();
             }
-            catch
+            catch (Exception ex)
             {
+                ViewBag.ErrorMessage = "Đã xảy ra lỗi hệ thống: " + ex.Message;
                 return View();
             }
         }
+
         public IActionResult Register()
         {
             return View();

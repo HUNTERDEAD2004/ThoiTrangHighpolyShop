@@ -6,6 +6,7 @@ using AppData.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+
 using System.Text.RegularExpressions;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -46,11 +47,15 @@ namespace AppAPI.Controllers
                                      ID = CTSP.ID,
                                      MaCTSP = CTSP.MaSPChiTiet,
                                      TenSanPham = sp.Ten,
+<<<<<<< HEAD
                                      TenAnh = (from spct in _dbcontext.ChiTietSanPhams.AsNoTracking()
                                                join sp in _dbcontext.SanPhams.AsNoTracking() on spct.IDSanPham equals sp.ID
                                                join mausac in _dbcontext.MauSacs.AsNoTracking() on spct.IDMauSac equals mausac.ID
                                                join a in _dbcontext.Anhs.AsNoTracking() on spct.ID equals a.IDSanPhamChiTiet
                                                where a.IDSanPhamChiTiet == spct.ID select a.DuongDan).FirstOrDefault() ?? "wwwroot\\img\\Default.png",
+=======
+                                     TenAnh = (from anh in _dbcontext.Anhs where sp.ID == anh.IDSanPham select anh.DuongDan).FirstOrDefault(),
+>>>>>>> 4b7de0706a676773222572c2c8415916b0f7e645
                                      IdKhuyenMai = (from km in _dbcontext.KhuyenMais where CTSP.IDKhuyenMai == km.ID select CTSP.IDKhuyenMai).FirstOrDefault(),
                                      TenMauSac = mausac.Ten,
                                      MaMauSac = mausac.Ma,
@@ -98,6 +103,7 @@ namespace AppAPI.Controllers
 
             var result = _dbcontext.SanPhams
 
+<<<<<<< HEAD
                             .Join(_dbcontext.ChatLieus, sp => sp.IDChatLieu, cl => cl.ID, (sp, cl) => new { sp, cl })
                             .Join(_dbcontext.LoaiSPs, x => x.sp.IDLoaiSP, lsp => lsp.ID, (x, lsp) => new { x.sp, x.cl, lsp })
                             .Join(_dbcontext.ChiTietSanPhams, x => x.sp.ID, ctsp => ctsp.IDSanPham, (x, ctsp) => new { x.sp, x.cl, x.lsp, ctsp })
@@ -120,12 +126,33 @@ namespace AppAPI.Controllers
                                 IDChatLieu = group.First().cl.ID,
                                 TrangThai = group.First().sp.TrangThai,
                             }).ToList();    
+=======
+                            .Join(_dbcontext.ChatLieus, sp => sp.IDChatLieu, cl => cl.ID, (sp, cl) => new { sp_cl = sp, chatlieus = cl })
+                            .Join(_dbcontext.LoaiSPs, sp => sp.sp_cl.IDLoaiSP, lsp => lsp.ID, (sp, lsp) => new { sp_cl_lsp = sp, loaisps = lsp })
+                            .Join(_dbcontext.ChiTietSanPhams, sp => sp.sp_cl_lsp.sp_cl.ID, ctsp => ctsp.IDSanPham, (sp, ctsp) => new { sp_cl_lsp_ctsp = sp, chitietsps = ctsp })
+                            .GroupBy(x => x.sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID)
+                            .Select(group => new AllViewSp {
+                                ID = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID,
+                                SoLuongCTSP = group.Sum(x => x.chitietsps.ID != null ? 1 : 0),
+                                Ten = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.Ten,
+                                MoTa = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.MoTa,
+                                TenAnh = (from anhs in _dbcontext.Anhs where @group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID == anhs.IDSanPham select anhs.DuongDan).FirstOrDefault(),
+                                IdKhuyenMai = (from km in _dbcontext.KhuyenMais where @group.FirstOrDefault().chitietsps.IDKhuyenMai == km.ID select km.ID).FirstOrDefault(),
+                                
+                                GiaBan = (int)group.FirstOrDefault().chitietsps.GiaBan,
+                                IDLoaiSP = group.FirstOrDefault().sp_cl_lsp_ctsp.loaisps.ID,
+                                IDLoaiSPCha = group.FirstOrDefault().sp_cl_lsp_ctsp.loaisps.IDLoaiSPCha,
+                                IDChatLieu = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.chatlieus.ID,
+                                TrangThai = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.TrangThai
+                            }).ToList();
+>>>>>>> 4b7de0706a676773222572c2c8415916b0f7e645
             return result;
 
         }
         [Route("GetAllSPByKhuyenMai")]
         [HttpGet]
 
+<<<<<<< HEAD
         public List<AllViewSp> GetAllSPByKhuyenMai(Guid idkm)   
         {
             if (!_dbcontext.KhuyenMais.Any(c => c.ID == idkm)) throw new Exception($" khong tim thay san pham co id:{idkm}");
@@ -153,6 +180,33 @@ namespace AppAPI.Controllers
                                 IDChatLieu = group.First().cl.ID,
                                 TrangThai = group.First().sp.TrangThai,
                             }).Where(x => x.IdKhuyenMai == idkm).ToList();
+=======
+        public List<AllViewSp> GetAllSPByKhuyenMai(Guid idkm)
+        {
+            if (!_dbcontext.KhuyenMais.Any(c => c.ID == idkm)) throw new Exception($" khong tim thay san pham co id:{idkm}");
+            var result = _dbcontext.SanPhams
+
+                           .Join(_dbcontext.ChatLieus, sp => sp.IDChatLieu, cl => cl.ID, (sp, cl) => new { sp_cl = sp, chatlieus = cl })
+                           .Join(_dbcontext.LoaiSPs, sp => sp.sp_cl.IDLoaiSP, lsp => lsp.ID, (sp, lsp) => new { sp_cl_lsp = sp, loaisps = lsp })
+                           .Join(_dbcontext.ChiTietSanPhams, sp => sp.sp_cl_lsp.sp_cl.ID, ctsp => ctsp.IDSanPham, (sp, ctsp) => new { sp_cl_lsp_ctsp = sp, chitietsps = ctsp }).Where(x=>x.chitietsps.TrangThai==1)
+                           .GroupBy(x => x.sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID)
+                           .Select(group => new AllViewSp
+                           {
+                               ID = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID,
+                               MaSP=group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.Ma,
+                               SoLuongCTSP = group.Sum(x => x.chitietsps.ID != null ? 1 : 0),
+                               Ten = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.Ten,
+                               MoTa = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.MoTa,
+                               TenAnh = (from anhs in _dbcontext.Anhs where @group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID == anhs.IDSanPham select anhs.DuongDan).FirstOrDefault(),
+                               IdKhuyenMai = (from km in _dbcontext.KhuyenMais where @group.FirstOrDefault().chitietsps.IDKhuyenMai == km.ID select km.ID).FirstOrDefault(),
+                             
+                               GiaBan = (int)group.FirstOrDefault().chitietsps.GiaBan,
+                               IDLoaiSP = group.FirstOrDefault().sp_cl_lsp_ctsp.loaisps.ID,
+                               IDLoaiSPCha = group.FirstOrDefault().sp_cl_lsp_ctsp.loaisps.IDLoaiSPCha,
+                               IDChatLieu = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.chatlieus.ID,
+                               TrangThai = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.TrangThai
+                           }).Where(x => x.IdKhuyenMai == idkm).ToList();
+>>>>>>> 4b7de0706a676773222572c2c8415916b0f7e645
             return result;
 
         }
@@ -163,10 +217,17 @@ namespace AppAPI.Controllers
         {
             if (!_dbcontext.KhuyenMais.Any(c => c.ID == idkm) && !_dbcontext.LoaiSPs.Any(c => c.ID == idLoaiSP) && !_dbcontext.ChatLieus.Any(y => y.ID == idChatLieu)) throw new Exception($" khong tim thay san pham co id:{idkm},{idLoaiSP},{idChatLieu}");
             var AllCTSP = (from SP in _dbcontext.SanPhams.AsNoTracking()
+<<<<<<< HEAD
                            join loaisp in _dbcontext.LoaiSPs.AsNoTracking() on SP.IDLoaiSP equals loaisp.ID
                            join chatlieu in _dbcontext.ChatLieus.AsNoTracking() on SP.IDChatLieu equals chatlieu.ID
                            join CTSP in _dbcontext.ChiTietSanPhams.AsNoTracking() on SP.ID equals CTSP.IDSanPham
                            join anh in _dbcontext.Anhs.AsNoTracking() on CTSP.ID equals anh.IDSanPhamChiTiet
+=======
+                           join anh in _dbcontext.Anhs.AsNoTracking() on SP.ID equals anh.IDSanPham
+                           join loaisp in _dbcontext.LoaiSPs.AsNoTracking() on SP.IDLoaiSP equals loaisp.ID
+                           join chatlieu in _dbcontext.ChatLieus.AsNoTracking() on SP.IDChatLieu equals chatlieu.ID
+                           join CTSP in _dbcontext.ChiTietSanPhams.AsNoTracking() on SP.ID equals CTSP.IDSanPham
+>>>>>>> 4b7de0706a676773222572c2c8415916b0f7e645
                            join km in _dbcontext.KhuyenMais.AsNoTracking() on CTSP.IDKhuyenMai equals km.ID
                            select new { SP, anh, loaisp, chatlieu, CTSP, km });
             // Tim Theo IdKhuyenMai
@@ -205,6 +266,7 @@ namespace AppAPI.Controllers
         {
             if (!_dbcontext.KhuyenMais.Any(c => c.ID == id)) throw new Exception($" khong tim thay san pham co id:{id}");
             var result = _dbcontext.SanPhams
+<<<<<<< HEAD
                             .Join(_dbcontext.ChatLieus, sp => sp.IDChatLieu, cl => cl.ID, (sp, cl) => new { sp, cl })
                             .Join(_dbcontext.LoaiSPs, x => x.sp.IDLoaiSP, lsp => lsp.ID, (x, lsp) => new { x.sp, x.cl, lsp })
                             .Join(_dbcontext.ChiTietSanPhams, x => x.sp.ID, ctsp => ctsp.IDSanPham, (x, ctsp) => new { x.sp, x.cl, x.lsp, ctsp })
@@ -228,6 +290,29 @@ namespace AppAPI.Controllers
                                 IDChatLieu = group.First().cl.ID,
                                 TrangThai = group.First().sp.TrangThai,
                             }).Where(x => x.IdKhuyenMai != id).Where(x => x.TrangThai == 1).ToList();
+=======
+
+                           .Join(_dbcontext.ChatLieus, sp => sp.IDChatLieu, cl => cl.ID, (sp, cl) => new { sp_cl = sp, chatlieus = cl })
+                           .Join(_dbcontext.LoaiSPs, sp => sp.sp_cl.IDLoaiSP, lsp => lsp.ID, (sp, lsp) => new { sp_cl_lsp = sp, loaisps = lsp })
+                           .Join(_dbcontext.ChiTietSanPhams, sp => sp.sp_cl_lsp.sp_cl.ID, ctsp => ctsp.IDSanPham, (sp, ctsp) => new { sp_cl_lsp_ctsp = sp, chitietsps = ctsp }).Where(x=>x.chitietsps.TrangThai==1)
+                           .GroupBy(x => x.sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID)
+                           .Select(group => new AllViewSp
+                           {
+                               ID = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID,
+                               MaSP = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.Ma,
+                               SoLuongCTSP = group.Sum(x => x.chitietsps.ID != null ? 1 : 0),
+                               Ten = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.Ten,
+                               MoTa = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.MoTa,
+                               TenAnh = (from anhs in _dbcontext.Anhs where @group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID == anhs.IDSanPham select anhs.DuongDan).FirstOrDefault(),
+                               IdKhuyenMai = (from km in _dbcontext.KhuyenMais where @group.FirstOrDefault().chitietsps.IDKhuyenMai == km.ID select km.ID).FirstOrDefault(),
+                              
+                               GiaBan = (int)group.FirstOrDefault().chitietsps.GiaBan,
+                               IDLoaiSP = group.FirstOrDefault().sp_cl_lsp_ctsp.loaisps.ID,
+                               IDLoaiSPCha = group.FirstOrDefault().sp_cl_lsp_ctsp.loaisps.IDLoaiSPCha,
+                               IDChatLieu = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.chatlieus.ID,
+                               TrangThai = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.TrangThai
+                           }).Where(x => x.IdKhuyenMai != id).Where(x => x.TrangThai == 1).ToList();
+>>>>>>> 4b7de0706a676773222572c2c8415916b0f7e645
             return result;
         }
         [Route("GetAllSPNoKMByLoaiSPChatLieu")]
@@ -273,6 +358,7 @@ namespace AppAPI.Controllers
             //return result;
             if (!_dbcontext.KhuyenMais.Any(c => c.ID == id)) throw new Exception($" khong tim thay san pham co id:{id}");
             var result = _dbcontext.SanPhams
+<<<<<<< HEAD
                             .Join(_dbcontext.ChatLieus, sp => sp.IDChatLieu, cl => cl.ID, (sp, cl) => new { sp, cl })
                             .Join(_dbcontext.LoaiSPs, x => x.sp.IDLoaiSP, lsp => lsp.ID, (x, lsp) => new { x.sp, x.cl, lsp })
                             .Join(_dbcontext.ChiTietSanPhams, x => x.sp.ID, ctsp => ctsp.IDSanPham, (x, ctsp) => new { x.sp, x.cl, x.lsp, ctsp })
@@ -296,6 +382,28 @@ namespace AppAPI.Controllers
                                 IDChatLieu = group.First().cl.ID,
                                 TrangThai = group.First().sp.TrangThai,
                             }).Where(x => x.IdKhuyenMai != id).ToList();
+=======
+
+                           .Join(_dbcontext.ChatLieus, sp => sp.IDChatLieu, cl => cl.ID, (sp, cl) => new { sp_cl = sp, chatlieus = cl })
+                           .Join(_dbcontext.LoaiSPs, sp => sp.sp_cl.IDLoaiSP, lsp => lsp.ID, (sp, lsp) => new { sp_cl_lsp = sp, loaisps = lsp })
+                           .Join(_dbcontext.ChiTietSanPhams, sp => sp.sp_cl_lsp.sp_cl.ID, ctsp => ctsp.IDSanPham, (sp, ctsp) => new { sp_cl_lsp_ctsp = sp, chitietsps = ctsp }).Where(x => x.chitietsps.TrangThai == 1)
+                           .GroupBy(x => x.sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID)
+                           .Select(group => new AllViewSp
+                           {
+                               ID = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID,
+                               SoLuongCTSP = group.Sum(x => x.chitietsps.ID != null ? 1 : 0),
+                               Ten = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.Ten,
+                               MoTa = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.MoTa,
+                               TenAnh = (from anhs in _dbcontext.Anhs where @group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.ID == anhs.IDSanPham select anhs.DuongDan).FirstOrDefault(),
+                               IdKhuyenMai = (from km in _dbcontext.KhuyenMais where @group.FirstOrDefault().chitietsps.IDKhuyenMai == km.ID select km.ID).FirstOrDefault(),
+                              
+                               GiaBan = (int)group.FirstOrDefault().chitietsps.GiaBan,
+                               IDLoaiSP = group.FirstOrDefault().sp_cl_lsp_ctsp.loaisps.ID,
+                               IDLoaiSPCha = group.FirstOrDefault().sp_cl_lsp_ctsp.loaisps.IDLoaiSPCha,
+                               IDChatLieu = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.chatlieus.ID,
+                               TrangThai = group.FirstOrDefault().sp_cl_lsp_ctsp.sp_cl_lsp.sp_cl.TrangThai
+                           }).Where(x => x.IdKhuyenMai != id).ToList();
+>>>>>>> 4b7de0706a676773222572c2c8415916b0f7e645
             if (!string.IsNullOrEmpty(idLoaiSP.ToString()))
             {
                 result = result.Where(x => x.IDLoaiSP == idLoaiSP).ToList();
