@@ -27,19 +27,21 @@ namespace AppAPI.Controllers
         [HttpGet("DangNhap")]
         public async Task<IActionResult> Login(string lg, string password)
         {
-            LoginViewModel login = await service.Login(lg, password);
+            var login = await service.Login(lg, password);
+
+            if (login.Message == "Đăng nhập thành công")
+            {
+                return Ok(login); // ✅ thành công
+            }
 
             if (login.IsAccountLocked)
             {
-                return Unauthorized(login.Message);
+                return Unauthorized(new { error = login.Message });
             }
-            else if (login.Message != null) // Other error messages
-            {
-                ModelState.AddModelError(string.Empty, login.Message);
-                return BadRequest(ModelState);
-            }
-            return Ok(login);
+
+            return BadRequest(new { error = login.Message }); // ❌ chỉ khi thực sự có lỗi
         }
+
 
         // POST api/<DangKyController>
         //[HttpPost("DangKyNhanVien")]

@@ -12,9 +12,14 @@ namespace AppData.ViewModels
     {
         [Key]
         public Guid IDKhachHang { get; set; }
+
         [Required(ErrorMessage = "mời bạn nhập tên")]
         [StringLength(70, ErrorMessage = "Tên không được quá 70 kí tự")]
+
+        
         public string Ten { get; set; }
+
+        public string MaKhachHang { get; set; }
 
         [Required(ErrorMessage = "mời bạn nhập mật khẩu")]
         public string Password { get; set; }

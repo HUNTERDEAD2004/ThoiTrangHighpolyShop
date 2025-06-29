@@ -15,15 +15,17 @@ namespace AppData.ViewModels
         [Required(ErrorMessage = "Vui lòng nhập email")]
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
 
-        public string? MaKhachHang { get; set; }
+       
         public string? Email { get; set; }
+
+        public string? MaKhachHang { get; set; }
 
         public int? GioiTinh { get; set; } // 0: Nam, 1: Nữ
 
         public DateTime? NgaySinh { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập tên")]
-        public string? Name { get; set; }
+        public string? Ten { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
         [RegularExpression(@"^0[0-9]{9}$", ErrorMessage = "Số điện thoại không hợp lệ")]
