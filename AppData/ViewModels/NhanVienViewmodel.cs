@@ -17,6 +17,6 @@ namespace AppData.ViewModels
         public DateTime? NgaySinh { get; set; }
         public int? GioiTinh { get; set; } // 1: Nam, 0: Nữ
         public int? TrangThai { get; set; } // 0: Không hoạt động, 1: Hoạt động
-        public Guid IDVaiTro { get; set; }
+        public Guid IDVaiTro { get; set; } //Vaitro
     }
 }
