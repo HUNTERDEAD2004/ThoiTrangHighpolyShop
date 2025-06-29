@@ -1,4 +1,6 @@
-﻿using AppAPI.IServices;
+﻿using System.Globalization;
+using System.Text;
+using AppAPI.IServices;
 using AppData.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -94,7 +96,10 @@ namespace AppAPI.Services
             return nv;
         }
 
-        #endregion MauSac
+        #endregion
+
+        #region MauSac
+
         public async Task<MauSac> AddMauSac(string ten, string ma, int trangthai)
         {
             try
@@ -195,6 +200,8 @@ namespace AppAPI.Services
                 throw;
             }
         }
+        #endregion
+
         #region chat lieu
         public async Task<ChatLieu> AddChatLieu(string ten, int trangthai)
         {
@@ -301,6 +308,26 @@ namespace AppAPI.Services
 
             }
         }
+        #endregion
+
+        #region other
+        //Chuẩn hóa tên
+        public static string ChuanHoaTen(string tennguoidungnhap)
+        {
+            if (string.IsNullOrWhiteSpace(tennguoidungnhap))
+                return string.Empty;
+
+            var normalized = tennguoidungnhap.Normalize(NormalizationForm.FormD); // Bước chuẩn hóa để chuyển chuổi có dấu unicode về ko dấu
+            var sb = new StringBuilder();
+            foreach (var c in normalized)
+            {
+                var cat = CharUnicodeInfo.GetUnicodeCategory(c); // Kiểm tra loại ký tự
+                if (cat != UnicodeCategory.NonSpacingMark) // Bỏ qua các ký tự dấu, chỉ giữ lại chữ cái gốc
+                    sb.Append(c);
+            }
+            return sb.ToString().Normalize(NormalizationForm.FormC).ToUpper().Trim();
+        }
+
         #endregion
     }
 }

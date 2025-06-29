@@ -139,7 +139,7 @@ namespace AppAPI.Services
             try
             {
                 KhuyenMai? khuyenMai;
-                List<KhuyenMai> khuyenMais = _context.KhuyenMais.Where(x => x.NgayKetThuc > DateTime.Now).ToList();
+                List<KhuyenMai> khuyenMais = _context.KhuyenMais.Where(x => x.NgayApDung <= DateTime.Now && x.NgayKetThuc > DateTime.Now).ToList();
                 var lstSanPham = await (from a in _context.SanPhams.Where(x => x.TrangThai == 1)
                                         join b in _context.ChiTietSanPhams.Where(x => x.TrangThai != 0) on a.ID equals b.IDSanPham
                                         join e in _context.LoaiSPs.Where(x => x.LoaiSPCha != null) on a.IDLoaiSP equals e.ID
@@ -256,7 +256,7 @@ namespace AppAPI.Services
             }
             catch { return new ChiTietSanPhamUpdateRequest(); }
         }
-        public async Task<bool> AddAnhToSanPham(List<AnhRequest> request)
+        public async Task<bool> AddAnhToSanPham(List<AnhRequest> request) //Chức năng add ảnh đang lỗi cần sửa
         {
             try
             {
@@ -273,6 +273,7 @@ namespace AppAPI.Services
                 return false;
             }
         }
+
         public List<AnhViewModel> GetAllAnhSanPham(Guid idSanPham)
         {
             try
@@ -818,22 +819,27 @@ namespace AppAPI.Services
             text = text.Replace(" ", "");
             return text;
         }
+
         public async Task<List<MauSac>> GetAllMauSac()
         {
             return await _context.MauSacs.Where(x => x.TrangThai == 1).ToListAsync();
         }
+
         public async Task<List<KichCo>> GetAllKichCo()
         {
             return await _context.KichCos.Where(x => x.TrangThai == 1).ToListAsync();
         }
+
         public async Task<List<ChatLieu>> GetAllChatLieu()
         {
             return await _context.ChatLieus.Where(x => x.TrangThai == 1).ToListAsync();
         }
+
         public Task<List<ChiTietSanPham>> GetAllChiTietSanPham(Guid idSanPham)
         {
             throw new NotImplementedException();
         }
+
         public decimal GetKhuyenMai(decimal giaTri, decimal giaSP, int kieugiamgia)
         {
             var tienKhuyenMai = giaSP;
@@ -848,6 +854,7 @@ namespace AppAPI.Services
             }
             return tienKhuyenMai < 0 ? 0 : tienKhuyenMai;
         }
+
         public void DeleteKhuyenMai(Guid id)
         {
             var item = _context.ChiTietSanPhams.First(x => x.ID == id);
