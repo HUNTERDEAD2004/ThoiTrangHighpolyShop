@@ -1,8 +1,35 @@
-﻿@{
+﻿@model AppData.ViewModels.XacThucEmailViewModel
+@{
     Layout = "_Layout";
 }
 <div style=" text-align: center;">
-    <h3>Đăng ký thành công!</h3>
-    <p>Bạn đã đăng ký tài khoản thành công. Vui lòng đăng nhập để tiếp tục.</p>
+    <h3 class="text-success">🎉 Đăng ký thành công!</h3>
+    <p>Vui lòng kiểm tra email của bạn để xác minh tài khoản.</p>
+    <div class="row mt-5">
+        <div class="col-md-4 offset-md-4">
+            <h4 class="text-center">Xác minh Email</h4>
+
+            @if (!string.IsNullOrEmpty(ViewBag.Message))
+            {
+                <div class="alert alert-info">@ViewBag.Message</div>
+            }
+
+            <form asp-action="XacThucEmail" method="post">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Mã xác minh</label>
+                    <input asp-for="Token" class="form-control" />
+                    <span asp-validation-for="Token" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-block mt-2">Xác minh</button>
+            </form>
+        </div>
+    </div>
     <a asp-action="Login" asp-route-actionName="Index" class="btn btn-primary">Đăng nhập</a>
 </div>

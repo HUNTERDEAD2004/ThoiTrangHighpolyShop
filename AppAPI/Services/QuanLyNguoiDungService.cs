@@ -159,24 +159,30 @@ namespace AppAPI.Services
         {
             try
             {
-                var smtpClient = new SmtpClient("smtp.gmail.com", 465);
-                smtpClient.UseDefaultCredentials = false;
-                smtpClient.EnableSsl = true;
-                smtpClient.Credentials = new NetworkCredential("nhu3006a12@gmail.com", "nhucong.");
-                var messsage = new MailMessage();
-                messsage.From = new MailAddress("nhu3006a12@gmail.com");
-                messsage.To.Add(new MailAddress(email));
-                messsage.Subject = subject;
-                messsage.Body = body;
-                await smtpClient.SendMailAsync(messsage);
+                var smtpClient = new SmtpClient("smtp.gmail.com", 587)
+                {
+                    UseDefaultCredentials = false,
+                    EnableSsl = true,
+                    Credentials = new NetworkCredential("tuanbaph34984@fpt.edu.vn", "dgjeixgeoxjysujz")
+                };
+
+                var mail = new MailMessage
+                {
+                    From = new MailAddress("tuanbaph34984@fpt.edu.vn"),
+                    Subject = subject,
+                    Body = body
+                };
+                mail.To.Add(email);
+
+                await smtpClient.SendMailAsync(mail);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine("Error sending email: " + ex.Message);
                 return false;
             }
         }
+
 
         public async Task<bool> ChangePassword(string email, string password, string newPassword)
         {
@@ -206,62 +212,7 @@ namespace AppAPI.Services
             }
         }
 
-        //public async Task<LoginViewModel> Login(string lg, string password)
-        //{
-        //    try
-        //    {
-        //        var nv = await context.NhanViens.FirstOrDefaultAsync(a => (a.Email == lg || a.SDT == lg) /*&& a.PassWord == password*/ );
-        //        if (nv != null && KiemTraMatKhau(password, nv.PassWord))
-        //        {
-        //            if (nv.TrangThai == 1)
-        //            {
-        //                return new LoginViewModel
-        //                {
-        //                    Id = nv.ID,
-        //                    Email = nv.Email,
-        //                    Ten = nv.Ten,
-        //                    DiaChi = nv.DiaChi,
-        //                    SDT = nv.SDT,
-        //                    vaiTro = 0
-        //                };
-        //            }
-        //            else if (nv.TrangThai == 0) // Check for locked account
-        //            {
-        //                return new LoginViewModel
-        //                {
-        //                    IsAccountLocked = true,
-        //                    Message = "Bạn không có quyền truy cập vào tài khoản này."
-        //                };
-        //            }
-        //        }
-        //        var kh = await context.KhachHangs.FirstOrDefaultAsync(x => (x.Email == lg || x.SDT == lg) /*&& x.Password == password*/);
-        //        if (kh != null && KiemTraMatKhau(password, kh.Password))
-        //        {
-        //            return new LoginViewModel
-        //            {
-        //                Id = kh.IDKhachHang,
-        //                Email = kh.Email,
-        //                Ten = kh.Ten,
-        //                SDT = kh.SDT,
-        //                DiemTich = kh.DiemTich,
 
-        //                GioiTinh = kh.GioiTinh,
-        //                NgaySinh = kh.NgaySinh,
-        //                vaiTro = 1
-        //            };
-        //        }
-        //        return new LoginViewModel
-        //        {
-        //            Message = "Email hoặc password không chính xác"
-        //        };
-        //    }
-        //    catch (Exception)
-        //    {
-
-        //        throw;
-
-        //    }
-        //}
         public async Task<LoginViewModel> Login(string lg, string password)
         {
             try
@@ -375,62 +326,162 @@ namespace AppAPI.Services
             //return nhap == hashed;
         }
 
-        //public async Task<object> Login(string email, string password)
+
+
+        //public async Task<KhachHang> RegisterKhachHang(KhachHangViewModel khachHang)
         //{
-        //    var nv = await context.NhanViens.FirstOrDefaultAsync(a => a.Email == email && a.PassWord == password);
-        //    if (nv != null)
+        //    try
         //    {
-        //        return nv;
-        //    }
-        //    var kh = await context.KhachHangs.FirstOrDefaultAsync(x => x.Email == email && x.Password == password);
-        //    if (kh != null)
-        //    {
+        //        var existingKhachHang = await context.KhachHangs.FirstOrDefaultAsync(kh => kh.Email == khachHang.Email || kh.SDT == khachHang.SDT);
+        //        if (existingKhachHang != null)
+        //        {
+        //            return null; // Tài khoản đã tồn tại
+        //        }
+        //        KhachHang kh = new KhachHang()
+        //        {
+        //            IDKhachHang = Guid.NewGuid(),
+        //            Ten = khachHang.Ten,
+        //            Email = khachHang.Email,
+        //            MaKhachHang= khachHang.MaKhachHang?.Trim(),
+        //            GioiTinh = khachHang.GioiTinh,
+        //            NgaySinh = khachHang.NgaySinh,
+        //            //DiaChi = khachHang.DiaChi?.Trim(),
+        //            Password = MaHoaMatKhau(khachHang.Password),
+        //            SDT = khachHang.SDT,
+        //            DiemTich = 0,
+        //            TrangThai = 1,
+        //        };
+        //        await context.KhachHangs.AddAsync(kh);
+        //        GioHang gioHang = new GioHang()
+        //        {
+        //            IDKhachHang = kh.IDKhachHang,
+        //            NgayTao = DateTime.Now,
+        //        };
+        //        await context.GioHangs.AddAsync(gioHang);
+        //        await context.SaveChangesAsync();
         //        return kh;
         //    }
-        //    return null;
+        //    catch (Exception)
+        //    {
+
+        //        throw;
+        //    }
+
+
         //}
+
+        private string GenerateNumericCode(int length = 6)
+        {
+            var random = new Random();
+            return string.Concat(Enumerable.Range(0, length).Select(_ => random.Next(0, 10)));
+        }
+
 
         public async Task<KhachHang> RegisterKhachHang(KhachHangViewModel khachHang)
         {
             try
             {
-                var existingKhachHang = await context.KhachHangs.FirstOrDefaultAsync(kh => kh.Email == khachHang.Email || kh.SDT == khachHang.SDT);
+                var existingKhachHang = await context.KhachHangs
+                    .FirstOrDefaultAsync(kh => kh.Email == khachHang.Email || kh.SDT == khachHang.SDT);
+
                 if (existingKhachHang != null)
-                {
-                    return null; // Tài khoản đã tồn tại
-                }
-                KhachHang kh = new KhachHang()
+                    return null; // Email hoặc SDT đã tồn tại
+
+                // Tạo khách hàng mới
+                var kh = new KhachHang
                 {
                     IDKhachHang = Guid.NewGuid(),
                     Ten = khachHang.Ten,
                     Email = khachHang.Email,
-                    MaKhachHang= khachHang.MaKhachHang?.Trim(),
+                    MaKhachHang = khachHang.MaKhachHang?.Trim(),
                     GioiTinh = khachHang.GioiTinh,
                     NgaySinh = khachHang.NgaySinh,
-                    //DiaChi = khachHang.DiaChi?.Trim(),
                     Password = MaHoaMatKhau(khachHang.Password),
                     SDT = khachHang.SDT,
                     DiemTich = 0,
-                    TrangThai = 1,
+                    TrangThai = 0 // ⚠️ Chưa xác thực
                 };
+
                 await context.KhachHangs.AddAsync(kh);
-                GioHang gioHang = new GioHang()
+
+                // Tạo giỏ hàng
+                var gioHang = new GioHang
                 {
                     IDKhachHang = kh.IDKhachHang,
                     NgayTao = DateTime.Now,
                 };
                 await context.GioHangs.AddAsync(gioHang);
+
+                // Tạo token xác minh
+                var token = GenerateNumericCode(); // ví dụ: 6 số
+
+                var tokenEntity = new EmailVerificationToken
+                {
+                    IDKhachHang = kh.IDKhachHang,
+                    Token = token,
+                    ExpiryTime = DateTime.Now.AddMinutes(15)
+                };
+                await context.EmailVerificationTokens.AddAsync(tokenEntity);
+
                 await context.SaveChangesAsync();
+
+                // Gửi email xác nhận
+                string subject = "Xác nhận đăng ký tài khoản";
+                string body = $"Mã xác thực của bạn là: {token}\nMã này sẽ hết hạn sau 15 phút.";
+                await SendEmail(kh.Email, subject, body);
+
                 return kh;
             }
             catch (Exception)
             {
-
                 throw;
             }
-
-
         }
+
+        public async Task<bool> ConfirmEmail(string email, string token)
+        {
+            try
+            {
+                var kh = await context.KhachHangs.FirstOrDefaultAsync(k => k.Email == email);
+                if (kh == null) return false;
+
+                var tokenEntity = await context.EmailVerificationTokens
+                    .FirstOrDefaultAsync(t => t.IDKhachHang == kh.IDKhachHang && t.Token == token);
+
+                if (tokenEntity == null || tokenEntity.ExpiryTime < DateTime.Now)
+                    return false;
+
+                // Cập nhật trạng thái đã xác thực
+                kh.TrangThai = 1;
+                context.EmailVerificationTokens.Remove(tokenEntity); // Xoá token sau khi dùng
+                await context.SaveChangesAsync();
+                
+                return true;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
+        public async Task<bool> VerifyEmail(Guid userId, string token)
+        {
+            var verifyToken = await context.EmailVerificationTokens
+                .FirstOrDefaultAsync(x => x.IDKhachHang == userId && x.Token == token);
+
+            if (verifyToken == null || verifyToken.ExpiryTime < DateTime.Now)
+                return false;
+
+            var kh = await context.KhachHangs.FindAsync(userId);
+            if (kh == null) return false;
+
+            kh.TrangThai = 1;
+            context.EmailVerificationTokens.Remove(verifyToken);
+            await context.SaveChangesAsync();
+            return true;
+        }
+
 
 
         public async Task<NhanVien> RegisterNhanVien(NhanVienViewModel nhanVien)
@@ -517,67 +568,7 @@ namespace AppAPI.Services
             }
         }
 
-        //public async Task<LoginViewModel> UpdateProfile(LoginViewModel loginViewModel)
-        //{
-        //    try
-        //    {
-        //        var kh = await context.KhachHangs.FirstOrDefaultAsync(h => h.IDKhachHang == loginViewModel.Id);
-        //        if (kh != null)
-        //        {
-
-        //            kh.Ten = loginViewModel.Ten;
-        //            kh.SDT = loginViewModel.SDT;                 
-        //            kh.NgaySinh = loginViewModel.NgaySinh;
-        //            kh.GioiTinh = loginViewModel.GioiTinh;
-        //            kh.Email = loginViewModel.Email;
-        //            //context.KhachHangs.Update(kh);
-        //            context.SaveChangesAsync();
-        //            return new LoginViewModel
-        //            {
-        //                Id = loginViewModel.Id,
-        //                Email = loginViewModel.Email,
-        //                Ten = loginViewModel.Ten,
-        //                SDT = loginViewModel.SDT,
-        //                DiemTich = kh.DiemTich,
-        //                GioiTinh = loginViewModel.GioiTinh,
-        //                NgaySinh = loginViewModel.NgaySinh,
-        //                DiaChi = loginViewModel.DiaChi,
-        //                vaiTro = loginViewModel.vaiTro,
-        //            };
-
-        //        }
-        //        var nv = await context.NhanViens.FirstOrDefaultAsync(h => h.ID == loginViewModel.Id);
-        //        if (nv != null)
-        //        {
-        //            nv.Ten = loginViewModel.Ten;
-        //            nv.SDT = loginViewModel.SDT;
-        //            nv.DiaChi = loginViewModel.DiaChi;
-        //            nv.Email = loginViewModel.Email;
-        //            context.SaveChangesAsync();
-        //            return new LoginViewModel
-        //            {
-        //                Id = loginViewModel.Id,
-        //                Email = loginViewModel.Email,
-        //                Ten = loginViewModel.Ten,
-        //                SDT = loginViewModel.SDT,
-        //                GioiTinh = loginViewModel.GioiTinh,
-        //                NgaySinh = loginViewModel.NgaySinh,
-        //                DiaChi = loginViewModel.DiaChi,
-        //                vaiTro = loginViewModel.vaiTro,
-        //            };
-        //        }
-
-        //        return null;
-        //    }
-        //    catch (Exception)
-        //    {
-
-        //        throw;
-
-        //    }
-        //}
-        //End
-        //Nhinh thêm
+        
         public async Task<LoginViewModel> UpdateProfile(LoginViewModel loginViewModel)
         {
             try

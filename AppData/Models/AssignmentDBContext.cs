@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AppData.ViewModels;
+using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
 namespace AppData.Models
@@ -33,6 +34,8 @@ namespace AppData.Models
         public DbSet<LichSuHoaDon> LichSuHoaDons { get; set; }
 
         public DbSet<PhuongThucThanhToan> PhuongThucThanhToans { get; set; }
+
+        public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
 
         public DbSet<DiaChi> DiaChis { get; set; }
      

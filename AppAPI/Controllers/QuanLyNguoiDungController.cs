@@ -56,18 +56,45 @@ namespace AppAPI.Controllers
         //    return Ok("Đăng ký thành công");
         //}
         //POST api/<DangKyController>
+
+
+
+        [HttpPost("XacThucEmail")]
+        public async Task<IActionResult> XacThucEmail([FromBody] XacThucEmailViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Thiếu email hoặc mã xác minh");
+
+            var result = await service.ConfirmEmail(model.Email, model.Token);
+
+            if (!result)
+                return BadRequest("Mã xác thực không hợp lệ hoặc đã hết hạn.");
+
+            return Ok("Tài khoản đã được xác thực thành công.");
+        }
+
+
+
         [HttpPost("DangKyKhachHang")]
         public async Task<IActionResult> DangKyKhachHang(KhachHangViewModel khachHang)
         {
-            var kh = await service.RegisterKhachHang(khachHang);
-            if (kh == null)
+            try
             {
-                return BadRequest();
+                var kh = await service.RegisterKhachHang(khachHang);
+
+                if (kh == null)
+                {
+                    return BadRequest("Email hoặc số điện thoại đã được sử dụng.");
+                }
+
+                return Ok("Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.");
             }
-
-            return Ok("Đăng ký thành công");
-
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống: " + ex.Message);
+            }
         }
+
         //[HttpPut("DoiMatKhauNhanVien")]
         //public async Task<IActionResult> DoiMatKhauNV(string email, string oldPassword,string newPassword)
         //{
