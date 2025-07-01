@@ -59,9 +59,8 @@ namespace AppAPI.Controllers
 
 
 
-
         [HttpPost("Create")]
-        public async Task<IActionResult> Add(NhanVienViewModel model)
+        public async Task<IActionResult> Create([FromBody] NhanVienViewModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -71,8 +70,10 @@ namespace AppAPI.Controllers
             if (result == null)
                 return BadRequest("Email hoặc SĐT đã tồn tại.");
 
-            return Ok(result);
+            return Ok(result); 
         }
+
+
 
 
 

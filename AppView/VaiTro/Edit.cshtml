@@ -37,6 +37,7 @@
 <div>
     <a asp-action="Show">Quay lại</a>
 </div>
+@RenderSection("Scripts", required: false)
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

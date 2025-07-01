@@ -91,29 +91,42 @@ namespace AppView.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(NhanVien nhanVien)
+        public async Task<IActionResult> Create(NhanVienViewModel nhanVien)
         {
             try
             {
                 nhanVien.TrangThai = 1;
+
                 var vt = dBContext.VaiTros.FirstOrDefault(x => x.Ten == "Nhân viên");
-                string apiUrl = $"https://localhost:7095/api/NhanVien/DangKyNhanVien?ten={nhanVien.Ten}&email={nhanVien.Email}&password={nhanVien.PassWord}&sdt={nhanVien.SDT}&diachi={nhanVien.DiaChi}";
-                var reponsen = await _httpClient.PostAsync(apiUrl, null);
-                if (reponsen.IsSuccessStatusCode)
+                if (vt != null)
+                {
+                    nhanVien.IDVaiTro = vt.ID;
+                }
+
+                var response = await _httpClient.PostAsJsonAsync("https://localhost:7095/api/NhanVien/Create", nhanVien);
+
+                if (response.IsSuccessStatusCode)
                 {
                     return RedirectToAction("Show");
                 }
-                else if (reponsen.StatusCode == HttpStatusCode.BadRequest)
+
+                if (response.StatusCode == HttpStatusCode.BadRequest)
                 {
-                    ViewBag.ErrorMessage = "Email hoặc sdt này đã được đăng ký";
-                    return View();
+                    var error = await response.Content.ReadAsStringAsync();
+                    ViewBag.ErrorMessage = error ?? "Email hoặc sdt này đã được đăng ký";
+                    return View(nhanVien);
                 }
 
+                ViewBag.ErrorMessage = "Đã xảy ra lỗi.";
                 return View(nhanVien);
             }
-            catch { return Redirect("https://localhost:5001/"); }
-
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Lỗi hệ thống: " + ex.Message;
+                return View(nhanVien);
+            }
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)

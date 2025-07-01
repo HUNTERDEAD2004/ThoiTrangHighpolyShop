@@ -151,7 +151,7 @@ namespace AppAPI.Services
                 var nv = new NhanVien
                 {
                     ID = Guid.NewGuid(),
-                    Ten = model.Ten, // đây là Ten chứ không phải Name
+                    Ten = model.Ten, 
                     Email = model.Email.Trim(),
                     MaNhanVien = model.MaNhanVien,
                     NgaySinh = model.NgaySinh ?? DateTime.Now,
