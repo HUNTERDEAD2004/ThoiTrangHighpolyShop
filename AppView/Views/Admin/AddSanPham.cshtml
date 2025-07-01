@@ -20,55 +20,33 @@
                 <input asp-for="MoTa" class="form-control" autocomplete="off" />
                 <span asp-validation-for="MoTa" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label class="control-label">Chất liệu</label>
-                <input asp-for="TenChatLieu" class="form-control" list="chatLieu" autocomplete="off"/>
-                <datalist id="chatLieu"></datalist>
-                <span asp-validation-for="TenChatLieu" class="text-danger"></span>
+            <!-- CHẤT LIỆU -->
+            <div class="form-group d-flex align-items-center gap-2">
+                <label for="ChatLieuID" class="control-label">Chất liệu</label>
+                <select name="ChatLieuID" id="ChatLieuID" class="form-select" style="width: 250px;"></select>
+                <button type="button" class="btn btn-success btn-sm" onclick="taoMoiChatLieu()">➕</button>
             </div>
+            <!-- MÀU SẮC -->
             <div class="form-group">
                 <label class="control-label">Màu sắc</label>
-                <table id="tbmausac" style="width:450px">
-                    <tbody class="table" id="tbbody">
-                        <tr id="mau0">
-                            <td style="width:70%">
-                                <input name="MauSacs[0].Ten" class="form-control" list="mauSac" id="tenMau0" onchange="changeTenMau(0)" autocomplete="off" />
-                            </td>
-                            <td style="width:45.6px">
-                                <input name="MauSacs[0].Ma" type="color" class="form-control" value="#000000" id="maMau0" onchange="changeMaMau(0)" style="height:41.6px;width:100%" />
-                            </td>
-                            <td style="width:50px">
-                                <input type="button" class="form-control" value="-" hidden id="xoamau0" onclick="xoaMau(0)"/>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <input type="button" class="form-control" value="+" onclick="themMauSac(this)" />
-                <datalist id="mauSac"></datalist>
+                <div id="lstMauSac" class="d-flex flex-column gap-2"></div>
+                <input type="button" class="btn btn-primary mt-2" value="Thêm biến thể màu" onclick="themBienTheMauSac()" />
+                <input type="button" class="btn btn-primary mt-2" value="Thêm màu" onclick="taoMoiMauSac()" />
             </div>
-            <div class="form-group" id="lstKichCo">
+            <!-- KÍCH CỠ -->
+            <div class="form-group">
                 <label class="control-label">Kích cỡ</label>
-                <div class="row" style='width:450px' id="size0">
-                    <div class="col-lg-10" style='padding-right:0px'>
-                        <input name="KichCos[0]" class="form-control" list="kichCo" id="tenkc0" autocomplete="off" />
-                    </div>
-                    <div class="col-lg-2" style='padding-left:0px'>
-                        <input type="button" class="form-control" value="-" hidden id="xoasize0" onclick="xoaSize(0)"/>
-                    </div>
+                <div id="lstKichCo" class="d-flex flex-column gap-2"></div>
+                <input type="button" class="btn btn-primary mt-2" value="Thêm biến thể kích cỡ" onclick="themBienTheKichCo()" />
+                <input type="button" class="btn btn-primary mt-2" value="Thêm kích cỡ" onclick="taoMoiKichCo()" />
+            </div>
+            <!-- LOẠI SẢN PHẨM CHA & CON -->
+            <div class="form-group">
+                <label class="control-label">Loại sản phẩm</label>
+                <div class="d-flex gap-2">
+                    <select name="LoaiSPChaID" id="LoaiSPChaID" class="form-select" style="width: 200px;" onchange="loadLoaiSPCon()"></select>
+                    <select name="LoaiSPConID" id="LoaiSPConID" class="form-select" style="width: 200px;"></select>
                 </div>
-                <input type="button" class="form-control" value="+" onclick="themKichCo(1,this)" />
-            </div>
-            <datalist id="kichCo"></datalist>
-            <div class="form-group">
-                <label class="control-label">Loại sản phẩm cha</label>
-                <input asp-for="TenLoaiSPCha" class="form-control" list="loaiSPCha" id="ipLoaiSPCha" autocomplete="off"/>
-                <datalist id="loaiSPCha"></datalist>
-            </div>
-            <div class="form-group">
-                <label class="control-label">Loại sản phẩm con</label>
-                <input asp-for="TenLoaiSPCon" class="form-control" list="loaiSPCon" autocomplete="off" />
-                <datalist id="loaiSPCon"></datalist>
-                <span asp-validation-for="TenLoaiSPCon" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Thêm" class="btn btn-primary" />
@@ -79,117 +57,177 @@
 
 <script src="~/js/jquery-3.3.1.min.js"></script>
 <script>
-    var countMauSac = 1;
-    var lstMauSac = [];
+    let countChatLieu = 0, countKichCo = 0, countMauSac = 0;
+    let lstMauSac = [];
+    let lstChatLieu = [];
+    let lstKichCo = [];
+    let lstLoaiSP = [];
+
     $(document).ready(function () {
-        $.ajax({
-            type: "GET",
-            dataType: "json",
-            url: "/Admin/GetLoaiSPCha",
-            success: function (response) {
-                for (var i = 0; i < response.length; i++) {
-                    var rows = "<option value='" + response[i].ten + "'>" + response[i].ten + "</option>";
-                    $('#loaiSPCha').append(rows);
-                }
-            }
+        // Gọi dữ liệu chất liệu
+        $.get("/Admin/GetAllChatLieu", function (res) {
+            const select = $("#ChatLieuID");
+            select.empty().append('<option value="">-- Chọn chất liệu --</option>');
+            res.forEach(x => {
+                select.append(`<option value="${x.id}">${x.ten}</option>`);
+            });
         });
-        $.ajax({
-            type: "GET",
-            dataType: "json",
-            url: "/Admin/GetAllMauSac",
-            success: function (response) {
-                for (var i = 0; i < response.length; i++) {
-                    response[i].ma = response[i].ma.toLowerCase();
-                    lstMauSac.push(response[i]);
-                    var rows = "<option value='" + response[i].ten + "'>" + response[i].ten + "</option>";
-                    $('#mauSac').append(rows);
-                }
-            }
+
+        // Gọi dữ liệu kích cỡ
+        $.get("/Admin/GetAllKichCo", function (res) {
+            lstKichCo = res.map(x => ({ id: x.id, ten: x.ten }));
+            themBienTheKichCo();
         });
-        $.ajax({
-            type: "GET",
-            dataType: "json",
-            url: "/Admin/GetAllChatLieu",
-            success: function (response) {
-                for (var i = 0; i < response.length; i++) {
-                    var rows = "<option value='" + response[i].ten + "'>" + response[i].ten + "</option>";
-                    $('#chatLieu').append(rows);
-                }
-            }
+
+        // Gọi dữ liệu màu sắc
+        $.get("/Admin/GetAllMauSac", function (res) {
+            lstMauSac = res.map(x => ({ id: x.id, ten: x.ten, ma: x.ma.toLowerCase() }));
+            themBienTheMauSac();
         });
-        $.ajax({
-            type: "GET",
-            dataType: "json",
-            url: "/Admin/GetAllKichCo",
-            success: function (response) {
-                for (var i = 0; i < response.length; i++) {
-                    var rows = "<option value='" + response[i].ten + "'>" + response[i].ten + "</option>";
-                    $('#kichCo').append(rows);
-                }
-            }
+
+        // Gọi dữ liệu loại sản phẩm cha
+        $.get("/Admin/GetLoaiSPCha", function (res) {
+            const cha = $("#LoaiSPChaID");
+            cha.empty().append('<option value="">-- Chọn loại cha --</option>');
+            res.forEach(x => {
+                cha.append(`<option value="${x.id}">${x.ten}</option>`);
+            });
         });
     });
-    $("#ipLoaiSPCha").change(function () {
-        var value = $("#ipLoaiSPCha").val();
-        $.ajax({
-            type: "GET",
-            dataType: "json",
-            data: { tenLoaiSPCha: value },
-            url: "/Admin/GetLoaiSPCon",
-            success: function (response) {
-                if (response.trangThai == true) {
-                    $('#loaiSPCon').empty();
-                    for (var i = 0; i < response.ketQua.length; i++) {
-                        var rows = "<option value='" + response.ketQua[i].ten + "'>" + response.ketQua[i].ten + "</option>";
-                        $('#loaiSPCon').append(rows);
-                    }
-                }               
+
+    // --- Tạo mới Chất liệu ---
+    function taoMoiChatLieu() {
+        const ten = prompt("Nhập tên chất liệu mới:");
+        if (!ten) return;
+
+        $.post("/Admin/ThemChatLieu", { ten: ten }, function (res) {
+            if (res.success) {
+                alert("Thêm thành công!");
+                $.get("/Admin/GetAllChatLieu", function (data) {
+                    const select = $("#ChatLieuID");
+                    select.empty().append('<option value="">-- Chọn chất liệu --</option>');
+                    data.forEach(x => {
+                        select.append(`<option value="${x.id}" ${x.ten === ten ? 'selected' : ''}>${x.ten}</option>`);
+                    });
+                });
+            } else {
+                alert("Thêm thất bại!");
             }
         });
-    });
-    function changeTenMau(count) {
-        var tenMau = $("#tenMau" + count).val();
-        var maMau = lstMauSac.find(x => x.ten == tenMau).ma;
-        document.getElementById("maMau" + count).value = maMau;
     }
-    function changeMaMau(count) {
-        var maMau = $("#maMau" + count).val();
-        var tenMau = "";
-        var mauSac = lstMauSac.find(x => x.ma == maMau);
-        if (mauSac == null) {
-            tenMau = "";
-        }
-        else {
-            tenMau = mauSac.ten;
-        }
-        document.getElementById("tenMau" + count).value = tenMau;
+
+    // --- Tạo mới Kích cỡ ---
+    function taoMoiKichCo() {
+        const ten = prompt("Nhập kích cỡ mới:");
+        if (!ten) return;
+
+        $.post("/Admin/ThemKichCo", { ten: ten }, function (res) {
+            if (res.success) {
+                alert("Đã thêm!");
+                $.get("/Admin/GetAllKichCo", function (data) {
+                    lstKichCo = data;
+                    $("#lstKichCo").empty();
+                    countKichCo = 0;
+                    themBienTheKichCo();
+                });
+            }
+        });
     }
-    function themKichCo(count, element) {
-        $("#lstKichCo").append(`<div class="row" style='width:450px' id="size${count}">
-            <div class="col-lg-10" style='padding-right:0px'>
-            <input name="KichCos[${count}]" class="form-control" list="kichCo" id="tenkc${count}" autocomplete="off" />
-            </div>
-            <div class="col-lg-2" style='padding-left:0px'>
-            <input type="button" class= "form-control" value="-" hidden id="xoasize${count}" onclick="xoaSize(${count})"/>
-            </div>
-            </div><input type='button' class='form-control' onclick='themKichCo(${count + 1},this)' value='+' / > `);
-        document.getElementById("xoasize" + (count - 1)).hidden = false;
-        element.remove();
+
+    // --- Tạo mới Màu sắc ---
+    function taoMoiMauSac() {
+        const ten = prompt("Tên màu:");
+        const ma = prompt("Mã hex màu (#xxxxxx):");
+        if (!ten || !ma) return;
+
+        $.post("/Admin/ThemMauSac", { ten: ten, ma: ma }, function (res) {
+            if (res.success) {
+                alert("Thêm thành công!");
+                $.get("/Admin/GetAllMauSac", function (data) {
+                    lstMauSac = data.map(x => ({ id: x.id, ten: x.ten, ma: x.ma.toLowerCase() }));
+                    $("#lstMauSac").empty();
+                    countMauSac = 0;
+                    themBienTheMauSac();
+                });
+            }
+        });
     }
-    function themMauSac() {
-        $("#tbbody").append("<tr id='mau" + countMauSac + "'><td style='width:70%'> <input name='MauSacs[" + countMauSac + "].Ten' class='form-control' list='mauSac' id='tenMau" + countMauSac + "' onchange='changeTenMau(" + countMauSac + ")' autocomplete=\"off\" /></td><td style='width: 45.6px'><input name='MauSacs[" + countMauSac + "].Ma' type='color' onchange='changeMaMau(" + countMauSac + ")' class='form-control' id='maMau" + countMauSac + "' style='height: 41.6px;width:100%' /></td><td style='width: 50px'><input type='button' class='form-control' value='-' hidden id = 'xoamau" + countMauSac + "' onclick='xoaMau(" + countMauSac + ")' /></td></tr > ");
-        document.getElementById("xoamau" + (countMauSac - 1)).hidden = false;
+
+    // --- Tạo mới Loại sản phẩm ---
+    function taoMoiLoaiSPCha() {
+        const ten = prompt("Nhập tên loại sản phẩm cha:");
+        if (!ten) return;
+
+        $.post("/Admin/ThemLoaiSPCha", { ten: ten }, function (res) {
+            if (res.success) {
+                $.get("/Admin/GetLoaiSPCha", function (data) {
+                    const select = $("#LoaiSPChaID");
+                    select.empty().append('<option value="">-- Chọn loại cha --</option>');
+                    data.forEach(x => {
+                        select.append(`<option value="${x.id}" ${x.ten === ten ? 'selected' : ''}>${x.ten}</option>`);
+                    });
+                    loadLoaiSPCon();
+                });
+            }
+        });
+    }
+
+    // --- LOẠI SẢN PHẨM CON ---
+    function loadLoaiSPCon() {
+        const idCha = $("#LoaiSPChaID").val();
+        const con = $("#LoaiSPConID");
+        con.empty().append('<option value="">-- Chọn loại con --</option>');
+
+        if (!idCha) return;
+
+        $.get("/Admin/GetLoaiSPConByIDCha", { idCha: idCha }, function (res) {
+            res.forEach(x => {
+                con.append(`<option value="${x.id}">${x.ten}</option>`);
+            });
+        });
+    }
+
+    // --- Thêm Biến thể Kích cỡ ---
+    function themBienTheKichCo() {
+        const id = countKichCo;
+        const html = `
+                <div class="d-flex align-items-center gap-2" id="kichco${id}">
+                    <select name="KichCos[${id}]" class="form-select" style="width: 250px;">
+                        ${lstKichCo.map(x => `<option value="${x.id}">${x.ten}</option>`).join("")}
+                    </select>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="xoaKichCo(${id})">-</button>
+                </div>`;
+        $("#lstKichCo").append(html);
+        countKichCo++;
+    }
+
+    // --- Thêm Biến thể Màu ---
+    function themBienTheMauSac() {
+        const id = countMauSac;
+        const html = `
+                <div class="d-flex align-items-center gap-2" id="mau${id}">
+                    <select name="MauSacs[${id}].ID" class="form-select" style="width:150px" id="tenMau${id}" onchange="changeTenMau(${id})">
+                        ${lstMauSac.map(m => `<option value="${m.id}" data-ma="${m.ma}">${m.ten}</option>`).join('')}
+                    </select>
+                    <input name="MauSacs[${id}].Ma" type="color" class="form-control" style="width:60px" id="maMau${id}" onchange="changeMaMau(${id})" />
+                    <div id="previewMau${id}" style="width:30px;height:30px;border:1px solid #ccc;background-color:${lstMauSac[0]?.ma || '#000'};"></div>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="xoaMau(${id})">-</button>
+                </div>`;
+        $("#lstMauSac").append(html);
         countMauSac++;
     }
-    function xoaMau(count) {
-        document.getElementById("mau"+count).hidden = true;
-        document.getElementById("tenMau" + count).value = 'Deleted';
+
+    function xoaKichCo(id) {
+        $(`#kichco${id}`).remove();
     }
-    function xoaSize(count) {
-        document.getElementById("size" + count).hidden = true;
-        document.getElementById("tenkc" + count).value = 'Deleted';
+
+    function xoaMau(id) {
+        $(`#mau${id}`).remove();
     }
+
 </script>
+
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
