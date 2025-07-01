@@ -19,70 +19,70 @@
 
     <table class="table table-bordered table-hover">
         <thead class="table-dark">
-            <tr>
-                <th>STT</th>
-                <th>Tên</th>
-                <th>Email</th>
-                <th>SĐT</th>
-                <th>Địa chỉ</th>
-                <th>Ngày sinh</th>
-                <th>Giới tính</th>
-                <th>Mã nhân viên</th>
-                <th>Trạng thái</th>
+        <tr>
+            <th>STT</th>
+            <th>Tên</th>
+            <th>Email</th>
+            <th>SĐT</th>
+            <th>Địa chỉ</th>
+            <th>Ngày sinh</th>
+            <th>Giới tính</th>
+            <th>Mã nhân viên</th>
+            <th>Trạng thái</th>
                
-            </tr>
+        </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.listNv)
-            {
-                <tr>
-                    <td>@stt</td>
-                    <td>@item.Ten</td>
-                    <td>@item.Email</td>
-                    <td>@item.SDT</td>
-                    <td>@item.DiaChi</td>
-                    <td>@(item.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chưa có")</td>
-                    <td>@(item.GioiTinh == 1 ? "Nam" : "Nữ")</td>
-                    <td>@item.MaNhanVien</td>
-                    <td>
-                        @(item.TrangThai == 1 ? "Đang làm" : "Nghỉ làm")
-                    </td>
-                    <td>
-                        <a class="btn btn-sm btn-success" asp-action="Sua" asp-route-id="@item.ID">Sửa</a>
-                        <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.ID">Chi tiết</a>
-                    </td>
-                </tr>
-                stt++;
-            }
+        @foreach (var item in Model.listNv)
+        {
+            <tr>
+                <td>@stt</td>
+                <td>@item.Ten</td>
+                <td>@item.Email</td>
+                <td>@item.SDT</td>
+                <td>@item.DiaChi</td>
+                <td>@(item.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chưa có")</td>
+                <td>@(item.GioiTinh == 1 ? "Nam" : "Nữ")</td>
+                <td>@item.MaNhanVien</td>
+                <td>
+                    @(item.TrangThai == 1 ? "Đang làm" : "Nghỉ làm")
+                </td>
+                <td>
+                    <a class="btn btn-sm btn-success" asp-action="Sua" asp-route-id="@item.ID">Sửa</a>
+                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.ID">Chi tiết</a>
+                </td>
+            </tr>
+            stt++;
+        }
         </tbody>
     </table>
-<div style="display: flex; justify-content: center; margin: 0; padding: 0;">
-    <button disabled="@(Model.PagingInfo.CurrentPage == 1)" style="background-color: @(Model.PagingInfo.CurrentPage == 1 ? "#f5f5f5" : "transparent"); border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
-        <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = 1 })">Đầu</a>
-    </button>
-    @if (Model.PagingInfo.CurrentPage > 1)
-    {
-        <button style="background-color: @(Model.PagingInfo.CurrentPage - 1 == Model.PagingInfo.CurrentPage ? "#99CCFF" : "transparent"); border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
-            <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage - 1 })">Trước</a>
+    <div style="display: flex; justify-content: center; margin: 0; padding: 0;">
+        <button disabled="@(Model.PagingInfo.CurrentPage == 1)" style="background-color: @(Model.PagingInfo.CurrentPage == 1 ? "#f5f5f5" : "transparent"); border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
+            <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = 1 })">Đầu</a>
         </button>
-    }
-    @for (int i = Math.Max(1, Model.PagingInfo.CurrentPage - 1); i <= Math.Min(Model.PagingInfo.TotalPages, Model.PagingInfo.CurrentPage + 1); i++)
-    {
-        <button style="background-color: @(i == Model.PagingInfo.CurrentPage ? "#99CCFF" : "transparent"); border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
-            <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = i })">@i</a>
+        @if (Model.PagingInfo.CurrentPage > 1)
+        {
+            <button style="background-color: @(Model.PagingInfo.CurrentPage - 1 == Model.PagingInfo.CurrentPage ? "#99CCFF" : "transparent"); border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
+                <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage - 1 })">Trước</a>
+            </button>
+        }
+        @for (int i = Math.Max(1, Model.PagingInfo.CurrentPage - 1); i <= Math.Min(Model.PagingInfo.TotalPages, Model.PagingInfo.CurrentPage + 1); i++)
+        {
+            <button style="background-color: @(i == Model.PagingInfo.CurrentPage ? "#99CCFF" : "transparent"); border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
+                <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = i })">@i</a>
+            </button>
+        }
+        @if (Model.PagingInfo.CurrentPage < Model.PagingInfo.TotalPages)
+        {
+            <button style="background-color: @(Model.PagingInfo.CurrentPage + 1 == Model.PagingInfo.CurrentPage ? "#99CCFF" : "transparent");border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
+                <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage + 1 })">Tiếp</a>
+            </button>
+        }
+        <button disabled="@(Model.PagingInfo.CurrentPage == Model.PagingInfo.TotalPages)" style="background-color: @(Model.PagingInfo.CurrentPage == Model.PagingInfo.TotalPages ? "#f5f5f5" : "transparent");border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
+            <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.TotalPages })">Cuối</a>
         </button>
-    }
-    @if (Model.PagingInfo.CurrentPage < Model.PagingInfo.TotalPages)
-    {
-        <button style="background-color: @(Model.PagingInfo.CurrentPage + 1 == Model.PagingInfo.CurrentPage ? "#99CCFF" : "transparent");border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
-            <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage + 1 })">Tiếp</a>
-        </button>
-    }
-    <button disabled="@(Model.PagingInfo.CurrentPage == Model.PagingInfo.TotalPages)" style="background-color: @(Model.PagingInfo.CurrentPage == Model.PagingInfo.TotalPages ? "#f5f5f5" : "transparent");border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
-        <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.TotalPages })">Cuối</a>
-    </button>
-</div>
-<script>
+    </div>
+    <script>
     document.getElementById('searchForm').addEventListener('submit', function (event) {
         // Lấy dữ liệu tìm kiếm từ biến toàn cục
         var searchInput = document.querySelector('.tk1');
@@ -116,4 +116,5 @@
     });
 
 </script>
+</div>
 
