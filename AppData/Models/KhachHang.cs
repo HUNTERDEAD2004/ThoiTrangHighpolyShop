@@ -17,7 +17,7 @@ namespace AppData.Models
         [Required]
         public string? Password { get; set; }
         public int? GioiTinh { get; set; }
-        public DateTime? NgaySinh { get; set; }
+        public DateOnly? NgaySinh { get; set; }
         [EmailAddress]
         public string? Email { get; set; }
         public string? SDT { get; set; }

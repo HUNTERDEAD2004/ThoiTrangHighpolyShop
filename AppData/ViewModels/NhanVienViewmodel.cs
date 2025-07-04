@@ -32,7 +32,7 @@ namespace AppData.ViewModels
         //[RegularExpression(@"^[A-Z0-9]{3,20}$", ErrorMessage = "Mã nhân viên phải viết hoa và có từ 3-20 ký tự.")]
         public string? MaNhanVien { get; set; }
 
-        public DateTime? NgaySinh { get; set; }
+        public DateOnly? NgaySinh { get; set; }
 
         
         public int? GioiTinh { get; set; }

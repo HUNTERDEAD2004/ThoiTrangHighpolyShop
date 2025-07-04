@@ -1,30 +1,43 @@
-using AppAPI.IServices;
+﻿using AppAPI.IServices;
 using AppAPI.Services;
 using AppData.Models;
 using AppData.ViewModels.Mail;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// CORS policy
 var AllowSpecificOrigins = "_allowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: AllowSpecificOrigins,
-        policy =>
-        {
-            policy.WithOrigins("https://localhost:5001").AllowAnyHeader()
-            .AllowAnyMethod();
-        });
+    options.AddPolicy(name: AllowSpecificOrigins, policy =>
+    {
+        policy.WithOrigins("https://localhost:5001")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
-builder.Services.AddControllers();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// ✅ AddControllers gộp 1 lần duy nhất, cấu hình đầy đủ
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+        options.JsonSerializerOptions.Converters.Add(new NullableDateOnlyJsonConverter());
+    })
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+    });
+
+// Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo()
+    c.SwaggerDoc("v1", new OpenApiInfo()
     {
         Title = "Example API",
         Version = "v1",
@@ -37,8 +50,12 @@ builder.Services.AddSwaggerGen(c =>
         },
     });
 });
-builder.Services.AddDbContext<AssignmentDBContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DBContext")));
-//builder.Services.AddScoped<IChiTietKhuyenMaiServices,ChiTietKhuyenMaiServices>();
+
+// DbContext
+builder.Services.AddDbContext<AssignmentDBContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBContext")));
+
+// DI Services
 builder.Services.AddScoped<IChiTietGioHangServices, ChiTietGioHangServices>();
 builder.Services.AddScoped<IGioHangServices, GioHangServices>();
 builder.Services.AddScoped<IQuyDoiDiemServices, QuyDoiDiemServices>();
@@ -53,14 +70,26 @@ builder.Services.AddScoped<ISanPhamService, SanPhamService>();
 builder.Services.AddScoped<IVoucherServices, VoucherServices>();
 builder.Services.AddScoped<IThongKeService, ThongKeService>();
 builder.Services.AddScoped<IVaiTroService, VaiTroSevice>();
+builder.Services.AddScoped<AssignmentDBContext>();
+builder.Services.AddHttpClient<GHNService>();
 
+// Mail settings
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+builder.Services.AddScoped<IMailServices, MailServices>();
 builder.Services.AddTransient<IMailServices, MailServices>();
+builder.Services.AddScoped<EmailService>();
+builder.Services.AddDataProtection();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(cfg =>
+{
+    cfg.IdleTimeout = TimeSpan.FromHours(1);
+    cfg.Cookie.HttpOnly = true;
+    cfg.Cookie.IsEssential = true;
+});
 
-builder.Services.AddControllersWithViews().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Swagger UI
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -70,16 +99,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseSwagger();
-app.UseSwaggerUI(option =>
-{
-    option.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-});
-
+// Middlewares
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
 app.UseCors(AllowSpecificOrigins);
+app.UseAuthorization();
+app.UseSession();
+app.MapControllers();
 app.Run();

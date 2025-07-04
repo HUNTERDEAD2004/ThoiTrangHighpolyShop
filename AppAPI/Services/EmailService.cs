@@ -64,7 +64,7 @@ namespace AppAPI.Services
             await SendEmailAsync(email, subject, body);
         }
 
-        private async Task SendEmailAsync(string toEmail, string subject, string body)
+       public async Task SendEmailAsync(string toEmail, string subject, string body)
         {
             var mailSettings = _configuration.GetSection("MailSettings");
 

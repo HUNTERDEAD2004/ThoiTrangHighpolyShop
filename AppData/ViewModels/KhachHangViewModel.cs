@@ -22,7 +22,9 @@ namespace AppData.ViewModels
 
         public int? GioiTinh { get; set; } // 0: Nam, 1: Nữ
 
-        public DateTime? NgaySinh { get; set; }
+        public string? NgaySinh { get; set; }
+
+        public string? DiaChi { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập tên")]
         public string? Ten { get; set; }
@@ -31,11 +33,17 @@ namespace AppData.ViewModels
         [RegularExpression(@"^0[0-9]{9}$", ErrorMessage = "Số điện thoại không hợp lệ")]
         public string? SDT { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
-        [MinLength(8, ErrorMessage = "Mật khẩu phải ít nhất 8 ký tự")]
+       // public string? DiaChi { get; set; }
+
+        public string? Tinh { get; set; }
+        public string? Huyen { get; set; }
+        public string? Quan { get; set; }
+        public string? Xa { get; set; }
+        public string? DiaChiChiTiet { get; set; }
+
+       
         public string? Password { get; set; }
-        [Required(ErrorMessage = "Vui lòng nhập lại mật khẩu")]
-        [Compare("Password", ErrorMessage = "Mật khẩu và nhập lại mật khẩu không khớp")]
+      
         public string? ConfirmPassword { get; set; }
         public int? DiemTich { get; set; }
         public int? TrangThai { get; set; }

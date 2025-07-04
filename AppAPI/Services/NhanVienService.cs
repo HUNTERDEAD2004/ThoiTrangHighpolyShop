@@ -55,7 +55,7 @@ namespace AppAPI.Services
             }
         }
 
-        public bool Update(Guid id, string ten, string email, string manhanvien, DateTime ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
+        public bool Update(Guid id, string ten, string email, string manhanvien, DateOnly ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
         {
             try
             {
@@ -154,7 +154,7 @@ namespace AppAPI.Services
                     Ten = model.Ten, 
                     Email = model.Email.Trim(),
                     MaNhanVien = model.MaNhanVien,
-                    NgaySinh = model.NgaySinh ?? DateTime.Now,
+                    NgaySinh = model.NgaySinh ,
                     GioiTinh = model.GioiTinh ?? 1,
                     PassWord = MaHoaMatKhau(model.Password),
                     SDT = model.SDT.Trim(),

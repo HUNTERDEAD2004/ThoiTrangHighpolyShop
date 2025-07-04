@@ -1,106 +1,330 @@
-﻿@model AppData.ViewModels.KhachHangView
+﻿@model AppData.ViewModels.KhachHangViewModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Thêm khách hàng";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
-    AppData.Models.AssignmentDBContext dbcontext = new AppData.Models.AssignmentDBContext();
 }
 
-<h1>Thêm khách hàng</h1>
+<div class="container-fluid">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i> Thêm khách hàng mới</h4>
+        </div>
 
-
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            
-            <div class="form-group">
-                <label  class="control-label">Tên khách hàng</label>
-                <input asp-for="Ten" class="form-control" />
-                <span asp-validation-for="Ten" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label  class="control-label">Mật khẩu </label>
-                <input type="password" asp-for="Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-                <span class="text-danger">@ViewBag.MatKhau</span>
-              
-                
-            </div>
-            <div class="form-group">
-                <label class="control-label">Nhập lại mật khẩu </label>
-                <input type="password" name="nhaplai" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-                
-                <span class="text-danger">@ViewBag.NhapLai</span>
-            </div>
-            <div class="form-group">
-                <label class="control-label">Giới tính</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="gioiTinh" value="1" asp-for="GioiTinh">
-                    <label class="form-check-label" for="flexRadioDefault1">
-                        Nam
-                    </label>
+        <div class="card-body">
+            <!-- Hiển thị thông báo lỗi và thành công -->
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    @ViewBag.Error
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="gioiTinh" value="0" asp-for="GioiTinh">
-                    <label class="form-check-label" for="flexRadioDefault2">
-                        Nữ
-                    </label>
-                </div>
-            </div>
-            <div class="form-group">
-                <label  class="control-label">Ngày sinh</label>
-                <input asp-for="NgaySinh" class="form-control" />
-               
-            </div>
-            <div class="form-group">
-                <label  class="control-label">Email</label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-                <span class="text-danger">@ViewBag.email</span>
-               
-               
-            </div>
-            <div class="form-group">
-                <label  class="control-label">Địa chỉ</label>
-                <input asp-for="DiaChi" class="form-control" />
-                <span asp-validation-for="DiaChi" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label  class="control-label">Số điện thoại</label>
-                <input asp-for="SDT" class="form-control" />
-                <span asp-validation-for="SDT" class="text-danger"></span>
-                <span class="text-danger">@ViewBag.SDT</span>
-                
-               
-            </div>
-            <div class="form-group">
-                <label class="control-label">Mã Khách Hàng</label>
-                <input asp-for="MaKhachHang" class="form-control" />
-                <span asp-validation-for="MaKhachHang" class="text-danger"></span>
-                <span class="text-danger">@ViewBag.MaKhachHang</span>
+            }
 
-            </div>
-            @*<div class="form-group">
-                <label class="control-label">Điểm tích</label>
-                <input asp-for="DiemTich" class="form-control" />
-                <span asp-validation-for="DiemTich" class="text-danger"></span>
-            </div>*@
-            <div class="form-group">
-                <input type="submit" value="Thêm khách hàng" class="btn btn-success" />
-            </div>
-        </form>
+            @if (ViewBag.Success != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @ViewBag.Success
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Tên khách hàng <span class="text-danger">*</span></label>
+                            <input asp-for="Ten" class="form-control" placeholder="Nhập tên khách hàng" required />
+                            <span class="text-danger" asp-validation-for="Ten"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="example@email.com" required />
+                            <span class="text-danger" asp-validation-for="Email"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                            <input asp-for="SDT" class="form-control" placeholder="0123456789" required />
+                            <span class="text-danger" asp-validation-for="SDT"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ngày sinh</label>
+                            <input asp-for="NgaySinh" type="date" class="form-control" />
+                            <span class="text-danger" asp-validation-for="NgaySinh"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Giới tính</label><br />
+                            <div class="form-check form-check-inline">
+                                <input asp-for="GioiTinh" class="form-check-input" type="radio" value="1" id="gioiTinhNam" />
+                                <label class="form-check-label" for="gioiTinhNam">Nam</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input asp-for="GioiTinh" class="form-check-input" type="radio" value="0" id="gioiTinhNu" />
+                                <label class="form-check-label" for="gioiTinhNu">Nữ</label>
+                            </div>
+                        </div>
+
+                        <!-- Bỏ phần mật khẩu vì Controller không validate và API tự tạo -->
+                        <!-- Theo comment trong Controller: "Không cần password và mã KH vì API tự tạo" -->
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Tỉnh / Thành phố <span class="text-danger">*</span></label>
+                            <select id="tinh" class="form-select" required>
+                                <option disabled selected>Chọn tỉnh / thành</option>
+                            </select>
+                            <input asp-for="Tinh" type="hidden" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Quận / Huyện <span class="text-danger">*</span></label>
+                            <select id="huyen" class="form-select" required>
+                                <option disabled selected>Chọn quận / huyện</option>
+                            </select>
+                            <input asp-for="Huyen" type="hidden" />
+                            <input asp-for="Quan" type="hidden" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Phường / Xã <span class="text-danger">*</span></label>
+                            <select id="xa" class="form-select" required>
+                                <option disabled selected>Chọn phường / xã</option>
+                            </select>
+                            <input asp-for="Xa" type="hidden" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                            <textarea asp-for="DiaChiChiTiet" class="form-control" rows="3" placeholder="Số nhà, tên đường..." required></textarea>
+                            <span class="text-danger" asp-validation-for="DiaChiChiTiet"></span>
+                        </div>
+
+                        <div class="mb-3" hidden>
+                            <label class="form-label">Trạng thái</label>
+                            <select asp-for="TrangThai" class="form-select">
+                                <option value="1" selected>Hoạt động</option>
+                                <option value="0">Không hoạt động</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i> 
+                    <strong>Lưu ý:</strong> Hệ thống sẽ tự động tạo mã khách hàng và mật khẩu. Thông tin đăng nhập sẽ được gửi qua email sau khi đăng ký thành công.
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="GetAllKhachHang" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i> Quay lại
+                    </a>
+                    <button type="submit" class="btn btn-success" id="btnSubmit">
+                        <i class="fas fa-plus me-2"></i> Thêm khách hàng
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<br />
-<button class="btn btn-primary">
-    <a asp-action="GetAllKhachHang" style="color:white;">Quay lại</a>
-</button>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        const baseUrl = "https://localhost:7095/api/ghn";
+
+        $(document).ready(function() {
+            // Load tỉnh thành
+            loadProvinces();
+
+            // Validate form trước khi submit
+            $('#btnSubmit').click(function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                }
+            });
+
+            // Load huyện khi chọn tỉnh
+            $('#tinh').change(function() {
+                loadDistricts($(this).val(), $(this).find(':selected').data('name'));
+            });
+
+            // Load xã khi chọn huyện
+            $('#huyen').change(function() {
+                loadWards($(this).val(), $(this).find(':selected').data('name'));
+            });
+
+            // Set xã name
+            $('#xa').change(function() {
+                const wardName = $(this).find(':selected').data('name');
+                $('[name="Xa"]').val(wardName);
+            });
+        });
+
+        async function loadProvinces() {
+            try {
+                const provinces = await $.get(`${baseUrl}/provinces`);
+                $('#tinh').empty().append('<option disabled selected>Chọn tỉnh / thành</option>');
+                provinces.forEach(p => {
+                    $('#tinh').append(`<option value="${p.ProvinceID}" data-name="${p.ProvinceName}">${p.ProvinceName}</option>`);
+                });
+            } catch (error) {
+                console.error('Lỗi tải danh sách tỉnh:', error);
+                showAlert('Không thể tải danh sách tỉnh thành. Vui lòng thử lại.', 'danger');
+            }
+        }
+
+        async function loadDistricts(provinceId, provinceName) {
+            if (!provinceId) return;
+
+            $('[name="Tinh"]').val(provinceName);
+            $('#huyen').empty().append('<option disabled selected>Đang tải...</option>');
+            $('#xa').empty().append('<option disabled selected>Chọn phường / xã</option>');
+
+            try {
+                const districts = await $.get(`${baseUrl}/districts/${provinceId}`);
+                $('#huyen').empty().append('<option disabled selected>Chọn quận / huyện</option>');
+                districts.forEach(d => {
+                    $('#huyen').append(`<option value="${d.districtID}" data-name="${d.districtName}">${d.districtName}</option>`);
+                });
+            } catch (error) {
+                console.error('Lỗi tải danh sách huyện:', error);
+                $('#huyen').empty().append('<option disabled selected>Lỗi tải dữ liệu</option>');
+            }
+        }
+
+        async function loadWards(districtId, districtName) {
+            if (!districtId) return;
+
+            $('[name="Huyen"]').val(districtName);
+            $('[name="Quan"]').val(districtId);
+            $('#xa').empty().append('<option disabled selected>Đang tải...</option>');
+
+            try {
+                const wards = await $.get(`${baseUrl}/wards/${districtId}`);
+                $('#xa').empty().append('<option disabled selected>Chọn phường / xã</option>');
+                wards.forEach(w => {
+                    $('#xa').append(`<option value="${w.wardCode}" data-name="${w.wardName}">${w.wardName}</option>`);
+                });
+            } catch (error) {
+                console.error('Lỗi tải danh sách xã:', error);
+                $('#xa').empty().append('<option disabled selected>Lỗi tải dữ liệu</option>');
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+            const requiredFields = ['Ten', 'Email', 'SDT', 'DiaChiChiTiet'];
+            
+            requiredFields.forEach(field => {
+                const input = $(`[name="${field}"]`);
+                if (!input.val() || input.val().trim() === '') {
+                    input.addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    input.removeClass('is-invalid');
+                }
+            });
+
+            // Validate địa chỉ
+            if (!$('[name="Tinh"]').val()) {
+                $('#tinh').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#tinh').removeClass('is-invalid');
+            }
+
+            if (!$('[name="Huyen"]').val()) {
+                $('#huyen').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#huyen').removeClass('is-invalid');
+            }
+
+            if (!$('[name="Xa"]').val()) {
+                $('#xa').addClass('is-invalid');
+                isValid = false;
+            } else {
+                $('#xa').removeClass('is-invalid');
+            }
+
+            if (!isValid) {
+                showAlert('Vui lòng điền đầy đủ thông tin bắt buộc!', 'warning');
+            }
+
+            return isValid;
+        }
+
+        function showAlert(message, type) {
+            const alert = $(`
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+            $('.card-body').prepend(alert);
+            
+            // Auto dismiss after 5 seconds
+            setTimeout(() => {
+                alert.fadeOut();
+            }, 5000);
+        }
+
+       
+        // Phone validation
+        $('[name="SDT"]').on('blur', function() {
+            const phone = $(this).val();
+            const phoneRegex = /^[0-9]{10,11}$/;
+            
+            if (phone && !phoneRegex.test(phone)) {
+                $(this).addClass('is-invalid');
+                showAlert('Số điện thoại không hợp lệ! (10-11 chữ số)', 'warning');
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+    </script>
+
+    <style>
+        .is-invalid {
+            border-color: #dc3545;
+        }
+        
+        .form-select.is-invalid {
+            border-color: #dc3545;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .card-header {
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .btn {
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        
+        .alert {
+            border-radius: 5px;
+        }
+    </style>
 }
-    

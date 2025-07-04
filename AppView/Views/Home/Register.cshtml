@@ -1,183 +1,187 @@
-@* @model AppData.ViewModels.KhachHangViewModel *@
+    @model AppData.ViewModels.KhachHangViewModel
 
-@* @{ *@
-@*     ViewData["Title"] = "Register"; *@
-@*     Layout = "_Layout"; *@
-@* } *@
+    @{
+        ViewData["Title"] = "Register";
+        Layout = "_Layout";
+    }
 
-@* <div class="row" style="margin-top:10px"> *@
-@*     <div class=col-4></div> *@
-@*     <div class="col-4"> *@
-@*         <h3 style="text-align:center;margin-bottom:10px"><strong>Đăng ký</strong></h3> *@
-@*         <div class="tab-content" style="border-radius: 1rem;"> *@
-@*             <div class="tab-pane fade show active" id="pills-login" role="tabpanel" aria-labelledby="tab-login"> *@
-@*                 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage)) *@
-@*                 { *@
-@*                     <div class="alert alert-danger" role="alert"> *@
-@*                         @ViewBag.ErrorMessage *@
-@*                     </div> *@
-@*                 } *@
-@*                 <form asp-action="Register" id="registerForm"> *@
-@*                     <div asp-validation-summary="ModelOnly" class="text-danger"></div> *@
-@*                     <div class="form-group"> *@
-@*                         <label asp-for="Email" class="control-label">Email</label> *@
-@*                         <input asp-for="Email" class="form-control" /> *@
-@*                         <span asp-validation-for="Email" class="text-danger"></span> *@
-@*                     </div> *@
-@*                     <div class="form-group"> *@
-@*                         <label asp-for="Ten" class="control-label">Tên</label> *@
-@*                         <input asp-for="Ten" class="form-control" /> *@
-@*                         <span asp-validation-for="Ten" class="text-danger"></span> *@
-@*                     </div> *@
-@*                     <div class="form-group"> *@
-@*                         <label asp-for="SDT" class="control-label">SDT</label> *@
-@*                         <input asp-for="SDT" class="form-control" /> *@
-@*                         <span asp-validation-for="SDT" class="text-danger"></span> *@
-@*                     </div> *@
-@*                     <div class="form-group"> *@
-@*                         <label asp-for="Password" class="control-label">Mật khẩu</label> *@
-@*                         <input asp-for="Password" type="password" class="form-control" /> *@
-@*                         <span asp-validation-for="Password" class="text-danger"></span> *@
-@*                     </div> *@
-@*                     <div class="form-group"> *@
-@*                         <label asp-for="ConfirmPassword" class="control-label">Nhập lại mật khẩu</label> *@
-@*                         <input asp-for="ConfirmPassword" type="password" class="form-control" /> *@
-@*                         <span asp-validation-for="ConfirmPassword" class="text-danger"></span> *@
-@*                     </div> *@
-@*                     <input type="hidden" asp-for="DiemTich" value="0" /> *@
-@*                     <input type="hidden" asp-for="TrangThai" value="1" /> *@
-@*                     <div class="form-group"> *@
-@*                         <button type="submit" class="btn btn-primary btn-block mb-4">Đăng ký</button> *@
-@*                     </div> *@
-@*                     <div class="text-center"> *@
-@*                         <p>Bạn đã có tài khoản<a asp-action="Login"> Đăng nhập</a></p> *@
-@*                     </div> *@
-@*                 </form> *@
+    <div class="row mt-3">
+        <div class="col-lg-4 col-md-3 col-sm-1"></div>
+        <div class="col-lg-4 col-md-6 col-sm-10">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="text-center mb-4"><strong>Đăng ký tài khoản</strong></h3>
 
-@*             </div> *@
+                    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @ViewBag.ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
 
-@*         </div> *@
-@*         <div class=col-4></div> *@
-@*     </div> *@
-@* </div> *@
-@* <script> *@
-@*     $(document).ready(function () { *@
-@*         $("#successMessageButton").on("click", function () { *@
-@*             window.location.href = "/Login"; *@
-@*         }); *@
-@*     }); *@
-@* </script> *@
+                    <form asp-action="Register" id="registerForm" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input asp-for="Email" class="form-control" placeholder="example@email.com" required />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
 
-@* @section Scripts { *@
-@*     @{ *@
-@*         await Html.RenderPartialAsync("_ValidationScriptsPartial"); *@
-@*     } *@
-@* } *@
+                        <!-- Full Name -->
+                        <div class="mb-3">
+                            <label asp-for="Ten" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                            <input asp-for="Ten" class="form-control" placeholder="Nguyễn Văn A" required />
+                            <span asp-validation-for="Ten" class="text-danger small"></span>
+                        </div>
 
+                        <!-- Phone Number -->
+                        <div class="mb-3">
+                            <label asp-for="SDT" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                            <input asp-for="SDT" class="form-control" placeholder="0123456789" required />
+                            <span asp-validation-for="SDT" class="text-danger small"></span>
+                        </div>
 
-@model AppData.ViewModels.KhachHangViewModel
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Tối thiểu 6 ký tự" required />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
 
-@{
-    ViewData["Title"] = "Register";
-    Layout = "_Layout";
-}
+                        <!-- Confirm Password -->
+                        <div class="mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label">Nhập lại mật khẩu <span class="text-danger">*</span></label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" required />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
 
-<div class="row mt-3">
-    <div class="col-4"></div>
-    <div class="col-4">
-        <h3 class="text-center mb-3"><strong>Đăng ký</strong></h3>
+                        <!-- Optional Information Card -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">                      
+                                <!-- Gender -->
+                                <div class="mb-3">
+                                    <label class="form-label">Giới tính</label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="GioiTinh" value="1" asp-for="GioiTinh" id="gioiTinhNam">
+                                            <label class="form-check-label" for="gioiTinhNam">Nam</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="GioiTinh" value="0" asp-for="GioiTinh" id="gioiTinhNu">
+                                            <label class="form-check-label" for="gioiTinhNu">Nữ</label>
+                                        </div>
+                                    </div>
+                                </div>
 
-        <div class="tab-content" style="border-radius: 1rem;">
-            @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-            {
-                <div class="alert alert-danger" role="alert">
-                    @ViewBag.ErrorMessage
+                                <!-- Birth Date -->
+                                <div class="mb-3">
+                                    <label asp-for="NgaySinh" class="form-label">Ngày sinh</label>
+                                    <input asp-for="NgaySinh" type="date" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    <span asp-validation-for="NgaySinh" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden Fields -->
+                        <input type="hidden" asp-for="DiemTich" value="0" />
+                        <input type="hidden" asp-for="TrangThai" value="1" />
+                        <input type="hidden" asp-for="Tinh" value="" />
+                        <input type="hidden" asp-for="Huyen" value="" />
+                        <input type="hidden" asp-for="Quan" value="" />
+                        <input type="hidden" asp-for="Xa" value="" />
+                        <input type="hidden" asp-for="DiaChiChiTiet" value="" />
+
+                        <!-- Terms Agreement -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                Tôi đồng ý với <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#termsModal">Điều khoản sử dụng</a>
+                            </label>
+                            <div class="invalid-feedback">Bạn phải đồng ý với điều khoản sử dụng</div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary py-2" id="btnSubmit">
+                                <i class="fas fa-user-plus me-2"></i> Đăng ký
+                            </button>
+                        </div>
+
+                        <!-- Login Link -->
+                        <div class="text-center">
+                            <p class="mb-0">Đã có tài khoản? <a asp-action="Login" class="text-decoration-none fw-bold">Đăng nhập ngay</a></p>
+                        </div>
+                    </form>
                 </div>
-            }
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-3 col-sm-1"></div>
+    </div>
 
-            <form asp-action="Register" id="registerForm">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                <!-- Email -->
-                <div class="form-group">
-                    <label asp-for="Email" class="control-label">Email</label>
-                    <input asp-for="Email" class="form-control" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
+    <!-- Terms Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title" id="termsModalLabel">Điều khoản sử dụng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-
-                <!-- Tên -->
-                <div class="form-group">
-                    <label asp-for="Ten" class="control-label">Tên</label>
-                    <input asp-for="Ten" class="form-control" />
-                    <span asp-validation-for="Ten" class="text-danger"></span>
+                <div class="modal-body">
+                    <p>Bằng cách đăng ký tài khoản, bạn đồng ý:</p>
+                    <ul>
+                        <li>Cung cấp thông tin chính xác và cập nhật</li>
+                        <li>Bảo mật thông tin đăng nhập</li>
+                        <li>Tuân thủ các quy định của website</li>
+                        <li>Chịu trách nhiệm về các hoạt động trên tài khoản</li>
+                    </ul>
                 </div>
-                <!-- Giới tính -->
-                <div class="form-group">
-                    <label class="control-label">Giới tính</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gioiTinh" value="1" asp-for="GioiTinh">
-                        <label class="form-check-label" for="flexRadioDefault1">
-                            Nam
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gioiTinh" value="0" asp-for="GioiTinh">
-                        <label class="form-check-label" for="flexRadioDefault2">
-                            Nữ
-                        </label>
-                    </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Tôi hiểu</button>
                 </div>
-
-                <!-- Ngày sinh -->
-                <div class="form-group">
-                    <label asp-for="NgaySinh" class="control-label">Ngày sinh</label>
-                    <input asp-for="NgaySinh" type="date" class="form-control" />
-                    <span asp-validation-for="NgaySinh" class="text-danger"></span>
-                </div>
-                <!-- SĐT -->
-                <div class="form-group">
-                    <label asp-for="SDT" class="control-label">Số điện thoại</label>
-                    <input asp-for="SDT" class="form-control" />
-                    <span asp-validation-for="SDT" class="text-danger"></span>
-                </div>
-
-                <!-- Mật khẩu -->
-                <div class="form-group">
-                    <label asp-for="Password" class="control-label">Mật khẩu</label>
-                    <input asp-for="Password" type="password" class="form-control" />
-                    <span asp-validation-for="Password" class="text-danger"></span>
-                </div>
-
-                <!-- Nhập lại mật khẩu -->
-                <div class="form-group">
-                    <label asp-for="ConfirmPassword" class="control-label">Nhập lại mật khẩu</label>
-                    <input asp-for="ConfirmPassword" type="password" class="form-control" />
-                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                </div>
-
-              
-
-                <!-- Hidden Fields -->
-                <input type="hidden" asp-for="DiemTich" value="0" />
-                <input type="hidden" asp-for="TrangThai" value="1" />
-
-                <!-- Submit -->
-                <div class="form-group mt-3">
-                    <button type="submit" class="btn btn-primary btn-block">Đăng ký</button>
-                </div>
-
-                <div class="text-center mt-2">
-                    <p>Bạn đã có tài khoản? <a asp-action="Login">Đăng nhập</a></p>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
-    <div class="col-4"></div>
-</div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    @section Scripts {
+        @await Html.PartialAsync("_ValidationScriptsPartial")
+        <script>
+            $(document).ready(function() {
+                // Client-side validation
+                $('#registerForm').on('submit', function(e) {
+                    const form = this;
+
+                    if (!form.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+
+                    $(form).addClass('was-validated');
+                });
+
+                // Phone number validation
+                $('[name="SDT"]').on('input', function() {
+                    const phone = $(this).val();
+                    if (!/^[0-9]{10,11}$/.test(phone)) {
+                        $(this).addClass('is-invalid');
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
+
+                // Password match validation
+                $('[name="ConfirmPassword"]').on('input', function() {
+                    const password = $('[name="Password"]').val();
+                    const confirmPassword = $(this).val();
+
+                    if (password !== confirmPassword) {
+                        $(this).addClass('is-invalid');
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
+            });
+        </script>
     }
-}

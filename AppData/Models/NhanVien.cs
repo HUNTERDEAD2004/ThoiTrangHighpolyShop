@@ -25,7 +25,7 @@ namespace AppData.Models
         [StringLength(250, ErrorMessage = "Địa chỉ không được vượt quá 250 kí tự ")]
         public string? DiaChi { get; set; }
         public string? MaNhanVien { get; set; }
-        public DateTime? NgaySinh { get; set; }
+        public DateOnly? NgaySinh { get; set; }
         public int? GioiTinh { get; set; } // Nam, Nữ
         public int? TrangThai { get; set; }
         public Guid IDVaiTro { get; set; }

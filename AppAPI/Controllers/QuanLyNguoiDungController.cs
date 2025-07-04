@@ -6,6 +6,7 @@ using AppData.ViewModels.QLND;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Configuration;
 using System.ComponentModel.DataAnnotations;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -17,11 +18,20 @@ namespace AppAPI.Controllers
     public class QuanLyNguoiDungController : ControllerBase
     {
         private IQuanLyNguoiDungService service;
+        private readonly IConfiguration _configuration;
+        private readonly EmailService mailService;
+     
 
-        public QuanLyNguoiDungController()
+        public QuanLyNguoiDungController(
+            IQuanLyNguoiDungService service,
+            IConfiguration configuration,
+            EmailService mailService)
         {
-            this.service = new QuanLyNguoiDungService();
+            this.service = service;
+            _configuration = configuration;
+            this.mailService = mailService;
         }
+
 
         // POST api/<DangNhapController>
         [HttpGet("DangNhap")]
@@ -43,19 +53,7 @@ namespace AppAPI.Controllers
         }
 
 
-        // POST api/<DangKyController>
-        //[HttpPost("DangKyNhanVien")]
-        //public async Task<IActionResult> DangKyNhanVien(NhanVienViewModel nhanVien)
-        //{
-        //    var nv = await service.RegisterNhanVien(nhanVien);
-        //    if (nv == null)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    return Ok("Đăng ký thành công");
-        //}
-        //POST api/<DangKyController>
+     
 
 
 
@@ -95,19 +93,7 @@ namespace AppAPI.Controllers
             }
         }
 
-        //[HttpPut("DoiMatKhauNhanVien")]
-        //public async Task<IActionResult> DoiMatKhauNV(string email, string oldPassword,string newPassword)
-        //{
-        //    var dmk = await service.ChangePasswordNhanVien(email, oldPassword, newPassword);
-        //    if (!dmk)
-        //    {
-        //        return Ok("Đổi mật khẩu thành công");
-        //    }
-        //    else
-        //    {
-        //        return BadRequest("Đổi mật khẩu không thành công");
-        //    }
-        //}
+
         [HttpPut("DoiMatKhau")]
         public async Task<IActionResult> DoiMatKhau(string email, string oldPassword, string newPassword)
         {

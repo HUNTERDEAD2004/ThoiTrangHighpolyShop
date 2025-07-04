@@ -26,7 +26,7 @@ namespace AppData.ViewModels
     
         public int? GioiTinh { get; set; }
        
-        public DateTime? NgaySinh { get; set; }
+        public DateOnly NgaySinh { get; set; }
         [EmailAddress]
        
         public string Email { get; set; }

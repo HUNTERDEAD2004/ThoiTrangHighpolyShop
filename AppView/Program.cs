@@ -13,8 +13,14 @@ builder.Services.AddSession(cfg =>
 {
     cfg.IdleTimeout = new TimeSpan(1,0,0);
 });
-var app = builder.Build();
 
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+    options.JsonSerializerOptions.Converters.Add(new NullableDateOnlyJsonConverter());
+});
+
+var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -28,14 +34,14 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthorization();
 
-app.UseSession();
+
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=NhanVien}/{action=Show}");
+    pattern: "{controller=Home}/{action=Register}");
 
 IWebHostEnvironment env = app.Environment;
 Rotativa.AspNetCore.RotativaConfiguration.Setup(env.WebRootPath, "../Rotativa/Windows");

@@ -3,10 +3,9 @@ using AppData.IRepositories;
 using AppData.Models;
 using AppData.Repositories;
 using AppData.ViewModels;
+using AppData.ViewModels.Mail;
 using AppData.ViewModels.QLND;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.Ocsp;
-using Org.BouncyCastle.Crypto.Generators;
 using System.Net;
 using System.Net.Mail;
 
@@ -15,15 +14,21 @@ namespace AppAPI.Services
 {
     public class QuanLyNguoiDungService : IQuanLyNguoiDungService
     {
+        private readonly AssignmentDBContext context;
         private readonly IAllRepository<NhanVien> reposNV;
         private readonly IAllRepository<KhachHang> reposKH;
-        AssignmentDBContext context = new AssignmentDBContext();
+        private readonly EmailService mailService;
 
-        public QuanLyNguoiDungService()
+        public QuanLyNguoiDungService(
+            AssignmentDBContext _context,
+            EmailService _mailService)
         {
+            context = _context;
             reposNV = new AllRepository<NhanVien>(context, context.NhanViens);
             reposKH = new AllRepository<KhachHang>(context, context.KhachHangs);
+            mailService = _mailService;
         }
+
         public async Task<bool> ForgetPassword(string email)
         {
             try
@@ -165,7 +170,6 @@ namespace AppAPI.Services
                     EnableSsl = true,
                     Credentials = new NetworkCredential("tuanbaph34984@fpt.edu.vn", "dgjeixgeoxjysujz")
                 };
-
                 var mail = new MailMessage
                 {
                     From = new MailAddress("tuanbaph34984@fpt.edu.vn"),
@@ -173,7 +177,6 @@ namespace AppAPI.Services
                     Body = body
                 };
                 mail.To.Add(email);
-
                 await smtpClient.SendMailAsync(mail);
                 return true;
             }
@@ -213,58 +216,59 @@ namespace AppAPI.Services
         }
 
 
-        public async Task<LoginViewModel> Login(string lg, string password)
-        {
-            try
+            public async Task<LoginViewModel> Login(string lg, string password)
             {
-                // Tìm nhân viên đầu tiên
-                var nv = await context.NhanViens.FirstOrDefaultAsync(a => a.Email == lg || a.SDT == lg);
-
-                if (nv != null)
+                try
                 {
-                    if (KiemTraMatKhau(password, nv.PassWord))
+                    // Tìm nhân viên đầu tiên
+                    var nv = await context.NhanViens.FirstOrDefaultAsync(a => a.Email == lg || a.SDT == lg);
+
+                    if (nv != null)
                     {
-                        if (nv.TrangThai == 1)
+                        if (KiemTraMatKhau(password, nv.PassWord))
                         {
-                            return new LoginViewModel
+                            if (nv.TrangThai == 1)
                             {
-                                Id = nv.ID,
-                                Email = nv.Email,
-                                Ten = nv.Ten,
-                                SDT = nv.SDT,
-                                DiaChi = nv.DiaChi,
-                                vaiTro = 0, // Nhân viên
-                                IsAccountLocked = false,
-                                Message = "Đăng nhập thành công"
-                            };
+                                return new LoginViewModel
+                                {
+                                    Id = nv.ID,
+                                    Email = nv.Email,
+                                    Ten = nv.Ten,
+                                    SDT = nv.SDT,
+                                    DiaChi = nv.DiaChi,
+                                    vaiTro = 0, // Nhân viên
+                                    IsAccountLocked = false,
+                                    Message = "Đăng nhập thành công"
+                                };
+                            }
+                            else
+                            {
+                                return new LoginViewModel
+                                {
+                                    IsAccountLocked = true,
+                                    Message = "Tài khoản nhân viên đã bị khóa.",
+                                    vaiTro = 0
+                                };
+                            }
                         }
                         else
                         {
                             return new LoginViewModel
                             {
-                                IsAccountLocked = true,
-                                Message = "Tài khoản nhân viên đã bị khóa.",
+                                Message = "Mật khẩu không đúng.",
                                 vaiTro = 0
                             };
                         }
                     }
-                    else
+
+                    // Nếu không phải nhân viên thì tìm khách hàng
+                    var kh = await context.KhachHangs.FirstOrDefaultAsync(x => x.Email == lg || x.SDT == lg);
+
+                    if (kh != null)
                     {
-                        return new LoginViewModel
+                        if (KiemTraMatKhau(password, kh.Password))
                         {
-                            Message = "Mật khẩu không đúng.",
-                            vaiTro = 0
-                        };
-                    }
-                }
 
-                // Nếu không phải nhân viên thì tìm khách hàng
-                var kh = await context.KhachHangs.FirstOrDefaultAsync(x => x.Email == lg || x.SDT == lg);
-
-                if (kh != null)
-                {
-                    if (KiemTraMatKhau(password, kh.Password))
-                    {
                         return new LoginViewModel
                         {
                             Id = kh.IDKhachHang,
@@ -274,36 +278,36 @@ namespace AppAPI.Services
                             //DiaChi = kh.DiaChi,
                             DiemTich = kh.DiemTich,
                             GioiTinh = kh.GioiTinh,
-                            NgaySinh = kh.NgaySinh,
-                            vaiTro = 1, // Khách hàng
+                            NgaySinh = kh.NgaySinh?.ToString("yyyy-MM-dd"),
+                           vaiTro = 1, // Khách hàng
                             IsAccountLocked = false,
                             Message = "Đăng nhập thành công"
                         };
-                    }
-                    else
-                    {
-                        return new LoginViewModel
+                        }
+                        else
                         {
-                            Message = "Mật khẩu không đúng.",
-                            vaiTro = 1
-                        };
+                            return new LoginViewModel
+                            {
+                                Message = "Mật khẩu không đúng.",
+                                vaiTro = 1
+                            };
+                        }
                     }
-                }
 
-                // Không tìm thấy người dùng
-                return new LoginViewModel
+                    // Không tìm thấy người dùng
+                    return new LoginViewModel
+                    {
+                        Message = "Tài khoản không tồn tại."
+                    };
+                }
+                catch (Exception ex)
                 {
-                    Message = "Tài khoản không tồn tại."
-                };
+                    return new LoginViewModel
+                    {
+                        Message = $"Đã xảy ra lỗi hệ thống: {ex.Message}"
+                    };
+                }
             }
-            catch (Exception ex)
-            {
-                return new LoginViewModel
-                {
-                    Message = $"Đã xảy ra lỗi hệ thống: {ex.Message}"
-                };
-            }
-        }
 
         private string MaHoaMatKhau(string matKhau)
         {
@@ -326,49 +330,24 @@ namespace AppAPI.Services
             //return nhap == hashed;
         }
 
+        private async Task<string> GenerateNewMaKhachHang()
+        {
+            var lastMaKH = await context.KhachHangs
+                .Where(x => x.MaKhachHang.StartsWith("KH"))
+                .OrderByDescending(x => x.MaKhachHang)
+                .Select(x => x.MaKhachHang)
+                .FirstOrDefaultAsync();
 
+            int nextNumber = 1;
 
-        //public async Task<KhachHang> RegisterKhachHang(KhachHangViewModel khachHang)
-        //{
-        //    try
-        //    {
-        //        var existingKhachHang = await context.KhachHangs.FirstOrDefaultAsync(kh => kh.Email == khachHang.Email || kh.SDT == khachHang.SDT);
-        //        if (existingKhachHang != null)
-        //        {
-        //            return null; // Tài khoản đã tồn tại
-        //        }
-        //        KhachHang kh = new KhachHang()
-        //        {
-        //            IDKhachHang = Guid.NewGuid(),
-        //            Ten = khachHang.Ten,
-        //            Email = khachHang.Email,
-        //            MaKhachHang= khachHang.MaKhachHang?.Trim(),
-        //            GioiTinh = khachHang.GioiTinh,
-        //            NgaySinh = khachHang.NgaySinh,
-        //            //DiaChi = khachHang.DiaChi?.Trim(),
-        //            Password = MaHoaMatKhau(khachHang.Password),
-        //            SDT = khachHang.SDT,
-        //            DiemTich = 0,
-        //            TrangThai = 1,
-        //        };
-        //        await context.KhachHangs.AddAsync(kh);
-        //        GioHang gioHang = new GioHang()
-        //        {
-        //            IDKhachHang = kh.IDKhachHang,
-        //            NgayTao = DateTime.Now,
-        //        };
-        //        await context.GioHangs.AddAsync(gioHang);
-        //        await context.SaveChangesAsync();
-        //        return kh;
-        //    }
-        //    catch (Exception)
-        //    {
+            if (!string.IsNullOrEmpty(lastMaKH) && int.TryParse(lastMaKH.Substring(2), out int currentNumber))
+            {
+                nextNumber = currentNumber + 1;
+            }
 
-        //        throw;
-        //    }
+            return $"KH{nextNumber:D3}"; // VD: KH001
+        }
 
-
-        //}
 
         private string GenerateNumericCode(int length = 6)
         {
@@ -376,16 +355,25 @@ namespace AppAPI.Services
             return string.Concat(Enumerable.Range(0, length).Select(_ => random.Next(0, 10)));
         }
 
-
         public async Task<KhachHang> RegisterKhachHang(KhachHangViewModel khachHang)
         {
             try
             {
+                // Kiểm tra Email hoặc SDT đã tồn tại
                 var existingKhachHang = await context.KhachHangs
                     .FirstOrDefaultAsync(kh => kh.Email == khachHang.Email || kh.SDT == khachHang.SDT);
 
                 if (existingKhachHang != null)
-                    return null; // Email hoặc SDT đã tồn tại
+                    return null; // Trùng email hoặc số điện thoại
+
+                // Sinh mã khách hàng tự động
+                string maKH = await GenerateNewMaKhachHang();
+
+                // Parse ngày sinh nếu cần
+                DateOnly? ngaySinh = null;
+                if (!string.IsNullOrWhiteSpace(khachHang.NgaySinh))
+                    if (DateOnly.TryParse(khachHang.NgaySinh, out var parsed))
+                        ngaySinh = parsed;
 
                 // Tạo khách hàng mới
                 var kh = new KhachHang
@@ -393,9 +381,9 @@ namespace AppAPI.Services
                     IDKhachHang = Guid.NewGuid(),
                     Ten = khachHang.Ten,
                     Email = khachHang.Email,
-                    MaKhachHang = khachHang.MaKhachHang?.Trim(),
+                    MaKhachHang = maKH,
                     GioiTinh = khachHang.GioiTinh,
-                    NgaySinh = khachHang.NgaySinh,
+                    NgaySinh = ngaySinh,
                     Password = MaHoaMatKhau(khachHang.Password),
                     SDT = khachHang.SDT,
                     DiemTich = 0,
@@ -404,7 +392,7 @@ namespace AppAPI.Services
 
                 await context.KhachHangs.AddAsync(kh);
 
-                // Tạo giỏ hàng
+                // Tạo giỏ hàng mặc định
                 var gioHang = new GioHang
                 {
                     IDKhachHang = kh.IDKhachHang,
@@ -412,8 +400,8 @@ namespace AppAPI.Services
                 };
                 await context.GioHangs.AddAsync(gioHang);
 
-                // Tạo token xác minh
-                var token = GenerateNumericCode(); // ví dụ: 6 số
+                // Tạo mã xác thực
+                string token = GenerateNumericCode(); // mã 6 số
 
                 var tokenEntity = new EmailVerificationToken
                 {
@@ -425,10 +413,8 @@ namespace AppAPI.Services
 
                 await context.SaveChangesAsync();
 
-                // Gửi email xác nhận
-                string subject = "Xác nhận đăng ký tài khoản";
-                string body = $"Mã xác thực của bạn là: {token}\nMã này sẽ hết hạn sau 15 phút.";
-                await SendEmail(kh.Email, subject, body);
+                await SendVerificationCodeEmail(kh.Email, kh.Ten, token);
+
 
                 return kh;
             }
@@ -437,6 +423,59 @@ namespace AppAPI.Services
                 throw;
             }
         }
+
+
+        private async Task SendVerificationCodeEmail(string email, string ten, string token)
+        {
+            string subject = "🔐 Xác minh tài khoản - ThoiTrangHighpolyShop";
+            string body = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <title>Xác minh tài khoản</title>
+</head>
+<body style='margin:0;padding:0;font-family:Segoe UI, sans-serif;background:#f2f2f2;'>
+
+    <div style='max-width:600px;margin:30px auto;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);overflow:hidden;'>
+
+        <!-- Header -->
+        <div style='background:linear-gradient(135deg,#00c9ff,#92fe9d);padding:30px;text-align:center;color:#fff;'>
+            <h1 style='margin:0;font-size:24px;'>🎉 Xác minh tài khoản của bạn</h1>
+            <p style='margin:5px 0 0;'>Chào {ten}, cảm ơn bạn đã đăng ký!</p>
+        </div>
+
+        <!-- Body -->
+        <div style='padding:30px;text-align:center;'>
+            <p style='font-size:16px;color:#333;'>Để hoàn tất việc đăng ký tài khoản tại <strong>ThoiTrangHighpolyShop</strong>, vui lòng sử dụng mã xác thực bên dưới:</p>
+
+            <div style='font-size:32px;font-weight:bold;margin:20px auto;padding:10px 20px;border-radius:8px;display:inline-block;background:linear-gradient(135deg,#f6d365,#fda085);color:#fff;letter-spacing:4px;'>
+                {token}
+            </div>
+
+            <p style='font-size:14px;color:#888;'>Mã sẽ hết hạn sau <strong>15 phút</strong>. Vui lòng không chia sẻ mã này với người khác.</p>
+
+            <a href='#' style='margin-top:20px;display:inline-block;padding:12px 24px;background:#00c9ff;color:white;text-decoration:none;border-radius:25px;font-weight:bold;box-shadow:0 4px 10px rgba(0, 201, 255, 0.4);transition:all 0.3s ease;'>
+                🔑 Xác minh ngay
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div style='background:#2c3e50;color:white;padding:20px;text-align:center;font-size:12px;'>
+            <p style='margin:0;'>📧 Đây là email tự động, vui lòng không phản hồi.</p>
+            <p style='margin:5px 0 0;'>© 2025 ThoiTrangHighpolyShop. Mọi quyền được bảo lưu.</p>
+        </div>
+
+    </div>
+
+</body>
+</html>";
+
+            await mailService.SendEmailAsync(email, subject, body);
+          
+        }
+
+
 
         public async Task<bool> ConfirmEmail(string email, string token)
         {
@@ -568,7 +607,7 @@ namespace AppAPI.Services
             }
         }
 
-        
+
         public async Task<LoginViewModel> UpdateProfile(LoginViewModel loginViewModel)
         {
             try
@@ -579,10 +618,18 @@ namespace AppAPI.Services
                 {
                     kh.Ten = loginViewModel.Ten;
                     kh.SDT = loginViewModel.SDT;
-                    kh.NgaySinh = loginViewModel.NgaySinh;
-                    kh.GioiTinh = loginViewModel.GioiTinh;
                     kh.Email = loginViewModel.Email;
-                   
+                    kh.GioiTinh = loginViewModel.GioiTinh;
+
+                    if (!string.IsNullOrWhiteSpace(loginViewModel.NgaySinh) &&
+                        DateOnly.TryParse(loginViewModel.NgaySinh, out var parsedNgaySinh))
+                    {
+                        kh.NgaySinh = parsedNgaySinh;
+                    }
+                    else
+                    {
+                        kh.NgaySinh = null;
+                    }
 
                     await context.SaveChangesAsync();
 
@@ -594,8 +641,7 @@ namespace AppAPI.Services
                         SDT = kh.SDT,
                         DiemTich = kh.DiemTich,
                         GioiTinh = kh.GioiTinh,
-                        NgaySinh = kh.NgaySinh,
-                       
+                        NgaySinh = kh.NgaySinh?.ToString("yyyy-MM-dd"), // nếu trả về dạng string
                         vaiTro = 1
                     };
                 }
@@ -608,8 +654,17 @@ namespace AppAPI.Services
                     nv.SDT = loginViewModel.SDT;
                     nv.Email = loginViewModel.Email;
                     nv.DiaChi = loginViewModel.DiaChi;
-                    nv.NgaySinh = loginViewModel.NgaySinh;
                     nv.GioiTinh = loginViewModel.GioiTinh;
+
+                    if (!string.IsNullOrWhiteSpace(loginViewModel.NgaySinh) &&
+                        DateOnly.TryParse(loginViewModel.NgaySinh, out var parsedNgaySinhNV))
+                    {
+                        nv.NgaySinh = parsedNgaySinhNV;
+                    }
+                    else
+                    {
+                        nv.NgaySinh = null;
+                    }
 
                     await context.SaveChangesAsync();
 
@@ -620,7 +675,7 @@ namespace AppAPI.Services
                         Ten = nv.Ten,
                         SDT = nv.SDT,
                         GioiTinh = nv.GioiTinh,
-                        NgaySinh = nv.NgaySinh,
+                        NgaySinh = nv.NgaySinh?.ToString("yyyy-MM-dd"), // nếu cần string
                         DiaChi = nv.DiaChi,
                         vaiTro = 0
                     };
@@ -633,6 +688,7 @@ namespace AppAPI.Services
                 throw;
             }
         }
+
 
         public async Task<bool> AddNhanhKH(KhachHang kh)
         {

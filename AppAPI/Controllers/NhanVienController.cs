@@ -3,6 +3,11 @@ using AppAPI.Services;
 using AppData.Models;
 using AppData.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+
+
+
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -43,18 +48,7 @@ namespace AppAPI.Controllers
         }
 
 
-        // POST api/<NhanVienController>
-        //[HttpPost("DangKyNhanVien")]
-        //public async Task<IActionResult> Add(string ten, string email, string manhanvien, DateTime ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
-        //{
-        //    var tr = await _nhanVienService.Add(ten, email,manhanvien,ngaysinh,gioitinh, password, sdt, diachi, trangthai, idvaitro);
-        //    if (tr == null)
-        //    {
-        //        return BadRequest();
-        //    }
-        //    return Ok(tr);
-        //}
-
+     
 
 
 
@@ -65,22 +59,34 @@ namespace AppAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            // Kiểm tra tuổi ≥ 15 nếu có ngày sinh
+            if (model.NgaySinh != null)
+            {
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                var birthDate = model.NgaySinh.Value;
+
+                var age = today.Year - birthDate.Year;
+
+                // Nếu ngày sinh chưa đến trong năm nay thì giảm tuổi
+                if (birthDate > today.AddYears(-age))
+                    age--;
+
+                if (age < 15)
+                    return BadRequest("Nhân viên phải từ 15 tuổi trở lên.");
+            }
+
             var result = await _nhanVienService.Add(model);
 
             if (result == null)
                 return BadRequest("Email hoặc SĐT đã tồn tại.");
 
-            return Ok(result); 
+            return Ok(result);
         }
-
-
-
-
 
 
         // PUT api/<NhanVienController>/5
         [HttpPut("{id}")]
-        public bool Put(Guid id, string ten, string email, string manhanvien, DateTime ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
+        public bool Put(Guid id, string ten, string email, string manhanvien, DateOnly ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
         {
             var nv = _nhanVienService.GetById(id);
             if (nv != null)

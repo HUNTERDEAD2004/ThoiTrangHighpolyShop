@@ -1,7 +1,7 @@
 ﻿@model AppData.ViewModels.LoginViewModel
 @{
     Layout = "_Layout";
-    var thoigian = Model.NgaySinh != null ? Model.NgaySinh.Value.ToString("yyyy-MM-dd HH:mm:ss").Replace(' ', 'T'):null;
+    
 }
 <style>
     #chonNgaySinh input {
@@ -110,11 +110,12 @@
                                 <p class="mb-0">Ngày sinh</p>
                             </div>
                             <div class="col-sm-9">
-                                <input id="chonNgaySinh" style="border:none;background: white;display:none;" type="datetime-local" value="@thoigian" />
+                                <input id="chonNgaySinh" style="border:none;background: white;display:none;" type="datetime-local" value="" />
                                 @{
                                     if (Model.NgaySinh != null)
                                     {
-                                        <p id="ShowNgaySinh" class="text-muted mb-0">@Model.NgaySinh.Value.ToString("dd/MM/yyyy")</p>
+                                        <p id="ShowNgaySinh" class="text-muted mb-0">@(Model.NgaySinh)</p>
+
                                     }else{
                                         <p id="ShowNgaySinh" class="text-muted mb-0"></p>
                                     }
