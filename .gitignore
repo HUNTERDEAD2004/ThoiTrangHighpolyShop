@@ -37,3 +37,6 @@ artifacts/
 *.pdb
 *.cache
 *.tmp
+/AppData/Migrations/20250626051118_1st.cs
+/AppData/Migrations/20250626051118_1st.cs
+/AppData/Migrations/20250626051118_1st.Designer.cs
