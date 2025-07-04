@@ -104,21 +104,44 @@ namespace AppAPI.Services
         {
             try
             {
-                var existingColor = await _dbContext.MauSacs.FirstOrDefaultAsync(x => x.Ten.Trim().ToUpper() == ten.Trim().ToUpper());
-                if (existingColor != null)
+                string tenChuanHoa = ChuanHoaTen(ten);
+                string maChuanHoa = ma?.Trim().ToUpper();
+
+                // Kiểm tra trùng tên màu (không dấu, không phân biệt hoa thường)
+                var mauTrungTen = _dbContext.MauSacs
+                    .AsEnumerable()
+                    .FirstOrDefault(x => ChuanHoaTen(x.Ten) == tenChuanHoa);
+
+                if (mauTrungTen != null)
                 {
+                    // Tên đã tồn tại (nghĩa là trùng về ý nghĩa)
                     return null;
                 }
-                bool isHasHash = ma.StartsWith("#");
+
+                // Kiểm tra trùng mã màu (ví dụ: #FF0000, #ff0000, FF0000)
+                string maSoSanh = maChuanHoa.StartsWith("#") ? maChuanHoa : $"#{maChuanHoa}";
+                var mauTrungMa = await _dbContext.MauSacs
+                    .FirstOrDefaultAsync(x => x.Ma.ToUpper().Trim() == maSoSanh);
+
+                if (mauTrungMa != null)
+                {
+                    // Mã màu đã tồn tại
+                    return null;
+                }
+
+                // Xử lý mã màu: nếu thiếu dấu # thì thêm vào
+                string maLuu = maChuanHoa.StartsWith("#") ? maChuanHoa : $"#{maChuanHoa}";
+
                 MauSac kc = new MauSac()
                 {
                     ID = Guid.NewGuid(),
-                    Ten = ten,
-                    Ma = isHasHash ? ma : $"#{Uri.EscapeDataString(ma)}",
-                    TrangThai = 1
+                    Ten = ten.Trim(),
+                    Ma = maLuu,
+                    TrangThai = trangthai
                 };
+
                 _dbContext.MauSacs.Add(kc);
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
                 return kc;
             }
             catch (Exception)
@@ -126,6 +149,7 @@ namespace AppAPI.Services
                 throw;
             }
         }
+
         public async Task<bool> DeleteMauSac(Guid id)
         {
             try
@@ -175,23 +199,36 @@ namespace AppAPI.Services
             try
             {
                 var nv = await _dbContext.MauSacs.FirstOrDefaultAsync(x => x.ID == id);
-                if (nv != null)
+                if (nv == null)
+                    return null;
+
+                // Chuẩn hóa tên mới để kiểm tra trùng
+                string tenChuanHoaMoi = ChuanHoaTen(ten);
+
+                // Kiểm tra có màu khác (khác ID) trùng tên đã chuẩn hóa không
+                var existingColor = _dbContext.MauSacs
+                    .AsEnumerable()
+                    .FirstOrDefault(x => x.ID != id && ChuanHoaTen(x.Ten) == tenChuanHoaMoi);
+
+                if (existingColor != null)
                 {
-                    var existingColor = await _dbContext.MauSacs.FirstOrDefaultAsync(x => x.Ten.Trim().ToUpper() == ten.Trim().ToUpper());
-                    if (existingColor != null)
-                    {
-                        return null;
-                    }
-                    bool isHasHash = ma.StartsWith("#");
-                    nv.Ten = ten;
-                    nv.Ma = isHasHash ? ma : $"#{Uri.EscapeDataString(ma)}";
-                    nv.TrangThai = 1;
-                    _dbContext.MauSacs.Update(nv);
-                    _dbContext.SaveChanges();
-                    return nv;
+                    // Trùng tên với màu khác
+                    return null;
                 }
 
-                return null;
+                // Xử lý mã màu
+                bool isHasHash = ma.StartsWith("#");
+                string maChuan = isHasHash ? ma.Trim().ToUpper() : $"#{Uri.EscapeDataString(ma.Trim().ToUpper())}";
+
+                // Gán dữ liệu mới
+                nv.Ten = ten.Trim();
+                nv.Ma = maChuan;
+                nv.TrangThai = 1;
+
+                _dbContext.MauSacs.Update(nv);
+                await _dbContext.SaveChangesAsync();
+
+                return nv;
 
             }
             catch (Exception)
@@ -207,27 +244,34 @@ namespace AppAPI.Services
         {
             try
             {
-                var existingColor = await _dbContext.ChatLieus.FirstOrDefaultAsync(x => x.Ten.Trim().ToUpper() == ten.Trim().ToUpper());
-                if (existingColor != null)
+                string tenChuanHoa = ChuanHoaTen(ten);
+
+                // So sánh sau khi chuẩn hóa, dùng AsEnumerable để xử lý trong RAM
+                var existing = _dbContext.ChatLieus
+                    .AsEnumerable()
+                    .FirstOrDefault(x => ChuanHoaTen(x.Ten) == tenChuanHoa);
+
+                if (existing != null)
                 {
+                    // Đã tồn tại chất liệu trùng logic
                     return null;
                 }
-                ChatLieu kc = new ChatLieu()
+
+                var chatLieuMoi = new ChatLieu
                 {
                     ID = Guid.NewGuid(),
-                    Ten = ten,
+                    Ten = ten.Trim(),
                     TrangThai = 1
                 };
-                _dbContext.ChatLieus.Add(kc);
-                _dbContext.SaveChanges();
-                return kc;
 
+                _dbContext.ChatLieus.Add(chatLieuMoi);
+                await _dbContext.SaveChangesAsync();
+
+                return chatLieuMoi;
             }
             catch (Exception)
             {
-
                 throw;
-
             }
         }
 
@@ -272,21 +316,29 @@ namespace AppAPI.Services
             try
             {
                 var nv = await _dbContext.ChatLieus.FirstOrDefaultAsync(x => x.ID == id);
-                if (nv != null)
+                if (nv == null)
+                    return null;
+
+                string tenChuanHoaMoi = ChuanHoaTen(ten);
+
+                // Kiểm tra tên đã tồn tại ở bản ghi KHÁC
+                var existing = _dbContext.ChatLieus
+                    .AsEnumerable()
+                    .FirstOrDefault(x => x.ID != id && ChuanHoaTen(x.Ten) == tenChuanHoaMoi);
+
+                if (existing != null)
                 {
-                    var existingColor = await _dbContext.ChatLieus.FirstOrDefaultAsync(x => x.Ten.Trim().ToUpper() == ten.Trim().ToUpper());
-                    if (existingColor != null)
-                    {
-                        return null; // Trả về null để báo hiệu tên trùng
-                    }
-                    nv.Ten = ten;
-                    nv.TrangThai = 1;
-                    _dbContext.ChatLieus.Update(nv);
-                    _dbContext.SaveChanges();
-                    return nv;
+                    // Có bản ghi khác trùng tên (ý nghĩa)
+                    return null;
                 }
 
-                return null;
+                nv.Ten = ten.Trim();
+                nv.TrangThai = 1;
+
+                _dbContext.ChatLieus.Update(nv);
+                await _dbContext.SaveChangesAsync();
+
+                return nv;
             }
             catch (Exception)
             {
@@ -308,6 +360,7 @@ namespace AppAPI.Services
 
             }
         }
+
         #endregion
 
         #region other

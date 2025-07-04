@@ -1,10 +1,13 @@
+using AppData.Models;
 using AppView.IServices;
 using AppView.Services;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDbContext<AssignmentDBContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DBContext")));
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
