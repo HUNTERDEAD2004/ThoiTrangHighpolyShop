@@ -44,26 +44,51 @@ namespace AppAPI.Controllers
 
 
         // POST api/<NhanVienController>
-        [HttpPost("DangKyNhanVien")]
-        public async Task<IActionResult> Add(string ten, string email, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
+        //[HttpPost("DangKyNhanVien")]
+        //public async Task<IActionResult> Add(string ten, string email, string manhanvien, DateTime ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
+        //{
+        //    var tr = await _nhanVienService.Add(ten, email,manhanvien,ngaysinh,gioitinh, password, sdt, diachi, trangthai, idvaitro);
+        //    if (tr == null)
+        //    {
+        //        return BadRequest();
+        //    }
+        //    return Ok(tr);
+        //}
+
+
+
+
+
+
+        [HttpPost("Create")]
+        public async Task<IActionResult> Add(NhanVienViewModel model)
         {
-            var tr = await _nhanVienService.Add(ten, email, password, sdt, diachi, trangthai, idvaitro);
-            if (tr == null)
-            {
-                return BadRequest();
-            }
-            return Ok(tr);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _nhanVienService.Add(model);
+
+            if (result == null)
+                return BadRequest("Email hoặc SĐT đã tồn tại.");
+
+            return Ok(result);
         }
+
+
+
 
         // PUT api/<NhanVienController>/5
         [HttpPut("{id}")]
-        public bool Put(Guid id, string ten, string email, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
+        public bool Put(Guid id, string ten, string email, string manhanvien, DateTime ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
         {
             var nv = _nhanVienService.GetById(id);
             if (nv != null)
             {
                 nv.Ten = ten;
                 nv.Email = email;
+                nv.MaNhanVien = manhanvien;
+                nv.NgaySinh = ngaysinh;
+                nv.GioiTinh = gioitinh;
                 nv.PassWord = password;
                 nv.SDT = sdt;
                 nv.DiaChi = diachi;
@@ -74,7 +99,6 @@ namespace AppAPI.Controllers
                 return true;
             }
             return false;
-
         }
 
         // DELETE api/<NhanVienController>/5

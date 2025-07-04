@@ -13,27 +13,33 @@ namespace AppAPI.Services
             _dbContext = new AssignmentDBContext();
         }
 
-        public async Task<KhachHang> Add(KhachHangViewModel nv)
+        public async Task<KhachHang> Add(KhachHangViewModel kh)
         {
-            KhachHang kh = new KhachHang()
+       
+            KhachHang khang = new KhachHang()
             {
                 IDKhachHang = Guid.NewGuid(),
-                Ten = nv.Name,
-                Email = nv.Email,
-                Password = nv.Password,
-                SDT = nv.SDT,
+                Ten = kh.Ten,
+                MaKhachHang = kh.MaKhachHang,
+                GioiTinh = kh.GioiTinh,
+                NgaySinh = kh.NgaySinh,
+                Email = kh.Email,
+                Password = kh.Password,
+                SDT = kh.SDT,
+                DiemTich = kh.DiemTich,
+                TrangThai = kh.TrangThai
 
             };
-            await _dbContext.KhachHangs.AddAsync(kh);
+            await _dbContext.KhachHangs.AddAsync(khang);
             //await _dbContext.SaveChangesAsync();
             GioHang gh = new GioHang()
             {
-                IDKhachHang = kh.IDKhachHang,
+                IDKhachHang = khang.IDKhachHang,
                 NgayTao = DateTime.Now,
             };
             await _dbContext.GioHangs.AddAsync(gh);
             await _dbContext.SaveChangesAsync();
-            return kh;
+            return khang;
         }  
         public bool Delete(Guid id)
         {
@@ -90,6 +96,7 @@ namespace AppAPI.Services
                 kh.Ten = khachHang.Ten;
                 kh.SDT = khachHang.SDT;
                 kh.Email = khachHang.Email;
+                kh.MaKhachHang = khachHang.MaKhachHang;
                 kh.Password = khachHang.Password;
                 kh.GioiTinh = khachHang.GioiTinh;
               

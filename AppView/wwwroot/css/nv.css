@@ -1,133 +1,97 @@
-﻿
-.btn-create {
-    margin-bottom: 20px;
-    margin-right: 700px;
-    padding: 5px 25px;
-    border-radius: 50px;
-    outline: 0;
-    border: 0;
-    background: #615c84;
-    font-weight: 400;
-    color: #fff;
-    height: 35px;
+h1 {
+    text-align: center;
+    animation: blink 1.5s linear infinite;
+    margin-top: 50px;
+    margin-bottom: 50px;
 }
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.btn-create,
+.btn-edit,
+.btn-details,
+.btn-delete,
+.tk {
+    padding: 5px 20px;
+    border-radius: 50px;
+    outline: none;
+    border: none;
+    font-weight: 500;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.btn-create {
+    background: #615c84;
+    margin-bottom: 20px;
+}
+
+    .btn-create:hover {
+        color: black;
+        background: linear-gradient(to right, #ECAD8F, #AF6E4E);
+        text-decoration: none;
+    }
+
+.btn-edit {
+    background: #5883AD;
+}
+
+    .btn-edit:hover {
+        color: black;
+        background: linear-gradient(to right, #f12711, #f5af19);
+    }
+
+.btn-details {
+    background: #03417F;
+}
+
+    .btn-details:hover {
+        color: black;
+        background: linear-gradient(to right, #ffd8b9, #f5af19);
+    }
+
+.btn-delete {
+    background: #3b3da1;
+}
+
+    .btn-delete:hover {
+        color: black;
+        background: linear-gradient(to right, #ECAD8F, #AF6E4E);
+    }
 
 .table-header {
     background-color: darkslategray;
     color: white;
 }
 
-h1 {
-    text-align: center;
-    animation: blink 1s linear infinite;
-    margin-top: 50px;
-    margin-bottom: 50px
-}
-/* h1:hover {
-        animation: blink 1s linear infinite;
-        color: brown;
-    }
-@keyframes blink {
-    0% {
-        opacity: 2;
-    }
-
-    50% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0;
-    }
-}*/
-.btn-edit {
-    padding: 5px 25px;
-    border-radius: 50px;
-    outline: 0;
-    border: 0;
-    background: #5883AD;
-    font-weight: 400;
-    color: #fff;
-}
-
-.btn-details {
-    padding: 5px 15px;
-    border-radius: 50px;
-    outline: 0;
-    border: 0;
-    background: #03417F;
-    font-weight: 400;
-    color: #fff;
-}
-
-.btn-delete {
-    padding: 5px 15px;
-    border-radius: 50px;
-    outline: 0;
-    border: 0;
-    background: #3b3da1;
-    font-weight: 400;
-    color: #fff;
-}
-
-.btn-create:hover {
-    color: black;
-    background: #06A9AE;
-    background: -webkit-linear-gradient(to right, #ECAD8F, #AF6E4E);
-    background: linear-gradient(to right, #ECAD8F, #AF6E4E);
-    text-decoration: none;
-}
-
-.btn-edit:hover {
-    color: black;
-    background: #f12711;
-    background: -webkit-linear-gradient(to right, #f12711, #f5af19);
-    background: linear-gradient(to right, #f12711, #f5af19);
-    text-decoration: none;
-}
-
-.btn-details:hover {
-    color: black;
-    background: #ffd8b9;
-    background: -webkit-linear-gradient(to right, #ob2559, #615c84);
-    background: linear-gradient(to right, #ffd8b9, #f5af19);
-    text-decoration: none;
-}
-
-.btn-delete:hover {
-    color: black;
-    background: #D2A3A9;
-    background: -webkit-linear-gradient(to right, #ECAD8F, #AF6E4E);
-    background: linear-gradient(to right, #ECAD8F, #AF6E4E);
-    text-decoration: none;
-}
-
 .tk1 {
     padding: 5px 15px;
-    border-radius: 0px;
-    border-color: darkgrey;
-    border: 1px solid;
+    border: 1px solid darkgrey;
     background: #fff;
     font-weight: 400;
     width: 290px;
+    border-radius: 4px;
 }
 
 .tk {
-    padding: 5px 15px;
-    border-radius: 50px;
-    outline: 0;
-    border: 0;
     background: #3b3da1;
-    font-weight: 400;
-    color: #fff;
 }
 
     .tk:hover {
         color: black;
-        background: #D2A3A9;
-        background: -webkit-linear-gradient(to right, #ECAD8F, #AF6E4E);
         background: linear-gradient(to right, #ECAD8F, #AF6E4E);
-        text-decoration: none;
     }
 
 .modal-dialog {
@@ -138,17 +102,20 @@ h1 {
 }
 
 .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal-content-floating {
-    position: fixed;
+    position: fixed !important;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) !important;
 }
+input.form-control,
+select.form-control {
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 15px;
+}
+
+

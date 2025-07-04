@@ -206,62 +206,154 @@ namespace AppAPI.Services
             }
         }
 
+        //public async Task<LoginViewModel> Login(string lg, string password)
+        //{
+        //    try
+        //    {
+        //        var nv = await context.NhanViens.FirstOrDefaultAsync(a => (a.Email == lg || a.SDT == lg) /*&& a.PassWord == password*/ );
+        //        if (nv != null && KiemTraMatKhau(password, nv.PassWord))
+        //        {
+        //            if (nv.TrangThai == 1)
+        //            {
+        //                return new LoginViewModel
+        //                {
+        //                    Id = nv.ID,
+        //                    Email = nv.Email,
+        //                    Ten = nv.Ten,
+        //                    DiaChi = nv.DiaChi,
+        //                    SDT = nv.SDT,
+        //                    vaiTro = 0
+        //                };
+        //            }
+        //            else if (nv.TrangThai == 0) // Check for locked account
+        //            {
+        //                return new LoginViewModel
+        //                {
+        //                    IsAccountLocked = true,
+        //                    Message = "Bạn không có quyền truy cập vào tài khoản này."
+        //                };
+        //            }
+        //        }
+        //        var kh = await context.KhachHangs.FirstOrDefaultAsync(x => (x.Email == lg || x.SDT == lg) /*&& x.Password == password*/);
+        //        if (kh != null && KiemTraMatKhau(password, kh.Password))
+        //        {
+        //            return new LoginViewModel
+        //            {
+        //                Id = kh.IDKhachHang,
+        //                Email = kh.Email,
+        //                Ten = kh.Ten,
+        //                SDT = kh.SDT,
+        //                DiemTich = kh.DiemTich,
+
+        //                GioiTinh = kh.GioiTinh,
+        //                NgaySinh = kh.NgaySinh,
+        //                vaiTro = 1
+        //            };
+        //        }
+        //        return new LoginViewModel
+        //        {
+        //            Message = "Email hoặc password không chính xác"
+        //        };
+        //    }
+        //    catch (Exception)
+        //    {
+
+        //        throw;
+
+        //    }
+        //}
         public async Task<LoginViewModel> Login(string lg, string password)
         {
             try
             {
-                var nv = await context.NhanViens.FirstOrDefaultAsync(a => (a.Email == lg || a.SDT == lg) /*&& a.PassWord == password*/ );
-                if (nv != null && KiemTraMatKhau(password, nv.PassWord))
+                // Tìm nhân viên đầu tiên
+                var nv = await context.NhanViens.FirstOrDefaultAsync(a => a.Email == lg || a.SDT == lg);
+
+                if (nv != null)
                 {
-                    if (nv.TrangThai == 1)
+                    if (KiemTraMatKhau(password, nv.PassWord))
+                    {
+                        if (nv.TrangThai == 1)
+                        {
+                            return new LoginViewModel
+                            {
+                                Id = nv.ID,
+                                Email = nv.Email,
+                                Ten = nv.Ten,
+                                SDT = nv.SDT,
+                                DiaChi = nv.DiaChi,
+                                vaiTro = 0, // Nhân viên
+                                IsAccountLocked = false,
+                                Message = "Đăng nhập thành công"
+                            };
+                        }
+                        else
+                        {
+                            return new LoginViewModel
+                            {
+                                IsAccountLocked = true,
+                                Message = "Tài khoản nhân viên đã bị khóa.",
+                                vaiTro = 0
+                            };
+                        }
+                    }
+                    else
                     {
                         return new LoginViewModel
                         {
-                            Id = nv.ID,
-                            Email = nv.Email,
-                            Ten = nv.Ten,
-                            DiaChi = nv.DiaChi,
-                            SDT = nv.SDT,
+                            Message = "Mật khẩu không đúng.",
                             vaiTro = 0
                         };
                     }
-                    else if (nv.TrangThai == 0) // Check for locked account
+                }
+
+                // Nếu không phải nhân viên thì tìm khách hàng
+                var kh = await context.KhachHangs.FirstOrDefaultAsync(x => x.Email == lg || x.SDT == lg);
+
+                if (kh != null)
+                {
+                    if (KiemTraMatKhau(password, kh.Password))
                     {
                         return new LoginViewModel
                         {
-                            IsAccountLocked = true,
-                            Message = "Bạn không có quyền truy cập vào tài khoản này."
+                            Id = kh.IDKhachHang,
+                            Email = kh.Email,
+                            Ten = kh.Ten,
+                            SDT = kh.SDT,
+                            //DiaChi = kh.DiaChi,
+                            DiemTich = kh.DiemTich,
+                            GioiTinh = kh.GioiTinh,
+                            NgaySinh = kh.NgaySinh,
+                            vaiTro = 1, // Khách hàng
+                            IsAccountLocked = false,
+                            Message = "Đăng nhập thành công"
+                        };
+                    }
+                    else
+                    {
+                        return new LoginViewModel
+                        {
+                            Message = "Mật khẩu không đúng.",
+                            vaiTro = 1
                         };
                     }
                 }
-                var kh = await context.KhachHangs.FirstOrDefaultAsync(x => (x.Email == lg || x.SDT == lg) /*&& x.Password == password*/);
-                if (kh != null && KiemTraMatKhau(password, kh.Password))
-                {
-                    return new LoginViewModel
-                    {
-                        Id = kh.IDKhachHang,
-                        Email = kh.Email,
-                        Ten = kh.Ten,
-                        SDT = kh.SDT,
-                        DiemTich = kh.DiemTich,
-                      
-                        GioiTinh = kh.GioiTinh,
-                        NgaySinh = kh.NgaySinh,
-                        vaiTro = 1
-                    };
-                }
+
+                // Không tìm thấy người dùng
                 return new LoginViewModel
                 {
-                    Message = "Email hoặc password không chính xác"
+                    Message = "Tài khoản không tồn tại."
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
-
+                return new LoginViewModel
+                {
+                    Message = $"Đã xảy ra lỗi hệ thống: {ex.Message}"
+                };
             }
         }
+
         private string MaHoaMatKhau(string matKhau)
         {
             // Ở đây, bạn có thể sử dụng bất kỳ phương thức mã hóa mật khẩu nào phù hợp
@@ -310,8 +402,12 @@ namespace AppAPI.Services
                 KhachHang kh = new KhachHang()
                 {
                     IDKhachHang = Guid.NewGuid(),
-                    Ten = khachHang.Name,
+                    Ten = khachHang.Ten,
                     Email = khachHang.Email,
+                    MaKhachHang= khachHang.MaKhachHang?.Trim(),
+                    GioiTinh = khachHang.GioiTinh,
+                    NgaySinh = khachHang.NgaySinh,
+                    //DiaChi = khachHang.DiaChi?.Trim(),
                     Password = MaHoaMatKhau(khachHang.Password),
                     SDT = khachHang.SDT,
                     DiemTich = 0,
@@ -344,7 +440,7 @@ namespace AppAPI.Services
                 var kh = new NhanVien
                 {
                     ID = Guid.NewGuid(),
-                    Ten = nhanVien.Name,
+                    Ten = nhanVien.Ten,
                     Email = nhanVien.Email,
                     PassWord = MaHoaMatKhau(nhanVien.Password),
                     IDVaiTro = nhanVien.IDVaiTro

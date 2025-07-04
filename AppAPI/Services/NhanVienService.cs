@@ -55,7 +55,7 @@ namespace AppAPI.Services
             }
         }
 
-        public bool Update(Guid id, string ten, string email,int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
+        public bool Update(Guid id, string ten, string email, string manhanvien, DateTime ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
         {
             try
             {
@@ -64,6 +64,9 @@ namespace AppAPI.Services
                 {
                     nv.Ten = ten;
                     nv.Email = email;
+                    nv.MaNhanVien=manhanvien;
+                    nv.NgaySinh = ngaysinh;
+                    nv.GioiTinh = gioitinh;
                     nv.PassWord = password;
                     nv.SDT = sdt;
                     nv.DiaChi = diachi;
@@ -93,35 +96,86 @@ namespace AppAPI.Services
             // Đây chỉ là ví dụ đơn giản, không nên sử dụng trong môi trường thực tế
             //return matKhau;
         }
-        public async Task<NhanVien> Add(string ten, string email, string password, string sdt, string diachi, int trangthai, Guid idVaiTro)
+        //public async Task<NhanVien> Add(string ten, string email, string manhanvien, DateTime ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
+        //{
+        //    try
+        //    {
+        //        var check = await _dbContext.NhanViens.FirstOrDefaultAsync(x => x.Email.Trim().ToUpper() == email.Trim().ToUpper() || x.SDT.Trim().ToUpper() == sdt.Trim().ToUpper());
+        //        if (check != null)
+        //        {
+        //            return null;
+        //        }
+        //        var vt = _dbContext.VaiTros.FirstOrDefault(x => x.Ten == "Nhân viên");
+        //        var nv = new NhanVien();
+        //        nv.ID = Guid.NewGuid();
+        //        nv.Ten = ten;
+        //        nv.Email = email;
+        //        nv.MaNhanVien = manhanvien;
+        //        nv.NgaySinh = ngaysinh;
+        //        nv.GioiTinh = gioitinh;
+        //        nv.PassWord = MaHoaMatKhau(password);
+        //        nv.SDT = sdt;
+        //        nv.DiaChi = diachi;
+        //        nv.TrangThai = 1;
+        //        nv.IDVaiTro = vt.ID;
+        //        _dbContext.NhanViens.Add(nv);
+        //        _dbContext.SaveChanges();
+        //        return nv;
+        //    }
+        //    catch (Exception)
+        //    {
+
+        //        throw;
+        //    }
+        //}
+        public async Task<NhanVien> Add(NhanVienViewModel model)
         {
             try
             {
-                var check = await _dbContext.NhanViens.FirstOrDefaultAsync(x => x.Email.Trim().ToUpper() == email.Trim().ToUpper() || x.SDT.Trim().ToUpper() == sdt.Trim().ToUpper());
+                // Chuẩn hóa
+                string normalizedEmail = model.Email?.Trim().ToLower();
+                string normalizedSDT = model.SDT?.Trim();
+
+                // Kiểm tra tồn tại
+                var check = await _dbContext.NhanViens.FirstOrDefaultAsync(x =>
+                    x.Email.ToLower().Trim() == normalizedEmail || x.SDT.Trim() == normalizedSDT);
+
                 if (check != null)
                 {
-                    return null;
+                    return null; // Email hoặc SĐT đã tồn tại
                 }
-                var vt = _dbContext.VaiTros.FirstOrDefault(x => x.Ten == "Nhân viên");
-                var nv = new NhanVien();
-                nv.ID = Guid.NewGuid();
-                nv.Ten = ten;
-                nv.Email = email;
-                nv.PassWord = MaHoaMatKhau(password);
-                nv.SDT = sdt;
-                nv.DiaChi = diachi;
-                nv.TrangThai = 1;
-                nv.IDVaiTro = vt.ID;
+
+                // Gán IDVaiTro cố định
+                Guid nhanVienRoleId = Guid.Parse("952C1A5D-74FF-4DAF-BA88-135C5440809C");
+
+                var nv = new NhanVien
+                {
+                    ID = Guid.NewGuid(),
+                    Ten = model.Ten, // đây là Ten chứ không phải Name
+                    Email = model.Email.Trim(),
+                    MaNhanVien = model.MaNhanVien,
+                    NgaySinh = model.NgaySinh ?? DateTime.Now,
+                    GioiTinh = model.GioiTinh ?? 1,
+                    PassWord = MaHoaMatKhau(model.Password),
+                    SDT = model.SDT.Trim(),
+                    DiaChi = model.DiaChi,
+                    TrangThai = model.TrangThai ?? 1,
+                    IDVaiTro = nhanVienRoleId
+                };
+
                 _dbContext.NhanViens.Add(nv);
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
+
                 return nv;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                Console.WriteLine("Error thêm nhân viên: " + ex.Message);
+                return null;
             }
         }
+
+
 
         public NhanVien GetById(Guid id)
         {

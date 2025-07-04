@@ -1,4 +1,4 @@
-﻿
+
 using AppData.Models;
 
 namespace AppData.ViewModels
