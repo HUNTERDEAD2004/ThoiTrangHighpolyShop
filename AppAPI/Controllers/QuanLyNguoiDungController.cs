@@ -6,6 +6,7 @@ using AppData.ViewModels.QLND;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Configuration;
 using System.ComponentModel.DataAnnotations;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -17,11 +18,20 @@ namespace AppAPI.Controllers
     public class QuanLyNguoiDungController : ControllerBase
     {
         private IQuanLyNguoiDungService service;
+        private readonly IConfiguration _configuration;
+        private readonly EmailService mailService;
+     
 
-        public QuanLyNguoiDungController()
+        public QuanLyNguoiDungController(
+            IQuanLyNguoiDungService service,
+            IConfiguration configuration,
+            EmailService mailService)
         {
-            this.service = new QuanLyNguoiDungService();
+            this.service = service;
+            _configuration = configuration;
+            this.mailService = mailService;
         }
+
 
         // POST api/<DangNhapController>
         [HttpGet("DangNhap")]
@@ -43,44 +53,47 @@ namespace AppAPI.Controllers
         }
 
 
-        // POST api/<DangKyController>
-        //[HttpPost("DangKyNhanVien")]
-        //public async Task<IActionResult> DangKyNhanVien(NhanVienViewModel nhanVien)
-        //{
-        //    var nv = await service.RegisterNhanVien(nhanVien);
-        //    if (nv == null)
-        //    {
-        //        return BadRequest();
-        //    }
+     
 
-        //    return Ok("Đăng ký thành công");
-        //}
-        //POST api/<DangKyController>
+
+
+        [HttpPost("XacThucEmail")]
+        public async Task<IActionResult> XacThucEmail([FromBody] XacThucEmailViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("Thiếu email hoặc mã xác minh");
+
+            var result = await service.ConfirmEmail(model.Email, model.Token);
+
+            if (!result)
+                return BadRequest("Mã xác thực không hợp lệ hoặc đã hết hạn.");
+
+            return Ok("Tài khoản đã được xác thực thành công.");
+        }
+
+
+
         [HttpPost("DangKyKhachHang")]
         public async Task<IActionResult> DangKyKhachHang(KhachHangViewModel khachHang)
         {
-            var kh = await service.RegisterKhachHang(khachHang);
-            if (kh == null)
+            try
             {
-                return BadRequest();
+                var kh = await service.RegisterKhachHang(khachHang);
+
+                if (kh == null)
+                {
+                    return BadRequest("Email hoặc số điện thoại đã được sử dụng.");
+                }
+
+                return Ok("Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.");
             }
-
-            return Ok("Đăng ký thành công");
-
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Đã xảy ra lỗi hệ thống: " + ex.Message);
+            }
         }
-        //[HttpPut("DoiMatKhauNhanVien")]
-        //public async Task<IActionResult> DoiMatKhauNV(string email, string oldPassword,string newPassword)
-        //{
-        //    var dmk = await service.ChangePasswordNhanVien(email, oldPassword, newPassword);
-        //    if (!dmk)
-        //    {
-        //        return Ok("Đổi mật khẩu thành công");
-        //    }
-        //    else
-        //    {
-        //        return BadRequest("Đổi mật khẩu không thành công");
-        //    }
-        //}
+
+
         [HttpPut("DoiMatKhau")]
         public async Task<IActionResult> DoiMatKhau(string email, string oldPassword, string newPassword)
         {

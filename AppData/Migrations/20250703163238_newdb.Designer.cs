@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AppData.Migrations
 {
     [DbContext(typeof(AssignmentDBContext))]
-    [Migration("20250627132641_newdb")]
+    [Migration("20250703163238_newdb")]
     partial class newdb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -202,6 +202,10 @@ namespace AppData.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("DiaChiChiTiet")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Huyen")
                         .HasColumnType("nvarchar(max)");
 
@@ -212,6 +216,10 @@ namespace AppData.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Quan")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tinh")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Xa")
@@ -331,7 +339,7 @@ namespace AppData.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime?>("NgaySinh")
-                        .HasColumnType("datetime");
+                        .HasColumnType("date");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -533,8 +541,7 @@ namespace AppData.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("NgaySinh")
-                        .IsRequired()
-                        .HasColumnType("datetime");
+                        .HasColumnType("date");
 
                     b.Property<string>("PassWord")
                         .IsRequired()
@@ -727,6 +734,34 @@ namespace AppData.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Voucher", (string)null);
+                });
+
+            modelBuilder.Entity("AppData.ViewModels.EmailVerificationToken", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ExpiryTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("IDKhachHang")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("KhachHangIDKhachHang1")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("IDKhachHang");
+
+                    b.HasIndex("KhachHangIDKhachHang1");
+
+                    b.ToTable("EmailVerificationTokens", (string)null);
                 });
 
             modelBuilder.Entity("AppData.Models.Anh", b =>
@@ -945,6 +980,21 @@ namespace AppData.Migrations
                     b.Navigation("LoaiSP");
                 });
 
+            modelBuilder.Entity("AppData.ViewModels.EmailVerificationToken", b =>
+                {
+                    b.HasOne("AppData.Models.KhachHang", "KhachHang")
+                        .WithMany()
+                        .HasForeignKey("IDKhachHang")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AppData.Models.KhachHang", null)
+                        .WithMany("EmailVerificationTokens")
+                        .HasForeignKey("KhachHangIDKhachHang1");
+
+                    b.Navigation("KhachHang");
+                });
+
             modelBuilder.Entity("AppData.Models.ChatLieu", b =>
                 {
                     b.Navigation("SanPhams");
@@ -983,6 +1033,8 @@ namespace AppData.Migrations
                     b.Navigation("DanhGias");
 
                     b.Navigation("DiaChi");
+
+                    b.Navigation("EmailVerificationTokens");
 
                     b.Navigation("HoaDons");
                 });

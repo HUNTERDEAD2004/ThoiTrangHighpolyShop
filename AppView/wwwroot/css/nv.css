@@ -1,8 +1,31 @@
+﻿.btn-create {
+    margin-bottom: 20px;
+    margin-right: 700px;
+    padding: 5px 25px;
+    border-radius: 50px;
+    outline: 0;
+    border: 0;
+    background: #615c84;
+    font-weight: 400;
+    color: #fff;
+    height: 35px;
+}
+
+    .btn-create:hover {
+        color: black;
+        background: linear-gradient(to right, #ECAD8F, #AF6E4E);
+        text-decoration: none;
+    }
+
+.table-header {
+    background-color: darkslategray;
+    color: white;
+}
+
 h1 {
     text-align: center;
-    animation: blink 1.5s linear infinite;
-    margin-top: 50px;
-    margin-bottom: 50px;
+    animation: blink 1s linear infinite;
+    margin: 50px 0;
 }
 
 @keyframes blink {
@@ -19,82 +42,81 @@ h1 {
     }
 }
 
-.btn-create,
+/* Nếu muốn hiệu ứng khi hover vào h1 thì mở lại phần này:
+h1:hover {
+    color: brown;
+}
+*/
+
 .btn-edit,
 .btn-details,
-.btn-delete,
-.tk {
-    padding: 5px 20px;
+.btn-delete {
+    padding: 5px 15px;
     border-radius: 50px;
-    outline: none;
-    border: none;
-    font-weight: 500;
+    outline: 0;
+    border: 0;
+    font-weight: 400;
     color: #fff;
-    transition: all 0.3s ease;
 }
-
-.btn-create {
-    background: #615c84;
-    margin-bottom: 20px;
-}
-
-    .btn-create:hover {
-        color: black;
-        background: linear-gradient(to right, #ECAD8F, #AF6E4E);
-        text-decoration: none;
-    }
 
 .btn-edit {
     background: #5883AD;
 }
 
-    .btn-edit:hover {
-        color: black;
-        background: linear-gradient(to right, #f12711, #f5af19);
-    }
-
 .btn-details {
     background: #03417F;
 }
-
-    .btn-details:hover {
-        color: black;
-        background: linear-gradient(to right, #ffd8b9, #f5af19);
-    }
 
 .btn-delete {
     background: #3b3da1;
 }
 
-    .btn-delete:hover {
-        color: black;
-        background: linear-gradient(to right, #ECAD8F, #AF6E4E);
-    }
+.btn-edit:hover {
+    color: black;
+    background: linear-gradient(to right, #f12711, #f5af19);
+    text-decoration: none;
+}
 
-.table-header {
-    background-color: darkslategray;
-    color: white;
+.btn-details:hover {
+    color: black;
+    background: linear-gradient(to right, #ffd8b9, #f5af19);
+    text-decoration: none;
+}
+
+.btn-delete:hover {
+    color: black;
+    background: linear-gradient(to right, #ECAD8F, #AF6E4E);
+    text-decoration: none;
 }
 
 .tk1 {
     padding: 5px 15px;
+    border-radius: 0;
     border: 1px solid darkgrey;
     background: #fff;
     font-weight: 400;
     width: 290px;
-    border-radius: 4px;
 }
 
 .tk {
+    padding: 5px 15px;
+    border-radius: 50px;
+    outline: 0;
+    border: 0;
     background: #3b3da1;
+    font-weight: 400;
+    color: #fff;
 }
 
     .tk:hover {
         color: black;
         background: linear-gradient(to right, #ECAD8F, #AF6E4E);
+        text-decoration: none;
     }
 
-.modal-dialog {
+/* Modal trung tâm màn hình */
+.modal-dialog,
+.modal-content-floating {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -102,20 +124,10 @@ h1 {
 }
 
 .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
 }
-
-.modal-content-floating {
-    position: fixed !important;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) !important;
-}
-input.form-control,
-select.form-control {
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 15px;
-}
-
-

@@ -19,6 +19,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.Helpers;
+using TechTalk.SpecFlow.Assist;
 using TechTalk.SpecFlow.Infrastructure;
 using X.PagedList;
 
@@ -29,7 +30,7 @@ namespace AppView.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly HttpClient _httpClient;
-
+       
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
@@ -962,33 +963,75 @@ namespace AppView.Controllers
             }
         }
 
+
+        [HttpGet]
+        public IActionResult XacThucEmail()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> XacThucEmail(XacThucEmailViewModel model)
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(
+                _httpClient.BaseAddress + "QuanLyNguoiDung/XacThucEmail", model);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Login", "Home");
+            }
+
+            // Lấy lỗi và hiển thị lại view
+            var error = await response.Content.ReadAsStringAsync();
+            model.ErrorMessage = error;
+            return View(model);
+        }
+
+
+
+
+
+
+
         public IActionResult Register()
         {
             return View();
         }
+       
+       
+
+     
+
         [HttpPost]
-        public IActionResult Register(KhachHangViewModel khachHang)
+        public async Task<IActionResult> Register(KhachHangViewModel khachHang)
         {
             try
             {
                 khachHang.Id = Guid.NewGuid();
                 khachHang.DiemTich = 0;
                 khachHang.TrangThai = 1;
-                HttpResponseMessage response = _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + $"QuanLyNguoiDung/DangKyKhachHang", khachHang).Result;
+
+                // Gửi POST yêu cầu đăng ký
+                var response = await _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "QuanLyNguoiDung/DangKyKhachHang", khachHang);
+
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["SuccessMessage"] = "Tài khoản đã được đăng ký thành công!";
-                    //return RedirectToAction("Login", new { actionName = "Index" });
-                    return View("RegisterSuccess");
+                    TempData["SuccessMessage"] = "Tài khoản đã được đăng ký thành công! Vui lòng kiểm tra email để xác minh.";
+                    return View("XacThucEmail"); // View này có thể ghi: "Vui lòng kiểm tra email để kích hoạt"
                 }
-                ViewBag.ErrorMessage = "Tài khoản đã được đăng ký với email hoặc số điện thoại này!";
+
+                // Nếu thất bại
+                var message = await response.Content.ReadAsStringAsync();
+                ViewBag.ErrorMessage = !string.IsNullOrEmpty(message) ? message : "Đăng ký không thành công. Vui lòng thử lại.";
                 return View();
             }
-            catch
+            catch (Exception ex)
             {
+                ViewBag.ErrorMessage = "Đã xảy ra lỗi hệ thống: " + ex.Message;
                 return View();
             }
         }
+
         [HttpGet]
         public IActionResult Profile()
         {
@@ -1019,55 +1062,79 @@ namespace AppView.Controllers
            
         }
         [HttpPut]
-        public ActionResult UpdateProfile(string ten, string email, string sdt, int? gioitinh, DateTime? ngaysinh, string? diachi)
+        public ActionResult UpdateProfile(string ten, string email, string sdt, int? gioitinh, string? ngaysinh, string? diachi)
         {
             try
             {
-                if (ten == null || email == null)
-                {
-                    return Json(new { success = false, message = "Không được để trống thông tin" });
-                }
-                Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
-                Match match = regex.Match(email);
-                if (!match.Success)
-                {
-                    return Json(new { success = false, message = "Email sai" });
-                }
-                if (Regex.Match(sdt, @"^(\+[0-9])$").Success)
-                {
-                    return Json(new { success = false, message = "Số điện thoại sai sai" });
-                }
+                // Validate đầu vào
+                if (string.IsNullOrWhiteSpace(ten) || string.IsNullOrWhiteSpace(email))
+                    return Json(new { success = false, message = "Vui lòng nhập đầy đủ thông tin." });
+
+                if (!Regex.IsMatch(email, @"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$"))
+                    return Json(new { success = false, message = "Email không hợp lệ." });
+
+                if (!Regex.IsMatch(sdt, @"^0\d{9,10}$"))
+                    return Json(new { success = false, message = "Số điện thoại không hợp lệ." });
+
+                // Đọc user từ session
                 var session = HttpContext.Session.GetString("LoginInfor");
-                LoginViewModel khachhang = new LoginViewModel();
-                khachhang.Id = JsonConvert.DeserializeObject<LoginViewModel>(session).Id;
-                khachhang.Ten = ten;
-                khachhang.Email = email;
-                khachhang.SDT = sdt;
-                khachhang.GioiTinh = gioitinh;
-                khachhang.NgaySinh = ngaysinh;
-                khachhang.DiaChi = diachi;
-                khachhang.DiemTich = JsonConvert.DeserializeObject<LoginViewModel>(session).DiemTich;
-                khachhang.vaiTro = JsonConvert.DeserializeObject<LoginViewModel>(session).vaiTro;
-                khachhang.IsAccountLocked = JsonConvert.DeserializeObject<LoginViewModel>(session).IsAccountLocked;
-                khachhang.Message = "lmao";
+                if (string.IsNullOrWhiteSpace(session))
+                    return Json(new { success = false, message = "Không tìm thấy phiên đăng nhập." });
+
+                var user = JsonConvert.DeserializeObject<LoginViewModel>(session);
+                if (user == null)
+                    return Json(new { success = false, message = "Không thể đọc dữ liệu người dùng." });
+
+                // Parse ngày sinh
+                DateOnly? parsedNgaySinh = null;
+                if (!string.IsNullOrWhiteSpace(ngaysinh))
+                {
+                    if (!DateOnly.TryParse(ngaysinh, out var parsed))
+                        return Json(new { success = false, message = "Ngày sinh không hợp lệ. Định dạng đúng: yyyy-MM-dd" });
+
+                    parsedNgaySinh = parsed;
+                }
+
+                // Gán lại thông tin
+                var khachhang = new LoginViewModel
+                {
+                    Id = user.Id,
+                    Ten = ten,
+                    Email = email,
+                    SDT = sdt,
+                    GioiTinh = gioitinh,
+                    NgaySinh = ngaysinh,
+                    DiaChi = diachi,
+                    DiemTich = user.DiemTich,
+                    vaiTro = user.vaiTro,
+                    IsAccountLocked = user.IsAccountLocked,
+                    Message = "Cập nhật thông tin"
+                };
+
+                // Gọi API cập nhật
                 var response = _httpClient.PutAsJsonAsync(_httpClient.BaseAddress + "QuanLyNguoiDung/UpdateProfile1", khachhang).Result;
+
                 if (response.IsSuccessStatusCode)
                 {
-                    HttpContext.Session.Remove("LoginInfor");
-                    HttpContext.Session.SetString("LoginInfor", response.Content.ReadAsStringAsync().Result);
-                    return Json(new { success = true, message = "Cập nhật thông tin cá nhân thành công" });
+                    // Cập nhật session mới
+                    var updatedData = response.Content.ReadAsStringAsync().Result;
+                    HttpContext.Session.SetString("LoginInfor", updatedData);
+
+                    return Json(new { success = true, message = "Cập nhật thông tin cá nhân thành công." });
                 }
-                else
-                {
-                    return Json(new { success = false, message = "Cập nhật thông tin cá nhân thất bại" });
-                }
+
+                return Json(new { success = false, message = "Cập nhật thất bại. Vui lòng thử lại sau." });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return Json(new { success = false, message = "Cập nhật thông tin cá nhân thất bại" });
+                // Nếu muốn log lỗi cụ thể
+                Console.WriteLine("Lỗi cập nhật profile: " + ex.Message);
+
+                return Json(new { success = false, message = "Lỗi hệ thống. Vui lòng thử lại sau." });
             }
-            
         }
+
+
         public IActionResult PurchaseOrder()
         {
             try
@@ -1560,16 +1627,7 @@ namespace AppView.Controllers
                     return View();
                 }
 
-                if (string.IsNullOrEmpty(confirmPassword))
-                {
-                    ViewData["ConfirmPasswordError"] = "Xác nhận mật khẩu không được bỏ trống";
-                    return View();
-                }
-                else if (password != confirmPassword)
-                {
-                    ViewData["ConfirmPasswordError"] = "Mật khẩu và xác nhận mật khẩu không khớp";
-                    return View();
-                }
+             
 
                 if (password == confirmPassword)
                 {

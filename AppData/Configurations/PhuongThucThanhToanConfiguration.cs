@@ -21,12 +21,6 @@ namespace AppData.Configurations
             builder.Property(x => x.TenPTTT)
                 .HasColumnType("nvarchar(100)")
                 .IsRequired();
-<<<<<<< HEAD
-=======
-
-            // Thiết lập quan hệ 1-1 với HoaDon
-            builder.HasOne(x => x.HoaDons).WithOne(x => x.PhuongThucThanhToans).HasForeignKey<HoaDon>();
->>>>>>> 4b7de0706a676773222572c2c8415916b0f7e645
         }
     }
 

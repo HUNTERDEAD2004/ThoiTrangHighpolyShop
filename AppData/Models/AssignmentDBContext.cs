@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AppData.ViewModels;
+using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
 namespace AppData.Models
@@ -34,11 +35,13 @@ namespace AppData.Models
 
         public DbSet<PhuongThucThanhToan> PhuongThucThanhToans { get; set; }
 
+        public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
+
         public DbSet<DiaChi> DiaChis { get; set; }
      
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Data Source=DESKTOP-NQ6KMAG\SQLEXPRESS;Initial Catalog=AppBanQuanAoThoiTrangNam;Integrated Security=True");
+            optionsBuilder.UseSqlServer(@"Data Source=DESKTOP-3K22IAU;Initial Catalog=AppBanQuanAoThoiTrangNam;Integrated Security=True");
         }
         //@"Data Source=DESKTOP-NQ6KMAG\SQLEXPRESS;Initial Catalog=AppBanQuanAoThoiTrangNam;Integrated Security=True"
         //@"Data Source=DESKTOP-3K22IAU;Initial Catalog=AppBanQuanAoThoiTrangNam;Integrated Security=True"

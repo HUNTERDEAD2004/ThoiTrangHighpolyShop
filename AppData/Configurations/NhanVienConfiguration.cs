@@ -1,6 +1,7 @@
 ﻿using AppData.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,14 @@ namespace AppData.Configurations
             builder.Property(x => x.Email).HasColumnType("nvarchar(100)").IsRequired();
             builder.Property(x => x.SDT).HasColumnType("nvarchar(20)").IsRequired();
             builder.Property(x => x.DiaChi).HasColumnType("nvarchar(20)").IsRequired();
-            builder.Property(x => x.NgaySinh).HasColumnType("datetime").IsRequired();
+            var dateOnlyConverter = new ValueConverter<DateOnly?, DateTime?>(
+               v => v.HasValue ? v.Value.ToDateTime(TimeOnly.MinValue) : null,
+               v => v.HasValue ? DateOnly.FromDateTime(v.Value) : null
+           );
+
+            builder.Property(x => x.NgaySinh)
+                   .HasConversion(dateOnlyConverter)
+                   .HasColumnType("date");
             builder.Property(x => x.GioiTinh).HasColumnType("int").IsRequired();
             builder.Property(x => x.TrangThai).HasColumnType("int");
             builder.HasOne(x => x.VaiTro).WithMany(x => x.NhanViens).HasForeignKey(x => x.IDVaiTro);
@@ -33,7 +41,7 @@ namespace AppData.Configurations
                 SDT = "0985143915",
                 DiaChi = "Ha Noi",
                 MaNhanVien = "NV001",
-                NgaySinh = new DateTime(1990, 1, 1),
+                NgaySinh = new DateOnly (1990, 1, 1),
                 GioiTinh = 1,              // ✅ nullable nhưng PHẢI GÁN
                 TrangThai = 1,             // ✅ nullable nhưng PHẢI GÁN
                 IDVaiTro = Guid.Parse("B4996B2D-A343-434B-BFE9-09F8EFBB3852")

@@ -7,6 +7,7 @@ using AppData.ViewModels;
 using AppData.ViewModels.SanPham;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security;
 
 namespace AppAPI.Controllers
@@ -17,166 +18,132 @@ namespace AppAPI.Controllers
     {
         private readonly IKhachHangService _khachHangService;
         private readonly AssignmentDBContext _dbcontext;
-        public KhachHangController()
+
+        public KhachHangController(IKhachHangService khachHangService, AssignmentDBContext dbcontext)
         {
-            _khachHangService = new KhachHangService();
-            _dbcontext = new AssignmentDBContext();
-            
+            _khachHangService = khachHangService;
+            _dbcontext = dbcontext;
         }
-        // GET: api/<SanPhamController>
+
+        // GET: api/KhachHang
         [HttpGet]
-        public List<KhachHang> GetAllKhachHang()
+        public async Task<List<KhachHang>> GetAll()
         {
-            return _khachHangService.GetAll();
+            return await _dbcontext.KhachHangs.ToListAsync();
         }
-        [Route("TimKiemKH")]
-        [HttpGet]
+
+        // GET: api/KhachHang/get-view-all
+        [HttpGet("get-view-all")]
+        public async Task<List<KhachHangViewModel>> GetAllWithDiaChi()
+        {
+            return await _khachHangService.GetAll();
+        }
+
+        // GET: api/KhachHang/TimKiemKH
+        [HttpGet("TimKiemKH")]
         public List<KhachHang> GetAllKhachHang(string? Ten, string? SDT)
         {
-            return _dbcontext.KhachHangs.Where(x=>x.SDT.Contains(SDT)|| x.Ten.Contains(Ten)|| x.SDT.Contains(SDT) || x.Ten.Contains(Ten)).ToList();
+            return _khachHangService.SearchKhachHang(Ten, SDT);
         }
-        [Route("GetById")]
-        [HttpGet]
+
+        // GET: api/KhachHang/GetById
+        [HttpGet("GetById")]
         public KhachHang GetById(Guid id)
         {
             return _khachHangService.GetById(id);
         }
-        [HttpGet("GetKhachHangByEmail")] 
+
+        // GET: api/KhachHang/GetKhachHangByEmail
+        [HttpGet("GetKhachHangByEmail")]
         public KhachHangViewModel GetKhachHangByEmail(string email)
         {
-            var temp = _dbcontext.KhachHangs.FirstOrDefault(x => x.Email == email);
-            if (temp != null)
-            {
-                var khachHang = new KhachHangViewModel()
-                {
-                    Id = temp.IDKhachHang,
-                    Email = temp.Email
-                };
-                return khachHang;
-            }
-            else return new KhachHangViewModel();
+            return _khachHangService.GetKhachHangByEmail(email);
         }
+
+        // GET: api/KhachHang/ChangeForgotPassword
         [HttpGet("ChangeForgotPassword")]
         public async Task<bool> ChangeForgotPassword(string id, string password)
         {
-            try
+            if (Guid.TryParse(id, out var guidId))
             {
-                var tempID = new Guid(id);  
-                var temp = _dbcontext.KhachHangs.First(x => x.IDKhachHang == tempID);
-                temp.Password = MaHoaMatKhauS(password);
-                _dbcontext.Update(temp);
-                await _dbcontext.SaveChangesAsync();
-                return true;
+                return await _khachHangService.ChangeForgotPassword(guidId, password);
             }
-            catch (Exception ex)
-            {
-                return false;
-            }
+            return false;
         }
-        private string MaHoaMatKhauS(string matKhau)
-        {
-            // Ở đây, bạn có thể sử dụng bất kỳ phương thức mã hóa mật khẩu nào phù hợp
-            // Ví dụ: sử dụng thư viện BCrypt.Net để mã hóa mật khẩu
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(matKhau);
-            return hashedPassword;
 
-            // Đây chỉ là ví dụ đơn giản, không nên sử dụng trong môi trường thực tế
-            //return matKhau;
-        }
-        //Nhinh
+        // GET: api/KhachHang/getBySDT
         [HttpGet("getBySDT")]
         public KhachHang GetBySDT(string sdt)
         {
             return _khachHangService.GetBySDT(sdt);
         }
+
+        // GET: api/KhachHang/getAllHDKH
         [HttpGet("getAllHDKH")]
         public async Task<List<HoaDon>> GetAllHDKH(Guid idkh)
         {
             return await _khachHangService.GetAllHDKH(idkh);
         }
 
-        // GET api/<SanPhamController>/5
-        [Route("PostKHView")]
+        // POST: api/KhachHang
         [HttpPost]
-        public bool PostKHView(KhachHangView khv)
+        public async Task<IActionResult> Post(KhachHangViewModel khachHang, bool isAdmin = false)
         {
-            khv.IDKhachHang = Guid.NewGuid();
-            KhachHang kh = new KhachHang();
-            kh.IDKhachHang = khv.IDKhachHang;
-            kh.MaKhachHang = khv.MaKhachHang;
-            kh.Ten = khv.Ten?.Trim();
-            kh.Password = MaHoaMatKhau(khv.Password).Trim();
-            kh.GioiTinh=khv.GioiTinh;
-            kh.NgaySinh=khv.NgaySinh;
-            kh.Email = khv.Email?.Trim();
-            //kh.DiaChi=khv.DiaChi?.Trim();
-            kh.SDT = khv.SDT?.Trim();
-            kh.TrangThai=1;
-            kh.DiemTich = 0;
-            _dbcontext.KhachHangs.Add(kh);
-            GioHang gh= new GioHang();
-            gh.IDKhachHang =kh.IDKhachHang;
-            gh.NgayTao=DateTime.Now;
-            _dbcontext.GioHangs.Add(gh);
-            _dbcontext.SaveChanges();
-            return true;
-        }
-        private string MaHoaMatKhau(string matKhau)
-        {
-            // Ở đây, bạn có thể sử dụng bất kỳ phương thức mã hóa mật khẩu nào phù hợp
-            // Ví dụ: sử dụng thư viện BCrypt.Net để mã hóa mật khẩu
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(matKhau);
-            return hashedPassword;
-
-            // Đây chỉ là ví dụ đơn giản, không nên sử dụng trong môi trường thực tế
-            //return matKhau;
-        }
-
-
-        // POST api/<SanPhamController>
-        [HttpPost]
-        public async Task<IActionResult> Post(KhachHangViewModel khachHang)
-        {
-            var kh = await _khachHangService.Add(khachHang);
-            if (kh == null)
+            try
             {
-                return BadRequest();
-            }
+                var kh = await _khachHangService.Add(khachHang, isAdmin);
+                if (kh == null)
+                {
+                    return BadRequest("Email hoặc số điện thoại đã tồn tại");
+                }
 
-            return Ok("Đăng ký thành công");
-        }
-        // PUT api/<SanPhamController>/5
-        [Route("PutKhView")]
-        [HttpPut]
-        public bool PutKhView(KhachHangView khv)
-        {
-            var kh = _khachHangService.GetById(khv.IDKhachHang);
-            if (kh != null)
+                return Ok(new
+                {
+                    Message = "Đăng ký thành công",
+                    MaKhachHang = kh.MaKhachHang,
+                    Email = kh.Email
+                });
+            }
+            catch (Exception ex)
             {
-                
-                kh.Ten = khv.Ten?.Trim();
-                //kh.Password = MaHoaMatKhau(khv.Password);
-                //kh.GioiTinh = khv.GioiTinh;
-                kh.NgaySinh = khv.NgaySinh;
-                //kh.Email = khv.Email;
-                //kh.DiaChi = khv.DiaChi?.Trim();
-                //kh.SDT = khv.SDT;
-                //kh.TrangThai = khv.TrangThai;
-                
-                _dbcontext.KhachHangs.Update(kh);
-                _dbcontext.SaveChanges();
-                return true;
+                return BadRequest($"Lỗi: {ex.Message}");
             }
-            return false;
-
         }
 
-        // DELETE api/<SanPhamController>/5
+        // PUT: api/KhachHang/PutKhView
+        [HttpPut("PutKhView")]
+        public IActionResult PutKhView(KhachHangViewModel khv)
+        {
+            try
+            {
+                var result = _khachHangService.Update(khv);
+                if (!result)
+                    return BadRequest("Cập nhật thất bại - Không tìm thấy khách hàng");
+
+                return Ok("Cập nhật thành công");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
+        }
+
+        // DELETE: api/KhachHang/{id}
         [HttpDelete("{id}")]
-        public bool Delete(Guid id)
+        public IActionResult Delete(Guid id)
         {
-            var result = _khachHangService.Delete(id);
-            return result;
+            try
+            {
+                var result = _khachHangService.Delete(id);
+                if (!result)
+                    return BadRequest("Xóa thất bại - Không tìm thấy khách hàng");
+
+                return Ok("Xóa thành công");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
         }
     }
 }

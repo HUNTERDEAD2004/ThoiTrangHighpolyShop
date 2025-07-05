@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace AppData.ViewModels
@@ -26,7 +27,8 @@ namespace AppData.ViewModels
 
             public int? GioiTinh { get; set; }
 
-            public DateTime? NgaySinh { get; set; }
+       
+        public string? NgaySinh { get; set; }
 
             /// <summary>
             /// 0 - Nhân viên, 1 - Khách hàng

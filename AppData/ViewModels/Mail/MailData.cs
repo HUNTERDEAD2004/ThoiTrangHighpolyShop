@@ -7,10 +7,13 @@ using System.Threading.Tasks;
 namespace AppData.ViewModels.Mail
 {
     public class MailData
-    {
-        public string EmailToId { get; set; }
-        public string EmailToName { get; set; }
-        public string EmailSubject { get; set; }
-        public string EmailBody { get; set; }
+    {      
+            public string EmailToId { get; set; } = null!;
+            public string EmailToName { get; set; } = null!;
+            public string EmailSubject { get; set; } = null!;
+            public string EmailBody { get; set; } = null!;
+            public string? EmailBodyHtml { get; set; } // hỗ trợ HTML
+        
+
     }
 }

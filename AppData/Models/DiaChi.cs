@@ -16,6 +16,8 @@ namespace AppData.Models
         public string? Xa { get; set; }
         public string? Quan { get; set; }
         public string? Huyen { get; set; }
+        public string Tinh { get; set; }
+        public string DiaChiChiTiet { get; set; }
         public bool IsDefault { get; set; } = false;
         public virtual KhachHang? KhachHang { get; set; }
     }
