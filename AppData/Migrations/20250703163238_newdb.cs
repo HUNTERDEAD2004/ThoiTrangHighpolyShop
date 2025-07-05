@@ -5,7 +5,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace AppData.Migrations
 {
+<<<<<<<< HEAD:AppData/Migrations/20250703163238_newdb.cs
     public partial class newdb : Migration
+========
+    public partial class adss : Migration
+>>>>>>>> origin/cuong_dev:AppData/Migrations/20250630173306_adss.cs
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

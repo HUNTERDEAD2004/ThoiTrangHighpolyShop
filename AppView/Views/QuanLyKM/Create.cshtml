@@ -1,74 +1,73 @@
 ﻿@model AppData.ViewModels.KhuyenMaiView
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Thêm khuyến mãi";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
 }
 
-<h1>Thêm khuyến mãi</h1>
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Thêm Khuyến Mãi</h2>
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="row g-3">
 
-
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label class="control-label">Mã</label>
-                <input asp-for="Ten" class="form-control" />
+            <!-- Mã -->
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Mã khuyến mãi</label>
+                <input asp-for="Ten" class="form-control" placeholder="Nhập mã..." />
                 <span asp-validation-for="Ten" class="text-danger"></span>
                 <span class="text-danger">@ViewData["Ma"]</span>
             </div>
-            <div class="form-group">
-                <label class="control-label">Loại khuyến mãi</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="trangthai" value="1" asp-for="TrangThai">
-                    <label class="form-check-label" for="flexRadioDefault1">
-                        Phần trăm 
-                    </label>
+
+            <!-- Loại khuyến mãi -->
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Loại khuyến mãi</label>
+                <div class="d-flex gap-4 mt-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="trangthai" value="1" asp-for="TrangThai" />
+                        <label class="form-check-label">Phần trăm</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="trangthai" value="0" asp-for="TrangThai" />
+                        <label class="form-check-label">Tiền mặt</label>
+                    </div>
                 </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="trangthai" value="0" asp-for="TrangThai" >
-                    <label class="form-check-label" for="flexRadioDefault2">
-                        Tiền mặt
-                    </label>
-                </div>
-               
             </div>
-            <div class="form-group">
-                <label class="control-label">Giá trị</label>
-                <input asp-for="GiaTri" class="form-control" />
-                <span  class="text-danger">@ViewData["GiaTri"]</span>
+
+            <!-- Giá trị -->
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Giá trị</label>
+                <input asp-for="GiaTri" class="form-control" placeholder="VD: 100000 hoặc 10" />
+                <span class="text-danger">@ViewData["GiaTri"]</span>
             </div>
-            <div class="form-group">
-                <label class="control-label">Ngày áp dụng</label>
-                <input asp-for="NgayApDung" class="form-control" />
+
+            <!-- Ngày áp dụng -->
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Ngày áp dụng</label>
+                <input asp-for="NgayApDung" class="form-control" type="datetime-local" />
                 <span class="text-danger">@ViewData["NgayApDung"]</span>
             </div>
-            <div class="form-group">
-                <label class="control-label"> Ngày kết thúc</label>
-                <input asp-for="NgayKetThuc" class="form-control" />
-                <span  class="text-danger">@ViewData["NgayKetThuc"]</span>
+
+            <!-- Ngày kết thúc -->
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Ngày kết thúc</label>
+                <input asp-for="NgayKetThuc" class="form-control" type="datetime-local" />
+                <span class="text-danger">@ViewData["NgayKetThuc"]</span>
                 <span class="text-danger">@ViewData["Ngay"]</span>
             </div>
-            <div class="form-group">
-                <label class="control-label"> Mô tả </label>
-                <input asp-for="MoTa" class="form-control" />
+
+            <!-- Mô tả -->
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Mô tả</label>
+                <input asp-for="MoTa" class="form-control" placeholder="Thêm mô tả nếu cần..." />
                 <span asp-validation-for="MoTa" class="text-danger"></span>
             </div>
-            
-            <div class="form-group">
-                <input type="submit" class="btn btn-success" value="Thêm khuyến mãi" />
-            </div>
-        </form>
-    </div>
-</div>
 
-<br />
-<button class="btn btn-primary">
-    <a asp-action="GetAllKM" style="color:white;">Quay lại</a>
-</button>
+        </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+        <!-- Buttons -->
+        <div class="mt-4 d-flex gap-3">
+            <button type="submit" class="btn btn-success px-4">Thêm khuyến mãi</button>
+            <a asp-action="GetAllKM" class="btn btn-secondary px-4">Quay lại</a>
+        </div>
+    </form>

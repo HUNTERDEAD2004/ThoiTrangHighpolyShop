@@ -86,27 +86,31 @@ namespace AppAPI.Controllers
 
         // PUT api/<NhanVienController>/5
         [HttpPut("{id}")]
-        public bool Put(Guid id, string ten, string email, string manhanvien, DateOnly ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
+        public IActionResult Put(Guid id, [FromBody] NhanVien nv)
         {
-            var nv = _nhanVienService.GetById(id);
-            if (nv != null)
-            {
-                nv.Ten = ten;
-                nv.Email = email;
-                nv.MaNhanVien = manhanvien;
-                nv.NgaySinh = ngaysinh;
-                nv.GioiTinh = gioitinh;
-                nv.PassWord = password;
-                nv.SDT = sdt;
-                nv.DiaChi = diachi;
-                nv.TrangThai = trangthai;
-                nv.IDVaiTro = idvaitro;
-                _dbContext.NhanViens.Update(nv);
-                _dbContext.SaveChanges();
-                return true;
-            }
-            return false;
+            var existing = _nhanVienService.GetById(id);
+            if (existing == null) return NotFound();
+
+            // Cập nhật dữ liệu từ nv truyền vào
+            existing.Ten = nv.Ten;
+            existing.Email = nv.Email;
+            existing.MaNhanVien = nv.MaNhanVien;
+            existing.NgaySinh = nv.NgaySinh;
+            existing.GioiTinh = nv.GioiTinh;
+            existing.PassWord = nv.PassWord;
+            existing.SDT = nv.SDT;
+            existing.DiaChi = nv.DiaChi;
+            existing.TrangThai = nv.TrangThai;
+
+            // Gắn cứng IDVaiTro mặc định
+            existing.IDVaiTro = Guid.Parse("952C1A5D-74FF-4DAF-BA88-135C5440809C");
+
+            _dbContext.NhanViens.Update(existing);
+            _dbContext.SaveChanges();
+
+            return Ok(true);
         }
+
 
         // DELETE api/<NhanVienController>/5
         [HttpDelete("{id}")]

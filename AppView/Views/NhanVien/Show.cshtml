@@ -4,12 +4,6 @@
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
     int stt = 1;
 }
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-
-<div class=" justify-content-between">
-    <h3>Danh Sách Nhân Viên</h3>
-</div>
 <div class="container mt-4">
    
    
@@ -18,112 +12,119 @@
        
         <a class="btn btn-primary" asp-action="Create">Thêm mới</a>
 
-        <form asp-action="SearchTheoTen" method="get" class="d-flex">
-            <input type="text" name="Ten" class="form-control me-2" placeholder="Tìm theo tên hoặc SĐT" />
+        <form asp-action="SearchTheoTen" method="get" id="searchForm" class="d-flex">
+            <input type="text" name="Ten" class="form-control me-2 tk1" placeholder="Tìm theo tên hoặc SĐT" />
             <input type="submit" value="Tìm kiếm" class="btn btn-info" />
         </form>
     </div>
 
     <table class="table table-bordered table-hover">
-        <thead style="background-color: darkslategray; color: white;">
+        <thead class="table-dark">
             <tr>
                 <th>STT</th>
-                <th>Mã Khách Hàng</th>
                 <th>Tên</th>
-                <th>Giới tính</th>
                 <th>Email</th>
-                <th>Ngày sinh</th>
-                <th>Số điện thoại</th>
-                <th>Điểm tích</th>
+                <th>SĐT</th>
                 <th>Địa chỉ</th>
-                <th>Trạng Thái</th>
+                <th>Ngày sinh</th>
+                <th>Giới tính</th>
+                <th>Mã nhân viên</th>
+                <th>Trạng thái</th>
                 <th>Thao tác</th>
             </tr>
         </thead>
 
         <tbody>
-        @foreach (var item in Model.listNv)
-        {
-            <tr>
-                <td>@stt</td>
-                <td>@item.MaNhanVien</td>
-                <td>@item.Ten</td>
-                <td>@(item.GioiTinh == 1 ? "Nam" : "Nữ")</td>
-                <td>@item.Email</td>
-                <td>@item.SDT</td>
-                <td>@(item.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chưa có")</td>
-                <td>@item.DiaChi</td>                                             
-                <td>
-                    @(item.TrangThai == 1 ? "Đang làm" : "Nghỉ làm")
-                </td>
-                <td>
-                    <a class="btn btn-sm btn-success" asp-action="Sua" asp-route-id="@item.ID">Sửa</a>
-                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.ID">Chi tiết</a>
-                </td>
-            </tr>
-            stt++;
-        }
+            @foreach (var item in Model.listNv)
+            {
+                <tr>
+                    <td>@stt</td>
+                    <td>@item.Ten</td>
+                    <td>@item.Email</td>
+                    <td>@item.SDT</td>
+                    <td>@item.DiaChi</td>
+                    <td>@(item.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chưa có")</td>
+                    <td>
+                        @{
+                            string gioiTinhStr = item.GioiTinh switch
+                            {
+                                0 => "Nam",
+                                1 => "Nữ",
+                                _ => "Khác"
+                            };
+                        }
+                        @gioiTinhStr
+                    </td>
+                    <td>@item.MaNhanVien</td>
+                    <td>@(item.TrangThai == 1 ? "Đang làm" : "Nghỉ làm")</td>
+                    <td>
+                        <a class="btn btn-sm " asp-action="Sua" asp-route-id="@item.ID">Trạng thái</a>
+                        <a class="btn btn-sm btn-success" asp-action="Edit" asp-route-id="@item.ID">Sửa</a>
+                        <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.ID">Chi tiết</a>
+                    </td>
+                </tr>
+                stt++;
+            }
         </tbody>
     </table>
-    <div style="display: flex; justify-content: center; margin: 0; padding: 0;">
-        <button disabled="@(Model.PagingInfo.CurrentPage == 1)" style="background-color: @(Model.PagingInfo.CurrentPage == 1 ? "#f5f5f5" : "transparent"); border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
-            <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = 1 })">Đầu</a>
-        </button>
+
+    <!-- Phân trang -->
+    <div class="d-flex justify-content-center gap-1">
+        <a class="btn btn-outline-dark btn-sm @(Model.PagingInfo.CurrentPage == 1 ? "disabled" : "")"
+           href="@Url.Action("Show", new { ProductPage = 1 })">Đầu</a>
+
         @if (Model.PagingInfo.CurrentPage > 1)
         {
-            <button style="background-color: @(Model.PagingInfo.CurrentPage - 1 == Model.PagingInfo.CurrentPage ? "#99CCFF" : "transparent"); border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
-                <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage - 1 })">Trước</a>
-            </button>
+            <a class="btn btn-outline-secondary btn-sm"
+               href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage - 1 })">Trước</a>
         }
+
         @for (int i = Math.Max(1, Model.PagingInfo.CurrentPage - 1); i <= Math.Min(Model.PagingInfo.TotalPages, Model.PagingInfo.CurrentPage + 1); i++)
         {
-            <button style="background-color: @(i == Model.PagingInfo.CurrentPage ? "#99CCFF" : "transparent"); border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
-                <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = i })">@i</a>
-            </button>
+            <a class="btn @(i == Model.PagingInfo.CurrentPage ? "btn-primary" : "btn-outline-secondary") btn-sm"
+               href="@Url.Action("Show", new { ProductPage = i })">@i</a>
         }
+
         @if (Model.PagingInfo.CurrentPage < Model.PagingInfo.TotalPages)
         {
-            <button style="background-color: @(Model.PagingInfo.CurrentPage + 1 == Model.PagingInfo.CurrentPage ? "#99CCFF" : "transparent");border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
-                <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage + 1 })">Tiếp</a>
-            </button>
+            <a class="btn btn-outline-secondary btn-sm"
+               href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage + 1 })">Tiếp</a>
         }
-        <button disabled="@(Model.PagingInfo.CurrentPage == Model.PagingInfo.TotalPages)" style="background-color: @(Model.PagingInfo.CurrentPage == Model.PagingInfo.TotalPages ? "#f5f5f5" : "transparent");border: 1px solid rgba(0, 0, 0, 0.2); border-radius: 0; margin: 0;">
-            <a style="text-decoration: none; color: black;" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.TotalPages })">Cuối</a>
-        </button>
+
+        <a class="btn btn-outline-dark btn-sm @(Model.PagingInfo.CurrentPage == Model.PagingInfo.TotalPages ? "disabled" : "")"
+           href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.TotalPages })">Cuối</a>
     </div>
-    <script>
-    document.getElementById('searchForm').addEventListener('submit', function (event) {
-        // Lấy dữ liệu tìm kiếm từ biến toàn cục
-        var searchInput = document.querySelector('.tk1');
-        searchData = sessionStorage.getItem('searchData');
-        // Sử dụng dữ liệu tìm kiếm để thực hiện tìm kiếm
-        if (!searchInput.value.trim()) {
-            event.preventDefault(); // Prevent form submission if search input is empty
-            document.getElementById('searchErrorMessage').style.display = 'block';
-        } else {
-            var url = '/NhanVien/SearchTheoTen?Ten=' + searchData;
-            window.location.href = url;
-        }
-    });
 
-    window.addEventListener('load', function (event) {
-        // Lấy dữ liệu tìm kiếm từ biến toàn cục
-        var searchInput = document.querySelector('.tk1');
-        searchData = sessionStorage.getItem('searchData');
-        // Nếu có dữ liệu tìm kiếm, thì điền dữ liệu đó vào ô tìm kiếm
-        if (searchData) {
-            searchInput.value = searchData;
-        }
-    });
-
-    document.addEventListener('keydown', function (event) {
-        // Nếu ấn backspace, thì load lại trang ban đầu
-        if (event.key === 'Backspace') {
-            var url = '/NhanVien/Show';
-            window.location.href = url;
-        }
-    });
-
-</script>
 </div>
 
+@section Scripts {
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function (event) {
+            let searchInput = document.querySelector('.tk1');
+            let searchValue = searchInput.value.trim();
+
+            if (!searchValue) {
+                event.preventDefault();
+                alert("Vui lòng nhập từ khóa tìm kiếm!");
+                return;
+            }
+
+            sessionStorage.setItem('searchData', searchValue);
+        });
+
+        window.addEventListener('load', function () {
+            let searchInput = document.querySelector('.tk1');
+            let savedSearch = sessionStorage.getItem('searchData');
+            if (savedSearch) {
+                searchInput.value = savedSearch;
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Backspace') {
+                sessionStorage.removeItem('searchData');
+                window.location.href = '/NhanVien/Show';
+            }
+        });
+    </script>
+}
