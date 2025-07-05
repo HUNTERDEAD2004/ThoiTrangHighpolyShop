@@ -153,6 +153,30 @@ namespace AppView.Controllers
             var user = JsonConvert.DeserializeObject<NhanVien>(apiData);
             return View(user);
         }
+        /* [HttpPost]
+         [ValidateAntiForgeryToken]
+         public async Task<IActionResult> Edit(Guid id, NhanVien nv)
+         {
+             try
+             {
+                 if (ModelState.IsValid)
+                 {
+                     string apiUrl = $"https://localhost:7095/api/NhanVien/{id}?Ten={nv.Ten}&Email={nv.Email}&PassWord={nv.PassWord}&SDT={nv.SDT}&DiaChi={nv.DiaChi}&trangthai={nv.TrangThai}&GioiTinh={nv.GioiTinh}&NgaySinh={nv.NgaySinh}";
+
+                     var jsonData = JsonConvert.SerializeObject(nv);
+                     var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+                     var response = await _httpClient.PutAsync(apiUrl, content);
+                     if (response.IsSuccessStatusCode)
+                     {
+                         return RedirectToAction("Show");
+                     }
+                 }
+                 return View(nv);
+
+             }
+             catch { return Redirect("https://localhost:5001/"); }
+         }*/
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, NhanVien nv)
@@ -161,19 +185,28 @@ namespace AppView.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    string apiUrl = $"https://localhost:7095/api/NhanVien/{id}?ten={nv.Ten}&email={nv.Email}&password={nv.PassWord}&sdt={nv.SDT}&diachi={nv.DiaChi}&trangthai={nv.TrangThai}&idvaitro={nv.IDVaiTro}";
+                    string apiUrl = $"https://localhost:7095/api/NhanVien/{id}";
 
-                    var reponsen = await _httpClient.PutAsync(apiUrl, null);
-                    if (reponsen.IsSuccessStatusCode)
+                    var jsonData = JsonConvert.SerializeObject(nv);
+                    var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+                    var response = await _httpClient.PutAsync(apiUrl, content);
+
+                    if (response.IsSuccessStatusCode)
                     {
                         return RedirectToAction("Show");
                     }
                 }
-                return View(nv);
 
+                return View(nv);
             }
-            catch { return Redirect("https://localhost:5001/"); }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return Redirect("https://localhost:5001/");
+            }
         }
+
         public async Task<IActionResult> Delete(Guid id)
         {
             string apiUrl = $"https://localhost:7095/api/NhanVien/{id}";
