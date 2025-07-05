@@ -9,7 +9,7 @@ namespace AppData.Models
 {
     public class MauSac
     {
-        public Guid? ID { get; set; }
+        public Guid ID { get; set; }
         [StringLength(20, ErrorMessage = "Tên màu sắc không được vượt quá 20 kí tự ")]
         public string? Ten { get; set; }
         public string? Ma { get; set; }

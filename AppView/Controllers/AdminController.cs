@@ -16,12 +16,14 @@ namespace AppView.Controllers
         private readonly HttpClient _httpClient;
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly IFileService _iFileService;
-        public AdminController(IWebHostEnvironment hostEnvironment, IFileService iFileService)
+        private readonly AssignmentDBContext _context;
+        public AdminController(AssignmentDBContext context, IWebHostEnvironment hostEnvironment, IFileService iFileService)
         {
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri("https://localhost:7095/api/");
             _hostEnvironment = hostEnvironment;
             _iFileService = iFileService;
+            _context = context;
         }
         public IActionResult HomePageAdmin(Guid id)
         {
@@ -175,22 +177,37 @@ namespace AppView.Controllers
                 return Json(new List<ChatLieu>());
             }
         }
-        public JsonResult GetLoaiSPCon(string tenLoaiSPCha)
+        public async Task<JsonResult> GetLoaiSPCon(Guid idLoaiSPCha)
         {
             try
             {
-                string? response = _httpClient.GetAsync(_httpClient.BaseAddress + "SanPham/GetAllLoaiSPCon?tenLoaiSPCha=" + tenLoaiSPCha).Result.Content.ReadAsStringAsync().Result;
-                if (response != null)
-                {
-                    var loaiSP = JsonConvert.DeserializeObject<List<LoaiSP>>(response);
-                    return Json(new { KetQua = loaiSP, TrangThai = true });
-                }
-                else return Json(new { TrangThai = false });
+                var response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}SanPham/GetAllLoaiSPCon?idLoaiSPCha={idLoaiSPCha}");
+                if (!response.IsSuccessStatusCode)
+                    return Json(new { TrangThai = false });
+
+                var body = await response.Content.ReadAsStringAsync();
+                var loaiSP = JsonConvert.DeserializeObject<List<LoaiSP>>(body);
+
+                return Json(new { KetQua = loaiSP, TrangThai = true });
             }
-            catch
+            catch (Exception ex)
             {
+                // Có thể log nếu cần: _logger.LogError(ex, "...");
                 return Json(new { TrangThai = false });
             }
+        }
+        // Danh sách các ID màu bị đánh dấu xoá
+        private List<Guid> _mauBiXoa = new List<Guid>();
+        private List<Guid> _sizeBiXoa = new List<Guid>();
+        // Hàm kiểm tra xem ID màu có nằm trong danh sách bị xoá hay không
+        private bool XoaMau(Guid id)
+        {
+            return _mauBiXoa.Contains(id);
+        }
+        // Hàm kiểm tra xem ID size có nằm trong danh sách bị xoá hay không
+        private bool XoaSize(Guid id)
+        {
+            return _sizeBiXoa.Contains(id);
         }
         [HttpGet]
         public IActionResult AddSanPham()
@@ -202,35 +219,46 @@ namespace AppView.Controllers
         {
             try
             {
-                //Xóa màu deleted           
-                sanPhamRequest.MauSacs.RemoveAll(XoaMau);
-                //Xoá size deleted
-                sanPhamRequest.KichCos.RemoveAll(XoaSize);
-                //Gọi API
-                HttpResponseMessage response = _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "SanPham/AddSanPham", sanPhamRequest).Result;
-                if (response.IsSuccessStatusCode)
+                // Xoá các ID màu sắc và kích cỡ bị đánh dấu xoá
+                if (sanPhamRequest.IDMauSacs != null)
                 {
-                    var temp = response.Content.ReadAsStringAsync().Result;
-                    var chiTietSanPham = JsonConvert.DeserializeObject<ChiTietSanPhamUpdateRequest>(temp);
-                    if(!chiTietSanPham.ChiTietSanPhams.Any() || chiTietSanPham.ChiTietSanPhams == null)
-                    {
-                        return RedirectToAction("ProductManager");
-                    }
-                    TempData["UpdateChiTietSanPham"] = temp;
-                    TempData["MauSac"] = JsonConvert.SerializeObject(sanPhamRequest.MauSacs);
-                    return RedirectToAction("UpdateChiTietSanPham");
+                    sanPhamRequest.IDMauSacs.RemoveAll(id => XoaMau(id));
                 }
-                else return BadRequest();
+
+                if (sanPhamRequest.IDKichCos != null)
+                {
+                    sanPhamRequest.IDKichCos.RemoveAll(id => XoaSize(id));
+                }
+
+                // Gọi API tạo sản phẩm
+                var response = await _httpClient.PostAsJsonAsync(
+                    $"{_httpClient.BaseAddress}SanPham/AddSanPham",
+                    sanPhamRequest
+                );
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return BadRequest();
+                }
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var chiTietSanPham = JsonConvert.DeserializeObject<ChiTietSanPhamUpdateRequest>(responseBody);
+
+                if (chiTietSanPham?.ChiTietSanPhams == null || !chiTietSanPham.ChiTietSanPhams.Any())
+                {
+                    return RedirectToAction("ProductManager");
+                }
+
+                // Truyền dữ liệu sang TempData để sử dụng tiếp ở view khác
+                TempData["UpdateChiTietSanPham"] = responseBody;
+                TempData["IDMauSacs"] = JsonConvert.SerializeObject(sanPhamRequest.IDMauSacs);
+
+                return RedirectToAction("UpdateChiTietSanPham");
             }
-            catch { return RedirectToAction("ProductManager"); }
-        }
-        private static bool XoaMau(MauSac mau)
-        {
-            return mau.Ten == "Deleted" || String.IsNullOrEmpty(mau.Ten);
-        }
-        private static bool XoaSize(string size)
-        {
-            return size == "Deleted" || String.IsNullOrEmpty(size);
+            catch
+            {
+                return RedirectToAction("ProductManager");
+            }
         }
         [HttpGet]
         public IActionResult ProductDetail(string idSanPham)
@@ -308,41 +336,22 @@ namespace AppView.Controllers
             }
         }
         [HttpGet]
-        public IActionResult QuanLyAnh(Guid idSanPham)
+        public IActionResult QuanLyAnhChiTiet(Guid idSanPham)
         {
             try
             {
-                var response = _httpClient.GetAsync(_httpClient.BaseAddress + "SanPham/GetAllAnhSanPham?idSanPham=" + idSanPham).Result;
+                var response = _httpClient.GetAsync(_httpClient.BaseAddress + "SanPham/GetAllAnhSanPhamChiTiet?idSanPham=" + idSanPham).Result;
                 if (response.IsSuccessStatusCode)
                 {
-                    var lstAnh = JsonConvert.DeserializeObject<List<AnhViewModel>>(response.Content.ReadAsStringAsync().Result);
+                    var lstAnh = JsonConvert.DeserializeObject<List<UploadAnhViewModel>>(response.Content.ReadAsStringAsync().Result);
                     ViewData["IDSanPham"] = idSanPham.ToString();
-                    return View("QuanLyAnh", lstAnh.OrderBy(x => x.TenMau));
+                    return View("QuanLyAnhChiTiet", lstAnh.OrderBy(x => x.TenMau));
                 }
-                else return View("QuanLyAnh", new List<AnhViewModel>());
+                else return View("QuanLyAnhChiTiet", new List<UploadAnhViewModel>());
             }
             catch
             {
-                return View("QuanLyAnh", new List<AnhViewModel>());
-            }
-        }
-        [HttpPost]
-        public IActionResult AddAnhNoColor(IFormFile file, string idSanPham)
-        {
-            try
-            {
-                string wwwrootPath = _hostEnvironment.WebRootPath;
-                var anh = new Anh() { ID = Guid.NewGuid(), DuongDan = _iFileService.AddFile(file, wwwrootPath).Result, IDSanPhamChiTiet = new Guid(idSanPham), TrangThai = 1 };
-                var response = _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "SanPham/AddImageNoColor", anh).Result;
-                if (response.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("QuanLyAnh", new { idSanPham });
-                }
-                else return BadRequest();
-            }
-            catch
-            {
-                return BadRequest();
+                return View("QuanLyAnhChiTiet", new List<UploadAnhViewModel>());
             }
         }
         [HttpPost]
@@ -351,17 +360,19 @@ namespace AppView.Controllers
             try
             {
                 string wwwrootPath = _hostEnvironment.WebRootPath;
-                var anh = new Anh() { ID = new Guid(id), DuongDan = _iFileService.AddFile(file, wwwrootPath).Result, TrangThai = 1 };
+                var anh = new Anh()
+                {
+                    ID = new Guid(id),
+                    DuongDan = _iFileService.AddFile(file, wwwrootPath).Result,
+                    TrangThai = 1
+                };
                 var response = _httpClient.PutAsJsonAsync("SanPham/UpdateImage", anh).Result;
                 if (response.IsSuccessStatusCode)
                 {
-                    if (_iFileService.DeleteFile(duongDan, wwwrootPath))
-                    {
-                        return RedirectToAction("QuanLyAnh", new { idSanPham });
-                    }
-                    else return BadRequest();
+                    _iFileService.DeleteFile(duongDan, wwwrootPath);
+                    return RedirectToAction("QuanLyAnhChiTiet", new { idSanPham });
                 }
-                else return BadRequest();
+                return BadRequest();
             }
             catch { return BadRequest(); }
         }
@@ -371,16 +382,40 @@ namespace AppView.Controllers
             try
             {
                 string wwwrootPath = _hostEnvironment.WebRootPath;
-                var response = _httpClient.DeleteAsync("SanPham/DeleteImage?id=" + id).Result;
+                var response = _httpClient.DeleteAsync($"SanPham/DeleteImage?id={id}").Result;
                 if (response.IsSuccessStatusCode)
                 {
-                    if (_iFileService.DeleteFile(duongDan, wwwrootPath))
-                    {
-                        return RedirectToAction("QuanLyAnh", new { idSanPham });
-                    }
-                    else return BadRequest();
+                    _iFileService.DeleteFile(duongDan, wwwrootPath);
+                    return RedirectToAction("QuanLyAnhChiTiet", new { idSanPham });
                 }
-                else return BadRequest();
+                return BadRequest();
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddImageToChiTiet(IFormFile file, string idChiTietSanPham)
+        {
+            try
+            {
+                string wwwrootPath = _hostEnvironment.WebRootPath;
+                var imagePath = await _iFileService.AddFile(file, wwwrootPath);
+
+                // Tạo đúng DTO cho API
+                var request = new List<AnhRequest>()
+        {
+            new AnhRequest()
+            {
+                IDSanPhamChiTiet = Guid.Parse(idChiTietSanPham),
+                DuongDan = imagePath,
+                MaMau = "" // nếu backend không dùng thì giữ rỗng
+            }
+        };
+
+                var response = await _httpClient.PostAsJsonAsync("SanPham/AddAnh", request);
+                return response.IsSuccessStatusCode ? Ok() : BadRequest();
             }
             catch
             {
@@ -398,40 +433,39 @@ namespace AppView.Controllers
         {
             try
             {
-                request.MauSacs.RemoveAll(XoaMau);
-                request.KichCos.RemoveAll(XoaSize);
-                string idSanPham = TempData.Peek("IDSanPham").ToString();
+                // Xoá các màu và size bị đánh dấu xoá
+                request.IDMauSacs?.RemoveAll(XoaMau);
+                request.IDKichCos?.RemoveAll(XoaSize);
+
+                // Lấy ID sản phẩm từ TempData
+                string idSanPham = TempData.Peek("IDSanPham")?.ToString();
+                if (string.IsNullOrEmpty(idSanPham)) return BadRequest("Không tìm thấy ID sản phẩm.");
+
                 request.IDSanPham = new Guid(idSanPham);
-                var response = await _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "SanPham/AddChiTietSanPham", request);
-                if (response.IsSuccessStatusCode)
+
+                // Gửi request tạo chi tiết sản phẩm
+                var response = await _httpClient.PostAsJsonAsync(
+                    _httpClient.BaseAddress + "SanPham/AddChiTietSanPham",
+                    request
+                );
+
+                if (!response.IsSuccessStatusCode)
+                    return BadRequest();
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var chiTietSanPham = JsonConvert.DeserializeObject<ChiTietSanPhamUpdateRequest>(responseContent);
+
+                if (chiTietSanPham?.ChiTietSanPhams == null || !chiTietSanPham.ChiTietSanPhams.Any())
                 {
-                    var temp = response.Content.ReadAsStringAsync().Result;
-                    var chiTietSanPham = JsonConvert.DeserializeObject<ChiTietSanPhamUpdateRequest>(temp);
-                    if (!chiTietSanPham.ChiTietSanPhams.Any() || chiTietSanPham.ChiTietSanPhams == null)
-                    {
-                        return RedirectToAction("ProductDetail", new { idSanPham = idSanPham });
-                    }
-                    TempData["UpdateChiTietSanPham"] = temp;
-                    return RedirectToAction("UpdateChiTietSanPham");
+                    return RedirectToAction("ProductDetail", new { idSanPham });
                 }
-                else return BadRequest();
+
+                TempData["UpdateChiTietSanPham"] = responseContent;
+                return RedirectToAction("ProductManager");
             }
             catch
             {
                 return BadRequest();
-            }
-        }
-        [HttpGet]
-        public IActionResult AddAnhToMauSac()
-        {
-            try
-            {
-                var lstAnhRequest = JsonConvert.DeserializeObject<List<AnhRequest>>(TempData["MauSacs"].ToString());
-                return View(lstAnhRequest);
-            }
-            catch
-            {
-                return View(new List<AnhRequest>());
             }
         }
         [HttpPost]
@@ -527,7 +561,7 @@ namespace AppView.Controllers
                 var response = _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "SanPham/AddChiTietSanPhamFromSanPham", request).Result;
                 if (response.IsSuccessStatusCode)
                 {
-                    return RedirectToAction("AddAnhToSanPham");
+                    return RedirectToAction("AddAnhToSanPhamChiTiet");
                 }
                 else return BadRequest();
             }
@@ -537,45 +571,74 @@ namespace AppView.Controllers
             }
         }
         [HttpGet]
-        public IActionResult AddAnhToSanPham()
+        public IActionResult AddAnhToSanPhamChiTiet()
         {
             try
             {
-                var str = TempData["MauSac"] as string;
-                if(str == null)
+                var strMauSac = TempData.Peek("MauSac") as string;
+                if (string.IsNullOrEmpty(strMauSac))
+                    return View(new List<UploadAnhViewModel>()); // ✅ đúng kiểu model
+
+                var lstMauSac = JsonConvert.DeserializeObject<List<MauSac>>(strMauSac);
+                var idSanPhamStr = TempData.Peek("IDSanPham")?.ToString();
+                if (string.IsNullOrEmpty(idSanPhamStr)) return BadRequest("Thiếu ID sản phẩm");
+
+                Guid idSanPham = Guid.Parse(idSanPhamStr);
+                var listCTSP = _context.ChiTietSanPhams
+                    .Where(ctsp => ctsp.IDSanPham == idSanPham)
+                    .Select(ctsp => new { ctsp.ID, ctsp.IDMauSac })
+                    .ToList();
+
+                var model = lstMauSac.Select(mau => new UploadAnhViewModel
                 {
-                    return View(new List<MauSac>());
-                }
-                else
-                {
-                    var lst = JsonConvert.DeserializeObject<List<MauSac>>(str);
-                    return View(lst);
-                }               
+                    MaMau = mau.Ma,
+                    TenMau = mau.Ten,
+                    IDChiTietSanPham = listCTSP.FirstOrDefault(x => x.IDMauSac == mau.ID)?.ID ?? Guid.Empty
+                }).ToList();
+
+                return View(model);
             }
             catch
             {
-                return View(new List<MauSac>());
+                return View(new List<UploadAnhViewModel>());
             }
         }
         [HttpPost]
-        public IActionResult AddAnhToSanPham(List<string> maMaus, List<IFormFile> images)
+        public async Task<IActionResult> AddAnhToSanPhamChiTiet(List<Guid> IDChiTietSanPhams, List<IFormFile> Images)
         {
             try
             {
                 string wwwrootPath = _hostEnvironment.WebRootPath;
-                string idSanPham = TempData.Peek("SanPham").ToString();
-                List<AnhRequest> lstAnhRequest = new List<AnhRequest>();
-                for (var i = 0; i < maMaus.Count; i++)
+                var lstAnhRequest = new List<AnhRequest>();
+
+                for (int i = 0; i < IDChiTietSanPhams.Count; i++)
                 {
-                    lstAnhRequest.Add(new AnhRequest() { IDSanPhamChiTiet = new Guid(idSanPham), MaMau = maMaus[i], DuongDan = images.Count <= i ? "" : _iFileService.AddFile(images[i], wwwrootPath).Result });
+                    var idChiTiet = IDChiTietSanPhams[i];
+                    var image = Images.Count > i ? Images[i] : null;
+
+                    if (image == null) continue;
+
+                    string imagePath = await _iFileService.AddFile(image, wwwrootPath);
+
+                    lstAnhRequest.Add(new AnhRequest
+                    {
+                        IDSanPhamChiTiet = idChiTiet,
+                        DuongDan = imagePath,
+                        MaMau = "" // có thể bỏ nếu không dùng
+                    });
                 }
-                HttpResponseMessage response = _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "SanPham/AddAnh", lstAnhRequest).Result;
-                if (response.IsSuccessStatusCode) return RedirectToAction("ProductDetail", new { idSanPham = idSanPham });
-                else return BadRequest();
+
+                var response = await _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "SanPham/AddAnh", lstAnhRequest);
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("ProductDetail", new { idSanPham = TempData.Peek("IDSanPham") });
+                }
+
+                return BadRequest("Lỗi khi gọi API.");
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest("Lỗi hệ thống: " + ex.Message);
             }
         }
         public FileResult GenerateQRCode(string id, string ma)
