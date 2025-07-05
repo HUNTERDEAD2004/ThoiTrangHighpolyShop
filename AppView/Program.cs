@@ -7,7 +7,8 @@ using Rotativa.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AssignmentDBContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DBContext")));
+builder.Services.AddDbContext<AssignmentDBContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBContext")));
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
@@ -40,11 +41,9 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthorization();
 
-
-
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Admin}/{action=ProductManager}");
+    pattern: "{controller=Home}/{action=Login}");
 
 IWebHostEnvironment env = app.Environment;
 Rotativa.AspNetCore.RotativaConfiguration.Setup(env.WebRootPath, "../Rotativa/Windows");

@@ -16,6 +16,7 @@
         public int TrangThai { get; set; } // 0 là chưa hoạt động, 1 là hoạt động, 2 là  hết hạn.< còn 2 trường hợp là áp dụng sơm và kết thúc sớm
                                            // là khi admin chọn chức năng này thì sẽ tự động chuyển trạng thái từ chưa hoạt động -> hoạt động và hoạt động -> hết hạn >
         public virtual IEnumerable<HoaDon>? HoaDons { get; set; }
+        public virtual IEnumerable<UserVoucher>? UserVouchers { get; set; }
         //Git
     }
 }

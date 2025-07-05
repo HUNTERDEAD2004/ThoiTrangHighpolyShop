@@ -40,3 +40,6 @@ artifacts/
 /AppData/Migrations/20250626051118_1st.cs
 /AppData/Migrations/20250626051118_1st.cs
 /AppData/Migrations/20250626051118_1st.Designer.cs
+/AppData/Migrations/20250705155522_suadblan2.cs
+/AppData/Migrations/20250705155522_suadblan2.Designer.cs
+/AppData/Migrations/AssignmentDBContextModelSnapshot.cs

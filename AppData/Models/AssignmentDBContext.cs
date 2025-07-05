@@ -41,9 +41,12 @@ namespace AppData.Models
      
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Data Source=DESKTOP-3K22IAU;Initial Catalog=AppBanQuanAoThoiTrangNam;Integrated Security=True");
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer("Server=DESKTOP-NQ6KMAG\\SQLEXPRESS;Database=AppBanQuanAoThoiTrangNam;Trusted_Connection=True;TrustServerCertificate=True");
+            }
         }
-        //@"Data Source=DESKTOP-NQ6KMAG\SQLEXPRESS;Initial Catalog=AppBanQuanAoThoiTrangNam;Integrated Security=True"
+        //"Server=DESKTOP-NQ6KMAG\SQLEXPRESS;Database=AppBanQuanAoThoiTrangNam;Trusted_Connection=True;TrustServerCertificate=True"
         //@"Data Source=DESKTOP-3K22IAU;Initial Catalog=AppBanQuanAoThoiTrangNam;Integrated Security=True"
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -87,47 +87,44 @@ namespace AppAPI.Services
         {
             try
             {
-                KhuyenMai? khuyenMai;
-                List<KhuyenMai> khuyenMais = _context.KhuyenMais.Where(x => x.NgayKetThuc > DateTime.Now && x.NgayApDung < DateTime.Now).ToList();
+                // Lấy danh sách khuyến mãi áp dụng tại thời điểm hiện tại
+                var khuyenMais = _context.KhuyenMais
+                    .Where(x => x.NgayKetThuc > DateTime.Now && x.NgayApDung < DateTime.Now)
+                    .ToList();
 
-                var lstSanPham = (from a in _context.SanPhams
-                                  join b in _context.ChiTietSanPhams.Where(x => x.TrangThai == 1) on a.ID equals b.IDSanPham into sanpham
-                                  from sp in sanpham.DefaultIfEmpty()
-                                  join e in _context.LoaiSPs.Where(x => x.LoaiSPCha != null) on a.IDLoaiSP equals e.ID
-                                  select new SanPhamViewModelAdmin()
+                // Truy vấn sản phẩm + loại sản phẩm con + cha + chi tiết + chất liệu
+                var lstSanPham = (from sp in _context.SanPhams
+                                  join loaiCon in _context.LoaiSPs on sp.IDLoaiSP equals loaiCon.ID
+                                  join loaiCha in _context.LoaiSPs on loaiCon.IDLoaiSPCha equals loaiCha.ID into loaiChaJoin
+                                  from loaiCha in loaiChaJoin.DefaultIfEmpty()
+                                  join ctsp in _context.ChiTietSanPhams on sp.ID equals ctsp.IDSanPham into ctspJoin
+                                  from ctsp in ctspJoin.DefaultIfEmpty()
+                                  join cl in _context.ChatLieus on sp.IDChatLieu equals cl.ID into chatLieuJoin
+                                  from cl in chatLieuJoin.DefaultIfEmpty()
+                                  select new SanPhamViewModelAdmin
                                   {
-                                      ID = a.ID,
-                                      Ten = a.Ten,
-                                      Ma = a.Ma,
-                                      TrangThai = a.TrangThai,
-                                      LoaiSPCha = _context.LoaiSPs.First(x => x.ID == e.IDLoaiSPCha).Ten,
-                                      LoaiSPCon = e.Ten,
-                                      Anh = sp == null ? "" : _context.Anhs.First(x => x.IDSanPhamChiTiet == sp.ID).DuongDan,
-                                      ChatLieu = _context.ChatLieus.First(x => x.ID == a.IDChatLieu).Ten,
-                                      GiaGoc = sp == null ? -999 : sp.GiaBan,
-                                      SoLuong = sp == null ? -999 : sp.SoLuong,
-                                      IDKhuyenMai = sp == null ? null : sp.IDKhuyenMai,
-                                  }).ToList();
+                                      ID = sp.ID,
+                                      Ten = sp.Ten,
+                                      Ma = sp.Ma,
+                                      TrangThai = sp.TrangThai,
+                                      LoaiSPCon = loaiCon.Ten,
+                                      LoaiSPCha = loaiCha != null ? loaiCha.Ten : "Không có",
+                                      ChatLieu = cl != null ? cl.Ten : "Không xác định",
+                                      Anh = sp.AnhDaiDien,
+                                      GiaGoc = (ctsp != null && ctsp.TrangThai == 1) ? ctsp.GiaBan : 0,
+                                      SoLuong = ctsp != null ? ctsp.SoLuong : 0,
+                                      IDKhuyenMai = ctsp != null ? ctsp.IDKhuyenMai : null
+                                  }).Take(20).ToList();
+
+                // Tính giá bán sau khuyến mãi
                 foreach (var item in lstSanPham)
                 {
-                    if (item.IDKhuyenMai != null)
-                    {
-                        khuyenMai = khuyenMais.FirstOrDefault(x => x.ID == item.IDKhuyenMai);
-                        if (khuyenMai != null)
-                        {
-                            item.GiaBan = GetKhuyenMai(khuyenMai.GiaTri, item.GiaGoc, khuyenMai.TrangThai);
-
-                        }
-                        else
-                        {
-                            item.GiaBan = item.GiaGoc;
-                        }
-                    }
-                    else
-                    {
-                        item.GiaBan = item.GiaGoc;
-                    }
+                    var khuyenMai = khuyenMais.FirstOrDefault(x => x.ID == item.IDKhuyenMai);
+                    item.GiaBan = khuyenMai != null
+                        ? GetKhuyenMai(khuyenMai.GiaTri, item.GiaGoc, khuyenMai.TrangThai)
+                        : item.GiaGoc;
                 }
+
                 return lstSanPham;
             }
             catch
@@ -139,40 +136,52 @@ namespace AppAPI.Services
         {
             try
             {
-                KhuyenMai? khuyenMai;
-                List<KhuyenMai> khuyenMais = _context.KhuyenMais.Where(x => x.NgayApDung <= DateTime.Now && x.NgayKetThuc > DateTime.Now).ToList();
-                var lstSanPham = await (from a in _context.SanPhams.Where(x => x.TrangThai == 1)
-                                        join b in _context.ChiTietSanPhams.Where(x => x.TrangThai != 0) on a.ID equals b.IDSanPham
-                                        join e in _context.LoaiSPs.Where(x => x.LoaiSPCha != null) on a.IDLoaiSP equals e.ID
-                                        select new SanPhamViewModel()
+                // Lấy khuyến mãi đang áp dụng
+                var khuyenMais = _context.KhuyenMais
+                    .Where(x => x.NgayApDung <= DateTime.Now && x.NgayKetThuc > DateTime.Now)
+                    .ToList();
+
+                // Truy vấn sản phẩm + loại sp + chi tiết (LEFT JOIN)
+                var lstSanPham = await (from sp in _context.SanPhams
+                                        join loaiSP in _context.LoaiSPs on sp.IDLoaiSP equals loaiSP.ID
+                                        join ctsp in _context.ChiTietSanPhams on sp.ID equals ctsp.IDSanPham into ctspJoin
+                                        from ctsp in ctspJoin.DefaultIfEmpty()
+                                        where sp.TrangThai == 1 
+                                        select new SanPhamViewModel
                                         {
-                                            ID = a.ID,
-                                            Ten = a.Ten,
-                                            TrangThai = a.TrangThai,
-                                            TrangThaiCTSP = b.TrangThai,
-                                            LoaiSP = e.Ten,
-                                            IdChiTietSanPham = b.ID,
-                                            Image = _context.Anhs.First(x => x.IDSanPhamChiTiet == b.ID).DuongDan,
-                                            IDMauSac = b.IDMauSac,
-                                            IDKichCo = b.IDKichCo,
-                                            IDChatLieu = a.IDChatLieu,
-                                            GiaGoc = b.GiaBan,
-                                            SoLuong = b.SoLuong,
-                                            soSao = (from cthd in _context.ChiTietHoaDons.AsNoTracking()
-                                                     join ctsp in _context.ChiTietSanPhams.AsNoTracking()
-                                                     on cthd.IDCTSP equals ctsp.ID
-                                                     join dg in _context.DanhGias.AsNoTracking()
-                                                     on cthd.ID equals dg.ID
-                                                     where ctsp.IDSanPham == a.ID
-                                                     select dg).AsEnumerable().ToList().Average(c => c.Sao),
-                                            IDKhuyenMai = b.IDKhuyenMai,
-                                            NgayTao = b.NgayTao
+                                            ID = sp.ID,
+                                            Ten = sp.Ten,
+                                            TrangThai = sp.TrangThai,
+                                            TrangThaiCTSP = ctsp != null ? ctsp.TrangThai : 0,
+                                            LoaiSP = loaiSP.Ten,
+                                            IdChiTietSanPham = ctsp != null ? ctsp.ID : Guid.Empty,
+                                            Image = sp.AnhDaiDien,
+                                            IDMauSac = ctsp != null ? ctsp.IDMauSac : null,
+                                            IDKichCo = ctsp != null ? ctsp.IDKichCo : null,
+                                            IDChatLieu = sp.IDChatLieu,
+                                            GiaGoc = ctsp != null ? ctsp.GiaBan : 0,
+                                            SoLuong = ctsp != null ? ctsp.SoLuong : 0,
+                                            IDKhuyenMai = ctsp != null ? ctsp.IDKhuyenMai : null,
+                                            NgayTao = ctsp != null ? ctsp.NgayTao : DateTime.MinValue,
+                                            soSao = 0 // sẽ tính sau
                                         }).ToListAsync();
+
+                // Tính điểm đánh giá và giá khuyến mãi sau khi lấy xong
                 foreach (var item in lstSanPham)
                 {
+                    // Tính sao trung bình
+                    var danhGias = (from cthd in _context.ChiTietHoaDons.AsNoTracking()
+                                    join ctsp in _context.ChiTietSanPhams.AsNoTracking() on cthd.IDCTSP equals ctsp.ID
+                                    join dg in _context.DanhGias.AsNoTracking() on cthd.ID equals dg.ID
+                                    where ctsp.IDSanPham == item.ID
+                                    select dg.Sao).ToList();
+
+                    item.soSao = danhGias.Any() ? danhGias.Average() : 0;
+
+                    // Tính giá sau khuyến mãi
                     if (item.IDKhuyenMai != null)
                     {
-                        khuyenMai = khuyenMais.FirstOrDefault(x => x.ID == item.IDKhuyenMai);
+                        var khuyenMai = khuyenMais.FirstOrDefault(x => x.ID == item.IDKhuyenMai);
                         if (khuyenMai != null)
                         {
                             item.GiaBan = GetKhuyenMai(khuyenMai.GiaTri, item.GiaGoc.Value, khuyenMai.TrangThai);
@@ -189,6 +198,7 @@ namespace AppAPI.Services
                         item.GiaBan = item.GiaGoc.Value;
                     }
                 }
+
                 return lstSanPham;
             }
             catch
@@ -196,6 +206,7 @@ namespace AppAPI.Services
                 return new List<SanPhamViewModel>();
             }
         }
+
         public bool CheckTrungTenSP(SanPhamRequest lsp)
         {
             throw new NotImplementedException();
