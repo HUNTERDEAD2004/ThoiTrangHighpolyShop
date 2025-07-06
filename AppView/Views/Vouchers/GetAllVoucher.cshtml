@@ -1,168 +1,167 @@
 ﻿@model AppView.PhanTrang.PhanTrangVouchers
-
 @{
-    ViewData["Title"] = "GetAllVoucher";
+    ViewData["Title"] = "Quản lý Voucher";
     int stt = 1;
+    var now = DateTime.Now;
 }
 
-<h1 style="text-align:center"><b>Quản lý Voucher </b></h1>
+<h2 class="text-center text-uppercase mt-4 mb-4 text-primary font-weight-bold">Quản lý Voucher</h2>
 
-
-<div class="col-8">
-    <a class="btn btn-primary" asp-action="Create">Thêm mới</a>
+<!-- Nút Thêm mới -->
+<div class="d-flex justify-content-end mb-2">
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fa fa-plus"></i> Thêm mới
+    </a>
 </div>
-<form asp-action="TimKiemTenVC" asp-controller="Vouchers" method="get" enctype="multipart/form-data">
-    <div class="input-group">
-        <input type="text" name="Ten" class="form-control" placeholder="Tìm kiếm Voucher theo mã">
-        <div class="input-group-append">
-            <span class="input-group-text bg-transparent text-primary">
-                <button type="submit" class="fa fa-search"></button>
-            </span>
-        </div>
+
+<!-- Tiêu đề + Tìm kiếm cùng dòng -->
+<div class="row align-items-center mb-3">
+    <!-- Tiêu đề -->
+    <div class="col-md-6 d-flex align-items-center">
+        <h5 class="fw-bold text-dark mb-0">
+            <i class="fa fa-tags text-primary me-2"></i> Danh sách phiếu giảm giá
+        </h5>
     </div>
-</form>
-<table class="table"style="margin-left: 20px">
-    <thead>
-        <tr>
-            <th style=" background-color: darkslategray;
-    color: white;">STT</th>
-            <th style=" background-color: darkslategray;
-    color: white;">Mã Voucher</th>
-            <th style=" background-color: darkslategray;
-    color: white;">Hình thức giảm giá</th>
-            <th style=" background-color: darkslategray;
-    color: white;">Số tiền cần</th>
-            <th style=" background-color: darkslategray;
-    color: white;">Giá trị</th>
-            <th style=" background-color: darkslategray;
-    color: white;">Ngày áp dụng</th>
-            <th style=" background-color: darkslategray;
-    color: white;">Ngày kết thúc</th>
-            <th style=" background-color: darkslategray;
-    color: white;">Số lượng</th>
-            <th style=" background-color: darkslategray;
-    color: white;">Mô tả</th>
-            <th style=" background-color: darkslategray;
-    color: white;">Tình trạng</th>
-            <th style=" background-color: darkslategray;
-    color: white;">Trạng thái </th>
-            <th style=" background-color: darkslategray;
-    color: white;"> </th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.listvouchers)
-        {
-            <tr>
-                <td>
-                    <strong style="color:black">@stt</strong>
-                </td>
 
-                <td>
-                    @item.Ten
-                </td>
-                <td>
-                    @if(item.HinhThucGiamGia==0){
-                        <div style="color:red">Giảm Theo Tiền Mặt</div>
-                    }
-                    else{
-                        <div style="color:green">Giảm Theo Phần Trăm</div>
-                    }
-                   
-                </td>
-                <td>
-                    <div style="color:green">@item.SoTienCan.ToString("n0") VND</div>
-                </td>
-                <td>
-                    @if (item.HinhThucGiamGia == 0)
-                    {
-                        <div style="color:red">@item.GiaTri.ToString("n0") VND</div>
-                    }
-                    else
-                    {
-                        <div style="color:green">@item.GiaTri %</div>
-                    }
-                </td>
-                <td>
-                    <div style="color:green">@item.NgayApDung</div>
-                </td>
-                <td>
-                    @if (item.NgayKetThuc >= DateTime.Now)
-                    {
-                        <div style="color:green">@item.NgayKetThuc</div>
-                    }
-                    else
-                    {
-                        <div style="color:red">@item.NgayKetThuc</div>
-                    }
-
-                </td>
-                <td>
-                    <div style="color:red">@item.SoLuong</div>
-                </td>
-                <td>
-                    <div style="color:black">@item.MoTa</div>
-                </td>
-                <td>
-                    @{
-                        if (item.NgayKetThuc >= DateTime.Now&&item.SoLuong>0)
-                        {
-                            <div style="color:green">Còn khuyến mãi</div>
-                        }
-                        else
-                        {
-                            <div style="color:red">Hết Khuyến mãi</div>
-                        }
-                    }
-
-                </td>
-                <td>
-                    @{
-                        if (item.TrangThai ==1)
-                        {
-                            <div style="color:green"> Sử dụng </div>
-                        }
-                        else
-                        {
-                            <div style="color:red">Không sử dụng</div>
-                        }
-                    }
-                </td>
-                <td>
-                    <button class="btn btn-success">
-                        @Html.ActionLink("Sửa", "Updates", new { id = item.Id }, new { @style = "color:white;" })
-                    </button> 
-                    @if(item.TrangThai==1){
-                        <button class="btn btn-danger">
-                        @Html.ActionLink("Không sử dụng", "KoSuDung", new { id = item.Id }, new { @style = "color:white;" })
-                    </button>
-                    }
-                    else{
-                        <button class="btn btn-success">
-                            @Html.ActionLink("Sử dụng", "SuDung", new { id = item.Id }, new { @style = "color:white;" })
-                        </button>
-                    }
-                    
-                </td> @{
-                    stt++;
-                }
-            </tr>
-        }
-    </tbody>
-</table>
-<div class="col-12">
-    <nav>
-        <ul class="pagination justify-content-center">
-            
-            @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
-            {
-                <li class="page-item"><a class="page-link" href="/Vouchers/GetAllVoucher?ProductPage=@i">@i</a></li>
-
-            }
-
-            
-        </ul>
-    </nav>
+    <!-- Form tìm kiếm bên phải -->
+    <div class="col-md-6 d-flex justify-content-end">
+        <form asp-action="TimKiemTenVC" asp-controller="Vouchers" method="get" class="input-group input-group-sm w-auto">
+            <input type="text" name="Ten" class="form-control" placeholder="Tìm mã Voucher">
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="fa fa-search"></i>
+            </button>
+        </form>
+    </div>
 </div>
 
+    <!-- Nút thêm mới -->
+   
 
+<div class="table-responsive">
+    <table class="table table-bordered table-hover text-center align-middle">
+        <thead class="thead-dark">
+            <tr>
+                <th>STT</th>
+                <th>Mã Voucher</th>
+                <th>Hình thức</th>
+                <th>Giá trị Giảm</th>
+                <th>Đơn hàng tối thiểu</th>
+                <th>Giảm tối đa</th>
+            
+                <th>Ngày áp dụng</th>
+                <th>Ngày kết thúc</th>
+                <th>Số lượng</th>
+                <th>Mô tả</th>
+                <th>Trạng thái</th>
+                <th>Tình trạng</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.listvouchers
+            .Where(x => x.GiaTri < x.GiaTriToiDa
+            && x.GiaTriToiThieu > x.GiaTri
+            && x.GiaTriToiThieu > x.GiaTriToiDa))
+            {
+                <tr>
+                    <td>@(stt++)</td>
+                    <td><strong>@item.Ten</strong></td>
+                    <td>@(item.HinhThucGiamGia == 0 ? "Tiền mặt" : "Phần trăm")</td>
+                    <td>
+                        @(item.HinhThucGiamGia == 0
+                            ? item.GiaTri.ToString("n0") + " VND"
+                            : item.GiaTri + " %")
+                    </td>
+                    <td>@item.GiaTriToiThieu.ToString("n0") VND</td>
+                    <td>@item.GiaTriToiDa.ToString("n0") VND</td>
+                    <td>@item.NgayApDung.ToString("dd/MM/yyyy")</td>
+                    <td>@item.NgayKetThuc.ToString("dd/MM/yyyy")</td>
+                    <td>@item.SoLuong</td>
+                    <td>@item.MoTa</td>
+
+                   
+
+                    @* Trạng thái (không lưu DB) - có badge màu khi Hoạt động *@
+                    <td>
+                        @* Trạng thái: hoạt động khi Sắp diễn ra hoặc Đang diễn ra *@
+                        @{
+                            string trangThaiText = "";
+                            string trangThaiColor = "";
+
+                            if (item.NgayKetThuc < now)
+                            {
+                                trangThaiText = "Không hoạt động";
+                                trangThaiColor = "secondary";
+                            }
+                            else if (now >= item.NgayApDung && now <= item.NgayKetThuc)
+                            {
+                                trangThaiText = "Hoạt động";
+                                trangThaiColor = "success";
+                            }
+                            else if (now < item.NgayApDung)
+                            {
+                                trangThaiText = "Hoạt động";
+                                trangThaiColor = "success";
+                            }
+                            else
+                            {
+                                trangThaiText = "Không xác định";
+                                trangThaiColor = "light";
+                            }
+                        }
+                        <span class="badge bg-@trangThaiColor">@trangThaiText</span>
+                    </td>
+
+                    <td>
+                        @{
+                            string tinhTrangText = "";
+                            string tinhTrangColor = "";
+
+                            if (item.NgayKetThuc < now)
+                            {
+                                tinhTrangText = "Đã kết thúc";
+                                tinhTrangColor = "dark";
+                            }
+                            else if (now >= item.NgayApDung && now <= item.NgayKetThuc)
+                            {
+                                tinhTrangText = "Đang diễn ra";
+                                tinhTrangColor = "success";
+                            }
+                            else if (now < item.NgayApDung)
+                            {
+                                tinhTrangText = "Sắp diễn ra";
+                                tinhTrangColor = "success ";
+                            }
+                            else
+                            {
+                                tinhTrangText = "Không xác định";
+                                tinhTrangColor = "light";
+                            }
+                        }
+
+                        <span class="badge bg-@tinhTrangColor">@tinhTrangText</span>
+                    </td>
+
+                    <td>
+                        <div class="btn-group">
+                            <a class="btn btn-sm btn-warning" asp-action="Updates" asp-route-id="@item.Id">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.PagingInfo.CurrentPage ? "active" : "")">
+                <a class="page-link" href="/Vouchers/GetAllVoucher?ProductPage=@i">@i</a>
+            </li>
+        }
+    </ul>
+</nav>

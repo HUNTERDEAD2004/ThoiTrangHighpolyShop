@@ -3,6 +3,7 @@ using AppData.IRepositories;
 using AppData.Models;
 using AppData.Repositories;
 using AppData.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppAPI.Services
 {
@@ -21,7 +22,8 @@ namespace AppAPI.Services
             voucher.ID=voucherview.Id;
             voucher.Ten=voucherview.Ten?.Trim();
             voucher.HinhThucGiamGia=voucherview.HinhThucGiamGia;
-            voucher.GiaTriToiThieu =voucherview.GiaTriToiThieu;
+            voucher.GiaTriToiThieu = voucherview.GiaTriToiThieu;
+            voucher.GiaTriToiDa = voucherview.GiaTriToiDa;
             voucher.GiaTri = voucherview.GiaTri;
             voucher.NgayApDung=voucherview.NgayApDung;
             voucher.NgayKetThuc=voucherview.NgayKetThuc;
@@ -89,6 +91,17 @@ namespace AppAPI.Services
         {
             return _allRepository.GetAll().FirstOrDefault(x => x.Ten.ToUpper() == ma.ToUpper());
         }
+        public bool UpdateTrangThai(Guid id, int trangThaiMoi)
+        {
+            var voucher = context.Vouchers.FirstOrDefault(v => v.ID == id);
+            if (voucher == null) return false;
+
+            voucher.TrangThai = trangThaiMoi;
+            context.Vouchers.Update(voucher);
+            context.SaveChanges();
+            return true;
+        }
+
         //public List<Voucher> GetAllVoucherByTien(int tongTien) 
         //{
         //    return _allRepository.GetAll().Where(x=>x.NgayApDung<DateTime.Now && x.NgayKetThuc>DateTime.Now && x.SoTienCan<tongTien && x.TrangThai>0 && x.SoLuong>0).ToList();

@@ -72,6 +72,26 @@ namespace AppAPI.Controllers
         {
             return _services.GetVoucherByMa(ma);
         }
+        [HttpPut("UpdateTrangThai/{id}")]
+        public IActionResult UpdateTrangThai(Guid id, [FromQuery] int trangThaiMoi)
+        {
+            var voucher = _services.GetById(id);
+            if (voucher == null)
+            {
+                return NotFound("Voucher không tồn tại.");
+            }
+
+            var updated = _services.UpdateTrangThai(id, trangThaiMoi);
+            if (updated)
+            {
+                return Ok("Cập nhật trạng thái thành công.");
+            }
+            else
+            {
+                return BadRequest("Cập nhật trạng thái thất bại.");
+            }
+        }
+
         //[HttpGet("GetAllVoucherByTien")]
         ////public List<Voucher> GetAllVoucherByTien(int tongTien)
         ////{

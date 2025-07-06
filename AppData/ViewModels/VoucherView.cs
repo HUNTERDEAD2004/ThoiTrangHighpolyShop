@@ -24,9 +24,9 @@ namespace AppData.ViewModels
         public int GiaTri { get; set; }
         [Required(ErrorMessage = "mời bạn nhập dữ liệu")]
 
-        public int GiaTriToiThieu { get; set; } // Số tiền tối thiểu để áp dụng voucher
+        public decimal GiaTriToiThieu { get; set; } // Số tiền tối thiểu để áp dụng voucher
 
-        public int GiaTriToiDa { get; set; } // Số tiền tối đa được giảm khi áp dụng voucher    
+        public decimal GiaTriToiDa { get; set; } // Số tiền tối đa được giảm khi áp dụng voucher    
         public DateTime NgayApDung { get; set; }
         [Required(ErrorMessage = "mời bạn nhập dữ liệu")]
         public DateTime NgayKetThuc { get; set; }
