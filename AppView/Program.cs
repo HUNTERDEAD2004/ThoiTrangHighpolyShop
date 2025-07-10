@@ -20,7 +20,7 @@ builder.Services.AddSession(cfg =>
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+
     options.JsonSerializerOptions.Converters.Add(new NullableDateOnlyJsonConverter());
 });
 

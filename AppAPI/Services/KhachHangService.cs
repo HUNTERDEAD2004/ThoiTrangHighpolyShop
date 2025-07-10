@@ -6,6 +6,8 @@ using System.Net.Mail;
 using System.Net;
 using AppData.ViewModels.Mail;
 using Microsoft.Extensions.Options;
+using AppData.ViewModels.DTO;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AppAPI.Services
 {
@@ -307,6 +309,25 @@ namespace AppAPI.Services
             return _dbContext.KhachHangs.FirstOrDefault(x => x.IDKhachHang == id);
         }
 
+        public KhachHangDTO GetByIdd(Guid id)
+        {
+            var kh = _dbContext.KhachHangs.FirstOrDefault(x => x.IDKhachHang == id);
+            if (kh == null) return null;
+
+            return new KhachHangDTO
+            {
+                IDKhachHang = kh.IDKhachHang,
+                Ten = kh.Ten,
+                Email = kh.Email,
+                SDT = kh.SDT,
+                GioiTinh = kh.GioiTinh,
+                NgaySinh = kh.NgaySinh?.ToString("yyyy-MM-dd"),
+                DiemTich = kh.DiemTich,
+               // DiaChi = kh.DiaChi
+            };
+        }
+
+
         public KhachHang GetBySDT(string sdt)
         {
             return _dbContext.KhachHangs.FirstOrDefault(c => c.SDT == sdt || c.Email == sdt);
@@ -399,5 +420,11 @@ namespace AppAPI.Services
 
             return query.ToList();
         }
+
+
+
+ 
+
+     
     }
 }

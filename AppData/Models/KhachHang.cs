@@ -1,4 +1,5 @@
 ﻿using AppData.ViewModels;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -17,6 +18,8 @@ namespace AppData.Models
         [Required]
         public string? Password { get; set; }
         public int? GioiTinh { get; set; }
+
+        [JsonConverter(typeof(DateOnlyJsonConverterNewtonsoft))]
         public DateOnly? NgaySinh { get; set; }
         [EmailAddress]
         public string? Email { get; set; }

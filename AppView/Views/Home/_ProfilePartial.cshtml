@@ -1,0 +1,35 @@
+﻿@model AppData.ViewModels.LoginViewModel
+
+<div class="card p-3">
+    <h5 class="mb-3">Thông tin cá nhân</h5>
+    <div class="form-group">
+        <label>Họ tên</label>
+        <input type="text" class="form-control" id="ten" value="@Model.Ten" disabled />
+    </div>
+    <div class="form-group">
+        <label>Email</label>
+        <input type="text" class="form-control" id="email" value="@Model.Email" disabled />
+    </div>
+    <div class="form-group">
+        <label>Số điện thoại</label>
+        <input type="text" class="form-control" id="sdt" value="@Model.SDT" disabled />
+    </div>
+    <div class="form-group">
+        <label>Giới tính</label>
+        <select id="gioiTinh" class="form-control" disabled>
+            <option value="1" selected="@(Model.GioiTinh == 1)">Nam</option>
+            <option value="0" selected="@(Model.GioiTinh == 0)">Nữ</option>
+            <option value="2" selected="@(Model.GioiTinh == 2)">Khác</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Ngày sinh</label>
+        <input type="date" id="chonNgaySinh" class="form-control" value="@(Model.NgaySinh ?? "")" disabled />
+    </div>
+    <div class="form-group">
+        <label>Địa chỉ</label>
+        <input type="text" class="form-control" id="diaChi" value="@Model.DiaChi" disabled />
+    </div>
+    <button id="Sua" class="btn btn-secondary" onclick="SuaThongTinCN()">Sửa</button>
+    <button id="Luu" class="btn btn-primary d-none" onclick="LuuThongTin()">Lưu</button>
+</div>
