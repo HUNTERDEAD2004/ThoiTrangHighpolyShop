@@ -55,7 +55,7 @@ namespace AppAPI.Services
             }
         }
 
-        /*public bool Update(Guid id, string ten, string email, string manhanvien, DateTime ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
+        public bool Update(Guid id, string ten, string email, string manhanvien, DateOnly ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
         {
             try
             {
@@ -64,7 +64,7 @@ namespace AppAPI.Services
                 {
                     nv.Ten = ten;
                     nv.Email = email;
-                    nv.MaNhanVien=manhanvien;
+                    nv.MaNhanVien = manhanvien;
                     nv.NgaySinh = ngaysinh;
                     nv.GioiTinh = gioitinh;
                     nv.PassWord = password;
@@ -85,44 +85,7 @@ namespace AppAPI.Services
 
                 throw;
             }
-        }*/
-
-        public bool Update(Guid id, string ten, string email, string manhanvien, DateTime ngaysinh, int gioitinh, string password, string sdt, string diachi, int trangthai, Guid idvaitro)
-        {
-            try
-            {
-                var nv = _dbContext.NhanViens.FirstOrDefault(x => x.ID == id);
-                if (nv != null)
-                {
-                    // Cập nhật các thông tin khác
-                    nv.Ten = ten;
-                    nv.Email = email;
-                    nv.MaNhanVien = manhanvien;
-                    nv.NgaySinh = ngaysinh;
-                    nv.GioiTinh = gioitinh;
-                    nv.PassWord = password;
-                    nv.SDT = sdt;
-                    nv.DiaChi = diachi;
-                    nv.TrangThai = trangthai;
-
-                    // Giữ nguyên IDVaiTro mặc định, không thay đổi
-                    nv.IDVaiTro = Guid.Parse("952C1A5D-74FF-4DAF-BA88-135C5440809C");
-
-                    // Lưu thay đổi vào DB
-                    _dbContext.NhanViens.Update(nv);
-                    _dbContext.SaveChanges();
-                    return true;
-                }
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Lỗi khi cập nhật: " + ex.Message);
-                throw;
-            }
         }
-
-
         private string MaHoaMatKhau(string matKhau)
         {
             // Ở đây, bạn có thể sử dụng bất kỳ phương thức mã hóa mật khẩu nào phù hợp
@@ -165,79 +128,6 @@ namespace AppAPI.Services
         //        throw;
         //    }
         //}
-        /*public async Task<NhanVien> Add(NhanVienViewModel model)
-        {
-            try
-            {
-                // Chuẩn hóa
-                string normalizedEmail = model.Email?.Trim().ToLower();
-                string normalizedSDT = model.SDT?.Trim();
-
-                // Kiểm tra tồn tại
-                var check = await _dbContext.NhanViens.FirstOrDefaultAsync(x =>
-                    x.Email.ToLower().Trim() == normalizedEmail || x.SDT.Trim() == normalizedSDT);
-
-                if (check != null)
-                {
-                    return null; // Email hoặc SĐT đã tồn tại
-                }
-
-                // Gán IDVaiTro cố định
-                Guid nhanVienRoleId = Guid.Parse("952C1A5D-74FF-4DAF-BA88-135C5440809C");
-
-                var nv = new NhanVien
-                {
-                    ID = Guid.NewGuid(),
-                    Ten = model.Ten, 
-                    Email = model.Email.Trim(),
-                    MaNhanVien = model.MaNhanVien,
-                    NgaySinh = model.NgaySinh ,
-                    GioiTinh = model.GioiTinh ?? 1,
-                    PassWord = MaHoaMatKhau(model.Password),
-                    SDT = model.SDT.Trim(),
-                    DiaChi = model.DiaChi,
-                    TrangThai = model.TrangThai ?? 1,
-                    IDVaiTro = nhanVienRoleId
-                };
-
-                _dbContext.NhanViens.Add(nv);
-                await _dbContext.SaveChangesAsync();
-
-                return nv;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error thêm nhân viên: " + ex.Message);
-                return null;
-            }
-        }*/
-
-        private async Task<string> GenerateMaNhanVienAsync()
-        {
-            // Lấy tất cả mã nhân viên bắt đầu bằng AD
-            var maNVList = await _dbContext.NhanViens
-                .Where(nv => nv.MaNhanVien.StartsWith("AD"))
-                .Select(nv => nv.MaNhanVien)
-                .ToListAsync();
-
-            int maxSoThuTu = 0;
-
-            foreach (var ma in maNVList)
-            {
-                // Tách phần số sau 
-                if (int.TryParse(ma.Substring(2), out int soThuTu))
-                {
-                    if (soThuTu > maxSoThuTu)
-                        maxSoThuTu = soThuTu;
-                }
-            }
-
-            // Tăng số thứ tự lên 1
-            int nextNumber = maxSoThuTu + 1;
-            return $"AD{nextNumber}"; // luôn có 2 chữ số (AD01, AD02,...)
-        }
-
-
         public async Task<NhanVien> Add(NhanVienViewModel model)
         {
             try
@@ -258,18 +148,13 @@ namespace AppAPI.Services
                 // Gán IDVaiTro cố định
                 Guid nhanVienRoleId = Guid.Parse("952C1A5D-74FF-4DAF-BA88-135C5440809C");
 
-                // Tự động sinh mã nhân viên nếu chưa có
-                string maNhanVien = string.IsNullOrWhiteSpace(model.MaNhanVien)
-                    ? await GenerateMaNhanVienAsync()
-                    : model.MaNhanVien.Trim();
-
                 var nv = new NhanVien
                 {
                     ID = Guid.NewGuid(),
                     Ten = model.Ten,
                     Email = model.Email.Trim(),
-                    MaNhanVien = maNhanVien,
-                    NgaySinh = model.NgaySinh ?? DateTime.Now,
+                    MaNhanVien = model.MaNhanVien,
+                    NgaySinh = model.NgaySinh,
                     GioiTinh = model.GioiTinh ?? 1,
                     PassWord = MaHoaMatKhau(model.Password),
                     SDT = model.SDT.Trim(),
@@ -289,6 +174,7 @@ namespace AppAPI.Services
                 return null;
             }
         }
+
 
 
         public NhanVien GetById(Guid id)

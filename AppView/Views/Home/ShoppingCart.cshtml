@@ -2,8 +2,11 @@
 @model List<GioHangRequest>
 @{
     Layout = "_Layout"; 
+    // string? temp = TempData.Peek("TongTien") as string;
+    // string tongTien = temp == null ? "0" : temp;
     string? temp = TempData.Peek("TongTien") as string;
-    string tongTien = temp == null ? "0" : temp;
+    int tongTienInt = 0;
+    int.TryParse(temp, out tongTienInt); // nếu lỗi thì sẽ là 0
 }
 
     <!-- Breadcrumb Section Begin -->
@@ -91,7 +94,7 @@
                     <div class="cart__total">
                     <h6>Tổng số giỏ hàng</h6>
                         <ul>
-                            <li>Tổng <span id="SubTotal">@Convert.ToInt32(tongTien).ToString("n0") VNĐ</span></li>
+                        <li>Tổng <span id="SubTotal">@tongTienInt.ToString("n0") VNĐ</span></li>
                         </ul>
                     <a onclick="CheckCart()" href="#" class="primary-btn" >Mua hàng</a>
                     </div>
@@ -104,7 +107,7 @@
         var checkSoLuong = [];
         $(document).ready(function () {
             UpdateCart();
-            document.getElementById("SubTotal").innerHTML = Intl.NumberFormat().format(@tongTien) + " VNĐ" 
+            document.getElementById("SubTotal").innerHTML = Intl.NumberFormat().format(@tongTienInt) + " VNĐ" 
         });
         function UpdateCart(){
         var dl = document.getElementsByClassName("soLuongCart");
