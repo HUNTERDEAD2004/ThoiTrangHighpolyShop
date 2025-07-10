@@ -1,0 +1,114 @@
+﻿@model IEnumerable<AppData.ViewModels.SanPham.UploadAnhViewModel>
+@{
+    ViewData["Title"] = "Quản lý ảnh theo biến thể";
+    string? id = ViewData["IDSanPham"] as string;
+}
+<h2>Quản lý ảnh theo màu sản phẩm</h2>
+
+<table class="table" style="width:500px">
+    <thead>
+        <tr>
+            <th>Ảnh</th>
+            <th>Tên màu</th>
+            <th>Mã màu</th>
+            <th>Thêm</th>       <!-- Thêm -->
+            <th>Cập nhật</th>   <!-- Sửa -->
+            <th>Xoá</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.DuongDan))
+                    {
+                        <img src="/img/product/@item.DuongDan" style="width:70px;height:80px" />
+                    }
+                    else
+                    {
+                        <span style="color:red;">Chưa có ảnh</span>
+                    }
+
+
+                </td>
+                <td>@item.TenMau</td>
+                <td>
+                    <input type="color" value="@item.MaMau" style="border:none;width:27px;height:25px" disabled />
+                </td>
+                <!-- ✅ Nút thêm -->
+                <td>
+                    <label for="add_@item.IDChiTietSanPham" class="btn btn-primary">Thêm</label><br />
+                    <input id="add_@item.IDChiTietSanPham" style="visibility:hidden;" type="file"
+                           onchange="AddImageToChiTiet(event, '@item.IDChiTietSanPham')">
+                </td>
+                <!-- ✅ Nút sửa -->
+                <td>
+                    <label for="update_@item.IDChiTietSanPham" class="btn btn-success">Sửa</label><br />
+                    <input id="update_@item.IDChiTietSanPham" style="visibility:hidden;" type="file"
+                           onchange="UpdateImage(event,'@item.IDChiTietSanPham','@item.DuongDan')">
+                </td>
+                <!-- ✅ Nút xoá -->
+                <td>
+                    <a class="btn btn-danger"
+                       asp-action="DeleteImage"
+                       asp-route-id="@item.IDChiTietSanPham"
+                       asp-route-idSanPham="@id"
+                       asp-route-duongDan="@item.DuongDan">Xoá</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    function AddImageToChiTiet(event, idChiTiet) {
+        var file = event.target.files[0];
+
+        // ✅ Kiểm tra loại file
+        if (!file.type.startsWith("image/")) {
+            alert("Chỉ chấp nhận file ảnh!");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append("file", file);
+        formData.append("idChiTietSanPham", idChiTiet);
+
+        fetch("/Admin/AddImageToChiTiet", {
+            method: "POST",
+            body: formData
+        }).then(res => {
+            if (res.ok) location.reload();
+            else alert("Thêm ảnh thất bại.");
+        }).catch(err => {
+            alert("Lỗi hệ thống!");
+            console.error(err);
+        });
+    }
+
+    function UpdateImage(event, id, duongdan) {
+        var value = event.target.files[0];
+
+        // ✅ Kiểm tra loại file
+        if (!file.type.startsWith("image/")) {
+            alert("Chỉ chấp nhận file ảnh!");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append("file", value);
+        formData.append("id", id);
+        formData.append("duongDan", duongdan);
+        formData.append("idSanPham", '@id');
+
+        fetch("/Admin/UpdateImage", {
+            method: 'POST',
+            body: formData
+        }).then(res => {
+            if (res.ok) location.reload();
+            else alert("Cập nhật ảnh thất bại.");
+        });
+    }
+</script>
+

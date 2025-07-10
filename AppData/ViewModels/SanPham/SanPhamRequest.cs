@@ -10,15 +10,13 @@ namespace AppData.ViewModels.SanPham
 {
     public class SanPhamRequest
     {
-        [Required]
-        public string Ten { get; set; }
+        public string Ten { get; set; } = string.Empty;
         public string? MoTa { get; set; }
-        [Required]
-        public string TenChatLieu { get; set; }
-        public List<MauSac> MauSacs { get; set; }
-        public List<string> KichCos {  get; set; }
-        [Required]
-        public string TenLoaiSPCha { get; set; }
-        public string TenLoaiSPCon { get; set; }
+        public Guid IDChatLieu { get; set; }
+        public List<Guid> IDMauSacs { get; set; } = new();
+        public List<Guid> IDKichCos { get; set; } = new();
+        public Guid IDLoaiSPCha { get; set; }
+        public Guid? IDLoaiSPCon { get; set; } // nullable
     }
+
 }

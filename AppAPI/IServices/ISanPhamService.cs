@@ -2,6 +2,7 @@
 using AppData.ViewModels;
 using AppData.ViewModels.BanOffline;
 using AppData.ViewModels.SanPham;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppAPI.IServices
 {
@@ -17,9 +18,7 @@ namespace AppAPI.IServices
         Task<bool> UpdateSanPham(SanPhamUpdateRequest request);
         Task<bool> UpdateTrangThaiSanPham(Guid id, int trangThai);
         bool CheckTrungTenSP(SanPhamRequest lsp);
-        Task<bool> AddAnhToSanPham(List<AnhRequest> request);
-        List<AnhViewModel> GetAllAnhSanPham(Guid idSanPham);
-        Task<bool> AddImageNoColor(Anh anh);
+        List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham);
         Task<bool> UpdateImage(Anh anh);
         Task<bool> DeleteImage(Guid id);
         public Guid GetIDsanPhamByIdCTSP(Guid idctsp);
@@ -27,7 +26,7 @@ namespace AppAPI.IServices
 
         #region LoaiSanPham
         Task<List<LoaiSP>> GetAllLoaiSPCha();
-        Task<List<LoaiSP>?> GetAllLoaiSPCon(string tenLoaiSPCha);
+        Task<List<LoaiSP>?> GetAllLoaiSPCon(Guid idLoaiSPCha);
         Task<LoaiSP> GetLoaiSPById(Guid id);
         Task<LoaiSP> SaveLoaiSP(LoaiSPRequest lsp);
         Task<bool> DeleteLoaiSP(Guid id);
@@ -48,10 +47,18 @@ namespace AppAPI.IServices
         Task<bool> UpdateChiTietSanPham(ChiTietSanPham chiTietSanPham);
         public Task<bool> AddChiTietSanPhamFromSanPham(ChiTietSanPhamUpdateRequest request);
         Task<bool> UndoChiTietSanPham(Guid id);
+        Task<bool> AddAnhToSanPhamChiTiet(List<AnhRequest> request);
         #endregion
+
+        #region other
         Task<List<MauSac>> GetAllMauSac();
         Task<List<KichCo>> GetAllKichCo();
         Task<List<ChatLieu>> GetAllChatLieu();
+        Task<List<TenThuocTinhViewModel>> GetTenMauSacsAsync(List<Guid> ids);
+        Task<List<TenThuocTinhViewModel>> GetTenKichCosAsync(List<Guid> ids);
+        Task<string?> GetTenChatLieuAsync(Guid id);
+        #endregion
+
         //Nhinh thêm
         #region SanPhamBanHang
         Task<List<HomeProductViewModel>> GetAllSanPhamTrangChu();

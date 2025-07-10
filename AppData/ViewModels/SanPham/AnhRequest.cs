@@ -8,8 +8,9 @@ namespace AppData.ViewModels.SanPham
 {
     public class AnhRequest
     {
-        public string? DuongDan { get; set; }
-        public string MaMau { get; set; }
         public Guid IDSanPhamChiTiet { get; set; }
+        public string DuongDan { get; set; } = string.Empty;
+        public string? MaMau { get; set; }
     }
+
 }

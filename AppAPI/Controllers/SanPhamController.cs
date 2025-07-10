@@ -76,22 +76,16 @@ namespace AppAPI.Controllers
             await _sanPhamServices.UpdateTrangThaiSanPham(id, trangThai);
             return Ok();
         }
-        [HttpPost("AddAnh")]
-        public async Task<IActionResult> AddAnhToSanPham(List<AnhRequest> request)
+        [HttpPost("AddAnh")] 
+        public async Task<IActionResult> AddAnhToSanPhamChiTiet(List<AnhRequest> request)
         {
-            var reponse = await _sanPhamServices.AddAnhToSanPham(request);
+            var reponse = await _sanPhamServices.AddAnhToSanPhamChiTiet(request);
             return Ok(reponse);
         }
-        [HttpGet("GetAllAnhSanPham")]
-        public List<AnhViewModel> GetAllAnhSanPham(Guid idSanPham)
+        [HttpGet("GetAllAnhSanPhamChiTiet")]
+        public List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham)
         {
-            return _sanPhamServices.GetAllAnhSanPham(idSanPham);
-        }
-
-        [HttpPost("AddImageNoColor")]
-        public async Task<bool> AddImageNoColor(Anh anh)
-        {
-            return await _sanPhamServices.AddImageNoColor(anh);
+            return _sanPhamServices.GetAllAnhSanPhamChiTiet(idSanPham);
         }
         [HttpPut("UpdateImage")]
         public async Task<bool> UpdateImage(Anh anh)
@@ -195,9 +189,13 @@ namespace AppAPI.Controllers
             return Ok(listLsp);
         }
         [HttpGet("GetAllLoaiSPCon")]
-        public async Task<IActionResult> GetAllLoaiSPCon(string tenLoaiSPCha)
+        public async Task<IActionResult> GetAllLoaiSPCon(Guid idLoaiSPCha)
         {
-            var listLsp = await _sanPhamServices.GetAllLoaiSPCon(tenLoaiSPCha);
+            var listLsp = await _sanPhamServices.GetAllLoaiSPCon(idLoaiSPCha);
+
+            if (listLsp == null || !listLsp.Any())
+                return NotFound();
+
             return Ok(listLsp);
         }
         #endregion
