@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -25,6 +26,8 @@ namespace AppData.Models
         [StringLength(250, ErrorMessage = "Địa chỉ không được vượt quá 250 kí tự ")]
         public string? DiaChi { get; set; }
         public string? MaNhanVien { get; set; }
+
+        [JsonConverter(typeof(DateOnlyJsonConverterNewtonsoft))]
         public DateOnly? NgaySinh { get; set; }
         public int? GioiTinh { get; set; } // Nam, Nữ
         public int? TrangThai { get; set; }

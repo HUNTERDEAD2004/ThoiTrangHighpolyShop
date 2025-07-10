@@ -4,6 +4,7 @@ using AppView.PhanTrang;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net.Http;
+using System.Security.Claims;
 
 namespace AppView.Controllers
 {
@@ -125,6 +126,13 @@ namespace AppView.Controllers
                 }
             });
         }
+        public IActionResult AddDiaChi()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // hoặc cách bạn truyền ID
+            var model = new LoginViewModel { Id = Guid.Parse(userId) };
+            return View(model);
+        }
+
 
         // Tìm kiếm KH theo Ten hoặc SDT
         [HttpGet]

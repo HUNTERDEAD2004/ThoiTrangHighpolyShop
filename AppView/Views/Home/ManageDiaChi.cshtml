@@ -1,0 +1,207 @@
+﻿@model AppData.ViewModels.LoginViewModel
+@{
+    Layout = "_Layout";
+}
+
+<section class="container py-4">
+    <ul class="nav nav-tabs" id="accountTab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#profile">Hồ sơ</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#password">Đổi mật khẩu</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#diachi">Địa chỉ</a>
+        </li>
+       
+    </ul>
+
+    <div class="tab-content pt-3" id="accountTabContent">
+        <div class="tab-pane fade show active" id="profile">
+            <partial name="_ProfilePartial" model="Model" />
+        </div>
+        <div class="tab-pane fade" id="password">
+            <partial name="_ChangePasswordPartial" model="Model" />
+        </div>
+       
+        <div class="tab-pane fade" id="diachi">
+            <div class="card p-3">
+                <h5 class="mb-3">Danh sách địa chỉ</h5>
+                <div id="listDiaChi"></div>
+
+                <a href="/Home/Add" class="btn btn-danger mt-3">➕ Thêm địa chỉ</a>
+
+        </div>
+
+        <div class="tab-pane fade" id="them-diachi">
+            <form id="formAddDiaChi">
+                <input type="hidden" id="userId" value="@Model.Id" />
+                <div class="form-group">
+                    <label>Địa chỉ chi tiết</label>
+                    <input type="text" class="form-control" id="diaChi" required />
+                </div>
+                <div class="form-group">
+                    <label>Tỉnh/TP</label>
+                    <select class="form-control" id="tinh"></select>
+                </div>
+                <div class="form-group">
+                    <label>Quận/Huyện</label>
+                    <select class="form-control" id="huyen"></select>
+                </div>
+                <div class="form-group">
+                    <label>Phường/Xã</label>
+                    <select class="form-control" id="xa"></select>
+                </div>
+                <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="isDefault">
+                    <label class="form-check-label">Đặt làm mặc định</label>
+                </div>
+                <button type="submit" class="btn btn-success">Thêm</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+
+@section Scripts {
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Toastr -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const baseUrl = "https://localhost:7095/api/ghn";
+
+        $(document).ready(function () {
+            const hash = window.location.hash;
+            if (hash) {
+                $('#accountTab a[href="' + hash + '"]').tab('show');
+            }
+
+            $('#accountTab a').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+                history.replaceState(null, null, this.hash);
+            });
+
+            loadProvinces();
+            loadDiaChi();
+
+            $('#tinh').change(() => loadDistricts($('#tinh').val()));
+            $('#huyen').change(() => loadWards($('#huyen').val()));
+
+            $('#formAddDiaChi').on('submit', function (e) {
+                e.preventDefault();
+
+                const model = {
+                    diaChiChiTiet: $('#diaChi').val(),
+                    tinh: $('#tinh option:selected').text(),
+                    huyen: $('#huyen option:selected').text(),
+                    xa: $('#xa option:selected').text(),
+                    isDefault: $('#isDefault').is(':checked')
+                };
+
+                const userId = $('#userId').val();
+
+             
+                $.ajax({
+                    url: `https://localhost:7095/api/DiaChi/khachhang/${userId}/diachi`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(model),
+                    success: function () {
+                        toastr.success("Thêm địa chỉ thành công");
+                        $('#formAddDiaChi')[0].reset();
+                        $('#accountTab a[href="#diachi"]').tab('show');
+                        loadDiaChi();
+                    },
+                    error: function () {
+                        toastr.error("Lỗi khi thêm địa chỉ");
+                    }
+                });
+            });
+        });
+
+        function loadProvinces() {
+            $.get(`${baseUrl}/provinces`, data => {
+                $('#tinh').html('<option selected disabled>Chọn Tỉnh / TP</option>');
+                data.forEach(p => {
+                    $('#tinh').append(`<option value="${p.ProvinceID}">${p.ProvinceName}</option>`);
+                });
+            });
+        }
+
+        function loadDistricts(provinceId) {
+            $('#huyen').html('<option>Đang tải...</option>');
+            $('#xa').html('<option>Chọn xã</option>');
+            $.get(`${baseUrl}/districts/${provinceId}`, data => {
+                $('#huyen').html('<option selected disabled>Chọn Quận / Huyện</option>');
+                data.forEach(d => {
+                    $('#huyen').append(`<option value="${d.districtID}">${d.districtName}</option>`);
+                });
+            });
+        }
+
+        function loadWards(districtId) {
+            $('#xa').html('<option>Đang tải...</option>');
+            $.get(`${baseUrl}/wards/${districtId}`, data => {
+                $('#xa').html('<option selected disabled>Chọn Phường / Xã</option>');
+                data.forEach(w => {
+                    $('#xa').append(`<option value="${w.wardCode}">${w.wardName}</option>`);
+                });
+            });
+        }
+
+        function loadDiaChi() {
+            const userId = $('#userId').val();
+            $.get(`https://localhost:7095/api/DiaChi/khachhang/${userId}/diachi`, function (data) {
+                let html = '';
+                data.forEach(dc => {
+                    html += `<div class="border rounded p-2 mb-2">
+                                <p><strong>Địa chỉ:</strong> ${dc.diaChiChiTiet}</p>
+                                <p><strong>Phường/Xã:</strong> ${dc.xa}</p>
+                                <p><strong>Quận/Huyện:</strong> ${dc.huyen}</p>
+                                <p><strong>Tỉnh/TP:</strong> ${dc.tinh}</p>
+                                <p><strong>Mặc định:</strong> ${dc.isDefault ? 'Có' : 'Không'}</p>
+                                <button onclick="xoaDiaChi('${dc.idDiaChi}')" class="btn btn-danger btn-sm">Xóa</button>
+                             </div>`;
+                });
+                $('#listDiaChi').html(html);
+            });
+        }
+
+        function xoaDiaChi(id) {
+            Swal.fire({
+                title: 'Bạn chắc chắn xóa?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `https://localhost:7095/api/DiaChi/diachi/${id}`,
+                        type: 'DELETE',
+                        success: function () {
+                            toastr.success("Xóa thành công");
+                            loadDiaChi();
+                        },
+                        error: function () {
+                            toastr.error("Lỗi xóa địa chỉ");
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}
+
+}

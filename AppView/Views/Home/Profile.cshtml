@@ -1,30 +1,48 @@
 ﻿@model AppData.ViewModels.LoginViewModel
 @{
     Layout = "_Layout";
-    
 }
-<style>
-    #chonNgaySinh input {
-        position: relative;
-        width: 250px; height: 20px;
-        color: white;
-    }
+<!-- Modal đổi mật khẩu -->
+<div class="modal fade" id="changePassword" tabindex="-1" aria-labelledby="changePasswordLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordLabel">Đổi mật khẩu</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formChangePassword">
+                    <div class="form-group">
+                        <label>Mật khẩu hiện tại</label>
+                        <input type="password" class="form-control" id="oldPassword" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu mới</label>
+                        <input type="password" class="form-control" id="newPassword" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Nhập lại mật khẩu mới</label>
+                        <input type="password" class="form-control" id="confirmPassword" required />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="DoiMatKhau()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    #chonNgaySinh input:before {
-        position: absolute;
-        top: 3px; left: 3px;
-        content: attr(my-date);
-        display: inline-block;
-        color: black;
-    }
-</style>
 <section style="background-color: #eee;">
     <div class="container py-5">
         <div class="row">
             <div class="col">
                 <nav aria-label="breadcrumb" class="bg-light rounded-3 p-3 mb-4">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="https://localhost:5001/">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Thông tin người dùng</li>
                     </ol>
                 </nav>
@@ -39,176 +57,180 @@
                              class="rounded-circle img-fluid" style="width: 150px;">
                         <h5 id="tenanh" class="my-3">@Model.Ten</h5>
                         <div class="d-flex justify-content-center mb-2">
-                            <button type="button" data-toggle="modal" data-target="#changePassword" data-url="@Url.Action($"ChangePassword")" class="btn btn-primary">Đổi mật khẩu</button>
-                      </div>
+                            <button type="button" data-toggle="modal" data-target="#changePassword" class="btn btn-primary">Đổi mật khẩu</button>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div class="col-lg-8">
                 <div class="card mb-4">
                     <div class="card-body">
+                        <!-- Tên -->
                         <div class="row">
-                            <div class="col-sm-3">
-                                <p class="mb-0">Tên</p>
-                            </div>
-                            <div class="col-sm-9">
-                                <input id="ten" style="border:none;width: 100%; background: white;" type="text" value="@Model.Ten" maxlength="30" disabled />
-                            </div>
+                            <div class="col-sm-3"><p class="mb-0">Tên</p></div>
+                            <div class="col-sm-9"><input id="ten" class="form-control" type="text" value="@Model.Ten" disabled /></div>
                         </div>
-                        <hr>
+                        <hr />
+
+                        <!-- Email -->
                         <div class="row">
-                            <div class="col-sm-3">
-                                <p class="mb-0">Email</p>
-                            </div>
-                            <div class="col-sm-9">
-                                <input id="email" style="border:none;width: 100%; background: white;" type="text" value="@Model.Email" maxlength="50" disabled />
-                            </div>
+                            <div class="col-sm-3"><p class="mb-0">Email</p></div>
+                            <div class="col-sm-9"><input id="email" class="form-control" type="text" value="@Model.Email" disabled /></div>
                         </div>
-                        <hr>
+                        <hr />
+
+                        <!-- SDT -->
                         <div class="row">
-                            <div class="col-sm-3">
-                                <p class="mb-0">SDT</p>
-                            </div>
-                            <div class="col-sm-9">
-                                <input id="sdt" style="border:none;width: 100%; background: white;" type="text" value="@Model.SDT" maxlength="20" disabled />
-                            </div>
+                            <div class="col-sm-3"><p class="mb-0">SDT</p></div>
+                            <div class="col-sm-9"><input id="sdt" class="form-control" type="text" value="@Model.SDT" disabled /></div>
                         </div>
-                        <hr>
+                        <hr />
+
+                        <!-- Giới tính -->
                         <div class="row">
-                            <div class="col-sm-3">
-                                <p class="mb-0">Giới tính</p>
-                            </div>
+                            <div class="col-sm-3"><p class="mb-0">Giới tính</p></div>
                             <div class="col-sm-9">
-                                @*<input id="gioiTinh" style="border:none;width: 100%; background: white;" type="text" value="@Model.GioiTinh" disabled />*@
-                                <select id="gioiTinh" style="width: 30%; border: 1px solid #ced4da; border-radius: 0.25rem;" disabled class="form-select" aria-label="Default select example">
-                                    @{
-                                        if (Model.GioiTinh == 1)
-                                        {
-                                            <option selected value="1">Nam</option>
-                                            <option value="0">Nữ</option>
-                                            <option value="2">Khác</option>
-                                        }
-                                        else if (Model.GioiTinh == 0)
-                                        {
-                                            <option value="1">Nam</option>
-                                            <option selected value="0">Nữ</option>
-                                            <option value="2">Khác</option>
-                                        }else
-                                        {
-                                            <option value="1">Nam</option>
-                                            <option value="0">Nữ</option>
-                                            <option selected value="2">Khác</option>
-                                        }
-                                    }
-                                    
+                                <select id="gioiTinh" class="form-control" disabled>
+                                    <option value="1" selected="@(Model.GioiTinh == 1)">Nam</option>
+                                    <option value="0" selected="@(Model.GioiTinh == 0)">Nữ</option>
+                                    <option value="2" selected="@(Model.GioiTinh == 2)">Khác</option>
+
                                 </select>
                             </div>
                         </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-sm-3">
-                                <p class="mb-0">Ngày sinh</p>
-                            </div>
-                            <div class="col-sm-9">
-                                <input id="chonNgaySinh" style="border:none;background: white;display:none;" type="datetime-local" value="" />
-                                @{
-                                    if (Model.NgaySinh != null)
-                                    {
-                                        <p id="ShowNgaySinh" class="text-muted mb-0">@(Model.NgaySinh)</p>
+                        <hr />
 
-                                    }else{
-                                        <p id="ShowNgaySinh" class="text-muted mb-0"></p>
-                                    }
-                                }
-                                
-                            </div>
-                        </div>
-                        <hr>
+                        <!-- Ngày sinh -->
                         <div class="row">
-                            <div class="col-sm-3">
-                                <p class="mb-0">Địa chỉ</p>
-                            </div>
+                            <div class="col-sm-3"><p class="mb-0">Ngày sinh</p></div>
                             <div class="col-sm-9">
-                                <input id="diaChi" style="border:none;width: 100%; background: white;" type="text" value="@Model.DiaChi" maxlength="50" disabled />
+                                <p id="ShowNgaySinh" class="text-muted mb-0">@Model.NgaySinh</p>
+                                <input id="chonNgaySinh" class="form-control" type="date" style="display:none;" value="@(Model.NgaySinh ?? "")" />
                             </div>
                         </div>
-                        <hr>
+                        <hr />
+
+                        <!-- Địa chỉ -->
                         <div class="row">
-                            <div class="col-sm-3">
-                                <p class="mb-0">Điểm tích</p>
-                            </div>
-                            <div class="col-sm-3">
-                                <input style="border:none;width: 100%; background: white;" type="text" value="@Model.DiemTich" disabled />
-                            </div>
-                            <div class="col-sm-6">
-                                <button onclick="LichsuTichDiem()" type="button" class="btn btn-primary">Lịch sử tiêu điểm</button>
-                            </div>
+                            <div class="col-sm-3"><p class="mb-0">Địa chỉ</p></div>
+                            <div class="col-sm-9"><input id="diaChi" class="form-control" type="text" value="@Model.DiaChi" disabled /></div>
+                        </div>
+                        <hr />
+
+                        <!-- Điểm tích -->
+                        <div class="row">
+                            <div class="col-sm-3"><p class="mb-0">Điểm tích</p></div>
+                            <div class="col-sm-3"><input class="form-control" type="text" value="@Model.DiemTich" disabled /></div>
+                            <div class="col-sm-6"><button onclick="LichsuTichDiem()" type="button" class="btn btn-primary">Lịch sử tiêu điểm</button></div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Nút sửa & lưu -->
                 <div style="display: flex; justify-content: space-between;">
-                    <button id="Sua" type="button" onclick="SuaThongTinCN()" style="background-color: gray; border: none;" class="btn btn-primary">Sửa thông tin cá nhân</button>
+                    <button id="Sua" type="button" onclick="SuaThongTinCN()" class="btn btn-secondary">Sửa thông tin cá nhân</button>
                     <button id="Luu" onclick="LuuThongTin()" style="display:none;" type="button" class="btn btn-primary">Lưu thông tin cá nhân</button>
                 </div>
-                
             </div>
         </div>
     </div>
 </section>
-<script>
-        function LichsuTichDiem(){
-            location.href = 'LichSuTieuDiemTichDiem';
-        }
-        function SuaThongTinCN() {
-            var x = document.getElementById("ten").disabled;
-            document.getElementById("ten").disabled = false;
-            document.getElementById("email").disabled = false;
-            document.getElementById("sdt").disabled = false;
-            document.getElementById("gioiTinh").disabled = false;
-            document.getElementById("diaChi").disabled = false;
-            document.getElementById("ShowNgaySinh").style.display = "none";
-            document.getElementById("chonNgaySinh").style.display = "block";
-            document.getElementById("Sua").style.display = "none";
-            document.getElementById("Luu").style.display = "block";
-        }
-        function LuuThongTin(){
-            var ten = document.getElementById("ten").value;
-            var email = document.getElementById("email").value;
-            var sdt = document.getElementById("sdt").value;
-            var gioitinh = document.getElementById("gioiTinh").value;
-            var diachi = document.getElementById("diaChi").value;
-            var ngaysinh = document.getElementById("chonNgaySinh").value;
 
-            $.ajax({
-                async: true,
-                type: 'PUT',
-                dataType: "json",
-                data: { Ten: ten, Email: email, SDT: sdt, GioiTinh: gioitinh, NgaySinh: ngaysinh, DiaChi: diachi },
-                url: '/Home/UpdateProfile',
-                success: function (response) {
-                    if (response.success == true) {
-                        toastr.success(response.message, 'Success Alert', { timeOut: 300 });
-                        document.getElementById("ten").disabled = true;
-                        document.getElementById("email").disabled = true;
-                        document.getElementById("sdt").disabled = true;
-                        document.getElementById("gioiTinh").disabled = true;
-                        document.getElementById("diaChi").disabled = true;
-                        document.getElementById("ShowNgaySinh").style.display = "block";
-                        document.getElementById("chonNgaySinh").style.display = "none";
-                        document.getElementById("Sua").style.display = "block";
-                        document.getElementById("Luu").style.display = "none";
-                        document.getElementById("ShowNgaySinh").innerHTML = document.getElementById("chonNgaySinh").value;
-                        document.getElementById("tenanh").innerHTML = document.getElementById("ten").value;
-                        document.getElementById("helloTen").innerHTML = "Hello: " + document.getElementById("ten").value;
-                    } else {
-                        toastr.error(response.message, 'Error Alert', { timeOut: 300 });
-                    }
-                },
-                error: function (response) {
-                    console.log(response);
-                    toastr.error(response.message, 'Error Alert', { timeOut: 300 });
-                }
-            });
+<script>
+    function LichsuTichDiem() {
+        location.href = 'LichSuTieuDiemTichDiem';
+    }
+
+    function SuaThongTinCN() {
+        document.getElementById("ten").disabled = false;
+        document.getElementById("email").disabled = false;
+        document.getElementById("sdt").disabled = false;
+        document.getElementById("gioiTinh").disabled = false;
+        document.getElementById("diaChi").disabled = false;
+
+        document.getElementById("ShowNgaySinh").style.display = "none";
+        document.getElementById("chonNgaySinh").style.display = "block";
+
+        document.getElementById("Sua").style.display = "none";
+        document.getElementById("Luu").style.display = "block";
+    }
+
+    function LuuThongTin() {
+        const ten = document.getElementById("ten").value;
+        const email = document.getElementById("email").value;
+        const sdt = document.getElementById("sdt").value;
+        const gioiTinh = parseInt(document.getElementById("gioiTinh").value);
+        const diaChi = document.getElementById("diaChi").value;
+        const ngaySinh = document.getElementById("chonNgaySinh").value;
+        const id = '@Model.Id';
+
+        $.ajax({
+            url: 'https://localhost:7095/api/QuanLyNguoiDung/UpdateProfile1',
+            type: 'PUT',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify({
+                Id: id,
+                Ten: ten,
+                Email: email,
+                SDT: sdt,
+                GioiTinh: gioiTinh,
+                NgaySinh: ngaySinh,
+                DiaChi: diaChi
+            }),
+            success: function (response) {
+                toastr.success("Cập nhật thành công", "Success", { timeOut: 1000 });
+
+                document.getElementById("ten").disabled = true;
+                document.getElementById("email").disabled = true;
+                document.getElementById("sdt").disabled = true;
+                document.getElementById("gioiTinh").disabled = true;
+                document.getElementById("diaChi").disabled = true;
+
+                document.getElementById("chonNgaySinh").style.display = "none";
+                document.getElementById("ShowNgaySinh").style.display = "block";
+                document.getElementById("ShowNgaySinh").innerText = ngaySinh;
+
+                document.getElementById("Sua").style.display = "block";
+                document.getElementById("Luu").style.display = "none";
+                document.getElementById("tenanh").innerText = ten;
+                document.getElementById("helloTen").innerText = "Hello: " + ten;
+            },
+            error: function (xhr) {
+                toastr.error("Lỗi cập nhật thông tin", "Error", { timeOut: 1500 });
+            }
+        });
+    }
+        function DoiMatKhau() {
+        const id = '@Model.Id';
+        const oldPass = $("#oldPassword").val();
+        const newPass = $("#newPassword").val();
+        const confirmPass = $("#confirmPassword").val();
+
+        if (newPass !== confirmPass) {
+            toastr.error("Mật khẩu mới không khớp");
+            return;
         }
+
+        $.ajax({
+            url: 'https://localhost:7095/api/QuanLyNguoiDung/ChangePassword',
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                Id: id,
+                OldPassword: oldPass,
+                NewPassword: newPass
+            }),
+            success: function () {
+                toastr.success("Đổi mật khẩu thành công");
+                $('#changePassword').modal('hide');
+                $("#formChangePassword")[0].reset();
+            },
+            error: function () {
+                toastr.error("Mật khẩu hiện tại không đúng");
+            }
+        });
+    }
+
 </script>
-@await Html.PartialAsync("ChangePassword")

@@ -1,6 +1,7 @@
 ﻿using AppData.Models;
 using AppData.ViewModels;
 using AppData.ViewModels.BanOffline;
+using AppData.ViewModels.DTO;
 using AppData.ViewModels.Mail;
 using AppData.ViewModels.QLND;
 using AppData.ViewModels.SanPham;
@@ -16,6 +17,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.Helpers;
@@ -903,7 +905,10 @@ namespace AppView.Controllers
                 return View();
             }
         }
-       
+
+     
+
+
         [HttpPost]
         public async Task<IActionResult> Login(string lg, string password)
         {
@@ -1046,6 +1051,7 @@ namespace AppView.Controllers
                     if (response.IsSuccessStatusCode)
                     {
                         loginViewModel.DiemTich = JsonConvert.DeserializeObject<KhachHang>(response.Content.ReadAsStringAsync().Result).DiemTich;
+                        Console.WriteLine("Session LoginInfor: " + session);
                         return View(loginViewModel);
                     }
                     else
@@ -1374,6 +1380,18 @@ namespace AppView.Controllers
                 return BadRequest();
             }
         }
+        public IActionResult ManageDiaChi()
+        {
+            var session = HttpContext.Session.GetString("LoginInfor");
+            if (session == null)
+            {
+                return RedirectToAction("Login", "Home");
+            }
+
+            var model = JsonConvert.DeserializeObject<LoginViewModel>(session);
+            return View(model);
+        }
+
         public IActionResult DanhGiaSanPham([FromBody] DanhGiaCTHDViewModel danhGiaCTHDView)
         {
             try
@@ -2015,5 +2033,82 @@ namespace AppView.Controllers
             return View();
         }
         #endregion
+
+        public IActionResult HoSo()
+        {
+            var session = HttpContext.Session.GetString("LoginInfor");
+            if (string.IsNullOrEmpty(session)) return RedirectToAction("Login", "Home");
+
+            var user = JsonConvert.DeserializeObject<LoginViewModel>(session);
+            return View(user); // View: Views/Home/HoSo.cshtml
+        }
+
+
+        // GET: Danh sách địa chỉ của khách hàng
+        [HttpGet]
+        public async Task<IActionResult> Indexx()
+        {
+            var session = HttpContext.Session.GetString("LoginInfor");
+            if (string.IsNullOrEmpty(session)) return RedirectToAction("Login", "Home");
+
+            var khachHang = JsonConvert.DeserializeObject<LoginViewModel>(session);
+            var response = await _httpClient.GetAsync($"khachhang/{khachHang.Id}/diachi");
+
+            if (!response.IsSuccessStatusCode) return View(new List<DiaChiDTO>());
+
+            var json = await response.Content.ReadAsStringAsync();
+            var list = JsonConvert.DeserializeObject<List<DiaChiDTO>>(json);
+            return View(list);
+        }
+
+        // POST: Thêm địa chỉ
+        [HttpGet]
+        public IActionResult Add()
+        {
+            var session = HttpContext.Session.GetString("LoginInfor");
+            if (string.IsNullOrEmpty(session))
+                return RedirectToAction("Login", "Home");
+
+            var khachHang = JsonConvert.DeserializeObject<LoginViewModel>(session);
+
+            return View(khachHang); 
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Add(DiaChiDTO diaChi)
+        {
+            var session = HttpContext.Session.GetString("LoginInfor");
+            if (string.IsNullOrEmpty(session)) return RedirectToAction("Login", "Home");
+
+            var khachHang = JsonConvert.DeserializeObject<LoginViewModel>(session);
+
+            var response = await _httpClient.PostAsJsonAsync($"khachhang/{khachHang.Id}/diachi", diaChi);
+            return RedirectToAction("Index");
+        }
+
+        // GET: Sửa địa chỉ
+        public async Task<IActionResult> Edit(Guid id)
+        {
+            var res = await _httpClient.GetAsync($"get-one/{id}");
+            if (!res.IsSuccessStatusCode) return NotFound();
+
+            var json = await res.Content.ReadAsStringAsync();
+            var diaChi = JsonConvert.DeserializeObject<DiaChiDTO>(json);
+            return View(diaChi);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(Guid id, DiaChiDTO diaChi)
+        {
+            var res = await _httpClient.PutAsJsonAsync($"diachi/{id}", diaChi);
+            return RedirectToAction("Index");
+        }
+
+        // GET: Xoá địa chỉ
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            await _httpClient.DeleteAsync($"diachi/{id}");
+            return RedirectToAction("Index");
+        }
     }
 }

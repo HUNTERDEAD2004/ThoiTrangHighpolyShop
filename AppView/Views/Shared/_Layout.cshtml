@@ -97,7 +97,9 @@
                                             </a>
                                             @*<i class="arrow_carrot-down"></i>*@
                                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Profile">Thông tin cá nhân</a></li>
+                                                 @* <li><a class="dropdown-item" asp-controller="Home" asp-action="Profile">Thông tin cá nhân</a></li>*@
+                                                <li><a class="dropdown-item" asp-controller="Home" asp-action="ManageDiaChi">Thông tin cá nhân</a></li>
+
                                                 <li><a class="dropdown-item" asp-controller="Home" asp-action="PurchaseOrder">Đơn mua</a></li>
                                                 @if (loginInfor.vaiTro == 0)
                                                 {
