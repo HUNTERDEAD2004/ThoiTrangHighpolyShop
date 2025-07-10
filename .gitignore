@@ -43,3 +43,6 @@ artifacts/
 /AppData/Migrations/20250705155522_suadblan2.cs
 /AppData/Migrations/20250705155522_suadblan2.Designer.cs
 /AppData/Migrations/AssignmentDBContextModelSnapshot.cs
+/AppData/Migrations
+/.gitignore
+/.gitignore
