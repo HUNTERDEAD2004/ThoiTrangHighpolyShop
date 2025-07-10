@@ -109,9 +109,9 @@ namespace AppView.Controllers
                     {
                         if (voucher.SoTienCan == 0)
                         {
-                            if (voucher.GiaTri > 100 || voucher.GiaTri <= 0)
+                            if (voucher.GiaTri > 100 || voucher.GiaTri <= 10)
                             {
-                                ViewData["GiaTri"] = "Giá trị từ 1 đến 100";
+                                ViewData["GiaTri"] = "Giá trị từ 10 đến 50";
                                 return View();
                             }
                             if (voucher.GiaTri <= 100 && voucher.GiaTri > 0)
