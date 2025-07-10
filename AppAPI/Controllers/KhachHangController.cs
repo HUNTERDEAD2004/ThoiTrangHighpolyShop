@@ -4,6 +4,7 @@ using AppData.IRepositories;
 using AppData.Models;
 using AppData.Repositories;
 using AppData.ViewModels;
+using AppData.ViewModels.DTO;
 using AppData.ViewModels.SanPham;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -51,6 +52,12 @@ namespace AppAPI.Controllers
         public KhachHang GetById(Guid id)
         {
             return _khachHangService.GetById(id);
+        }
+
+        [HttpGet("GetByIdd")]
+        public KhachHangDTO GetByIdd(Guid id)
+        {
+            return _khachHangService.GetByIdd(id);
         }
 
         // GET: api/KhachHang/GetKhachHangByEmail

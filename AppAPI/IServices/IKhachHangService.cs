@@ -1,5 +1,6 @@
 ﻿using AppData.Models;
 using AppData.ViewModels;
+using AppData.ViewModels.DTO;
 
 namespace AppAPI.IServices
 {
@@ -13,6 +14,8 @@ namespace AppAPI.IServices
 
         // Lấy khách hàng theo ID
         KhachHang GetById(Guid id);
+
+        KhachHangDTO GetByIdd(Guid id);
 
         // Lấy khách hàng theo số điện thoại hoặc email
         KhachHang GetBySDT(string sdt);

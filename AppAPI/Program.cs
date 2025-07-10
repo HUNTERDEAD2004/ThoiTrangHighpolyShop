@@ -25,7 +25,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+      
         options.JsonSerializerOptions.Converters.Add(new NullableDateOnlyJsonConverter());
     })
     .AddNewtonsoftJson(options =>
@@ -72,6 +72,7 @@ builder.Services.AddScoped<IThongKeService, ThongKeService>();
 builder.Services.AddScoped<IVaiTroService, VaiTroSevice>();
 builder.Services.AddScoped<AssignmentDBContext>();
 builder.Services.AddHttpClient<GHNService>();
+builder.Services.AddScoped<IDiaChiService, DiaChiService>();
 
 // Mail settings
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));

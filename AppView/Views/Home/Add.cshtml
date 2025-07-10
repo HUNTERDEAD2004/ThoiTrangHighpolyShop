@@ -1,0 +1,173 @@
+﻿@model AppData.ViewModels.LoginViewModel
+@{
+    Layout = "_Layout";
+}
+
+<section class="container py-4">
+    <h3 class="mb-4">Thêm địa chỉ mới</h3>
+
+    <form id="formAddDiaChi">
+        <input type="hidden" id="userId" value="@Model.Id" />
+
+        <div class="form-group">
+            <label>Địa chỉ chi tiết</label>
+            <input type="text" class="form-control" id="diaChi" required />
+        </div>
+
+        <div class="form-group">
+            <label>Tỉnh/TP</label>
+            <select class="form-control" id="tinh"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Quận/Huyện</label>
+            <select class="form-control" id="huyen"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Phường/Xã</label>
+            <select class="form-control" id="xa"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Đặt làm mặc định</label><br />
+            <label class="switch">
+                <input type="checkbox" id="isDefault">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-success">Lưu địa chỉ</button>
+        <a href="/Home/HoSo#diachi" class="btn btn-secondary ml-2">Hủy</a>
+    </form>
+</section>
+
+<!-- CSS Toggle Switch -->
+<style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 25px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #28a745;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+</style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        const baseUrl = "https://localhost:7095/api/ghn";
+
+        $(document).ready(function () {
+            loadProvinces();
+
+            $('#tinh').change(() => loadDistricts($('#tinh').val()));
+            $('#huyen').change(() => loadWards($('#huyen').val()));
+
+            $('#formAddDiaChi').on('submit', function (e) {
+                e.preventDefault();
+
+                const model = {
+                    diaChiChiTiet: $('#diaChi').val(),
+                    tinh: $('#tinh option:selected').text(),
+                    huyen: $('#huyen option:selected').text(),
+                    xa: $('#xa option:selected').text(),
+                    isDefault: $('#isDefault').is(':checked')
+                };
+
+                const userId = $('#userId').val();
+
+                // if (!model.diaChiChiTiet || !model.tinh || !model.huyen || !model.xa) {
+                //     toastr.warning("Vui lòng điền đầy đủ thông tin.");
+                //     return;
+                // }
+
+                $.ajax({
+                    url: `https://localhost:7095/api/DiaChi/khachhang/${userId}/diachi`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(model),
+                    success: function () {
+                        toastr.success("Đã thêm địa chỉ");
+                        setTimeout(() => {
+                            window.location.href = '/Home/ManageDiaChi#diachi';
+                        }, 1000);
+                    },
+                    error: function () {
+                        toastr.error("Lỗi khi thêm địa chỉ");
+                    }
+                });
+            });
+        });
+
+        function loadProvinces() {
+            $.get(`${baseUrl}/provinces`, data => {
+                $('#tinh').html('<option selected disabled>Chọn Tỉnh / TP</option>');
+                data.forEach(p => {
+                    $('#tinh').append(`<option value="${p.ProvinceID}">${p.ProvinceName}</option>`);
+                });
+            });
+        }
+
+        function loadDistricts(provinceId) {
+            $('#huyen').html('<option>Đang tải...</option>');
+            $('#xa').html('<option>Chọn xã</option>');
+            $.get(`${baseUrl}/districts/${provinceId}`, data => {
+                $('#huyen').html('<option selected disabled>Chọn Quận / Huyện</option>');
+                data.forEach(d => {
+                    $('#huyen').append(`<option value="${d.districtID}">${d.districtName}</option>`);
+                });
+            });
+        }
+
+        function loadWards(districtId) {
+            $('#xa').html('<option>Đang tải...</option>');
+            $.get(`${baseUrl}/wards/${districtId}`, data => {
+                $('#xa').html('<option selected disabled>Chọn Phường / Xã</option>');
+                data.forEach(w => {
+                    $('#xa').append(`<option value="${w.wardCode}">${w.wardName}</option>`);
+                });
+            });
+        }
+    </script>
+}
