@@ -429,7 +429,7 @@ namespace AppView.Controllers
                     IdNhanVien = request.IdNhanVien,
                     NgayThanhToan = DateTime.Now,
                     IdVoucher = request.IdVoucher == Guid.Empty ? Guid.Empty : request.IdVoucher,
-                    PTTT = request.PTTT,
+                    IDPhuongThucThanhToan = request.IDPhuongThucThanhToan,
                     TongTien = request.TongTien,
                     DiemTichHD = request.DiemTichHD,
                     DiemSD = request.DiemSD,

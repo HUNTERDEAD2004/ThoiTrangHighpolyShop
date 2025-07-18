@@ -16,7 +16,6 @@ namespace AppData.Configurations
             builder.ToTable("LichSuHoaDon");
             builder.HasKey(x => x.ID);
             builder.Property(x => x.NgayLap).HasColumnType("datetime").IsRequired();
-            builder.Property(x => x.MaNhanvien).HasColumnType("nvarchar(255)");
             builder.Property(x => x.GhiChu).HasColumnType("nvarchar(255)");
             builder.Property(x => x.TrangThai).HasColumnType("int").IsRequired();
         }

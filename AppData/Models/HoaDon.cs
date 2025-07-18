@@ -4,7 +4,7 @@
     {
         public Guid ID { get; set; }
         public string? MaHoaDon { get; set; }
-        public Guid? IDNhanVien { get; set; }
+        public Guid IDNhanVien { get; set; }
         public Guid? IDVoucher { get; set; }
         public Guid IDKhachHang { get; set; } 
         public Guid IDLichSuHD { get; set; }
@@ -25,14 +25,12 @@
         /*
          * 1-đơn nháp
          * 2-Chờ xác nhận
-         * 3-Đang giao hàng//ko đc hủy
+         * 3-Đang giao hàng //ko đc hủy
          * 6-thành công //nhận hàng thành công// đc đánh giá // đc hủy nếu ngày thanh toán < 3
-         
          --Hoàn hàng
          * 9-chờ xác nhận hoàn hàng
          * 4-đang hoàn hàng
          * 5-Hoàn hàng thành công
-
          --Hủy khi chưa giao
          * 7-Đơn hủy
          * 8-Chờ xác nhận hủy

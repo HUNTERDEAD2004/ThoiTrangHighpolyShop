@@ -4,6 +4,7 @@ using AppData.Models;
 using AppData.ViewModels.SanPham;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppAPI.Controllers
 {
@@ -86,6 +87,15 @@ namespace AppAPI.Controllers
         public List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham)
         {
             return _sanPhamServices.GetAllAnhSanPhamChiTiet(idSanPham);
+        }
+        [HttpPost("AddImage")]
+        public async Task<IActionResult> AddImage([FromBody] List<AnhRequest> requests)
+        {
+            if (requests == null || !requests.Any())
+                return BadRequest("Danh sách ảnh rỗng.");
+
+            var result = await _sanPhamServices.AddImage(requests);
+            return result ? Ok() : BadRequest("Thêm ảnh thất bại.");
         }
         [HttpPut("UpdateImage")]
         public async Task<bool> UpdateImage(Anh anh)

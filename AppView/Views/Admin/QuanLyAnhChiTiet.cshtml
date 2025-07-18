@@ -39,8 +39,9 @@
                 <!-- ✅ Nút thêm -->
                 <td>
                     <label for="add_@item.IDChiTietSanPham" class="btn btn-primary">Thêm</label><br />
-                    <input id="add_@item.IDChiTietSanPham" style="visibility:hidden;" type="file"
+                    <input id="add_@item.IDChiTietSanPham" style="visibility:hidden;" type="file" multiple
                            onchange="AddImageToChiTiet(event, '@item.IDChiTietSanPham')">
+
                 </td>
                 <!-- ✅ Nút sửa -->
                 <td>
@@ -63,19 +64,20 @@
 
 <script>
     function AddImageToChiTiet(event, idChiTiet) {
-        var file = event.target.files[0];
-
-        // ✅ Kiểm tra loại file
-        if (!file.type.startsWith("image/")) {
-            alert("Chỉ chấp nhận file ảnh!");
-            return;
-        }
+        var files = event.target.files;
 
         var formData = new FormData();
-        formData.append("file", file);
+        for (let i = 0; i < files.length; i++) {
+            if (!files[i].type.startsWith("image/")) {
+                alert("Chỉ chấp nhận file ảnh!");
+                return;
+            }
+            formData.append("files", files[i]); // 'files' => List<IFormFile>
+        }
+
         formData.append("idChiTietSanPham", idChiTiet);
 
-        fetch("/Admin/AddImageToChiTiet", {
+        fetch("/Admin/AddAnhToSanPhamChiTiet", {
             method: "POST",
             body: formData
         }).then(res => {
@@ -87,17 +89,17 @@
         });
     }
 
-    function UpdateImage(event, id, duongdan) {
-        var value = event.target.files[0];
 
-        // ✅ Kiểm tra loại file
+    function UpdateImage(event, id, duongdan) {
+        var file = event.target.files[0]; // Sửa lại từ 'value' thành 'file'
+
         if (!file.type.startsWith("image/")) {
             alert("Chỉ chấp nhận file ảnh!");
             return;
         }
 
         var formData = new FormData();
-        formData.append("file", value);
+        formData.append("file", file);
         formData.append("id", id);
         formData.append("duongDan", duongdan);
         formData.append("idSanPham", '@id');
@@ -110,5 +112,6 @@
             else alert("Cập nhật ảnh thất bại.");
         });
     }
+
 </script>
 

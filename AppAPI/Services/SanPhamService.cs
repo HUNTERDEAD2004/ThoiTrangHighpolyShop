@@ -42,6 +42,7 @@ namespace AppAPI.Services
                 }
                 sanpham.Ten = request.Ten;
                 sanpham.MoTa = request.MoTa;
+                sanpham.AnhDaiDien = request.AnhDaiDien;
                 sanpham.IDChatLieu = chatLieu.ID;
                 sanpham.IDLoaiSP = loaiSPCon.ID;
                 _context.SanPhams.Update(sanpham);
@@ -206,7 +207,6 @@ namespace AppAPI.Services
                 return new List<SanPhamViewModel>();
             }
         }
-
         public bool CheckTrungTenSP(SanPhamRequest lsp)
         {
             throw new NotImplementedException();
@@ -264,6 +264,7 @@ namespace AppAPI.Services
                     Ten = request.Ten,
                     Ma = "SP" + (max + 1),
                     MoTa = request.MoTa,
+                    AnhDaiDien = request.AnhDaiDien,
                     TrangThai = 1,
                     IDLoaiSP = loaiSPCon.ID,
                     IDChatLieu = chatLieu.ID
@@ -297,67 +298,6 @@ namespace AppAPI.Services
             {
                 return new ChiTietSanPhamUpdateRequest();
             }
-        }
-        public List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham)
-        {
-            try
-            {
-                var lst = (from a in _context.Anhs
-                           join ctsp in _context.ChiTietSanPhams on a.IDSanPhamChiTiet equals ctsp.ID
-                           join ms in _context.MauSacs on ctsp.IDMauSac equals ms.ID
-                           where ctsp.IDSanPham == idSanPham
-                           select new UploadAnhViewModel()
-                           {
-                               IDChiTietSanPham = ctsp.ID,
-                               DuongDan = a.DuongDan,
-                               TenMau = ms.Ten,
-                               MaMau = ms.Ma
-                           }).ToList();
-
-                return lst;
-            }
-            catch
-            {
-                return new List<UploadAnhViewModel>();
-            }
-        }
-        public async Task<bool> UpdateImage(Anh anh)
-        {
-            try
-            {
-                var temp = _context.Anhs.First(x => x.ID == anh.ID);
-                temp.DuongDan = anh.DuongDan;
-                _context.Anhs.Update(temp);
-                await _context.SaveChangesAsync();
-                return true;
-
-            }
-            catch { return false; }
-        }
-        public async Task<bool> DeleteImage(Guid id)
-        {
-            var temp = _context.Anhs
-             .Include(x => x.ChiTietSanPham)
-             .FirstOrDefault(x => x.ID == id);
-
-            if (temp == null) throw new Exception("Không tìm thấy ảnh.");
-
-            // Kiểm tra ChiTietSanPham liên kết có IDMauSac hay không
-            bool hasMauSac = temp.ChiTietSanPham?.IDMauSac != null;
-
-            if (hasMauSac)
-            {
-                temp.DuongDan = "";
-                _context.Anhs.Update(temp);
-            }
-            else
-            {
-                _context.Anhs.Remove(temp);
-            }
-
-            await _context.SaveChangesAsync();
-            return true;
-
         }
         #endregion
 
@@ -610,7 +550,7 @@ namespace AppAPI.Services
                 if (!string.IsNullOrEmpty(request.TrangThai))
                 {
                     if (!Guid.TryParse(request.TrangThai, out Guid parsed))
-                        return false;
+                    return false;
 
                     idMacDinh = parsed;
                 }
@@ -657,6 +597,7 @@ namespace AppAPI.Services
                 return false;
             }
         }
+
         public async Task<bool> UpdateSoluongChiTietSanPham(Guid id, int soLuong)
         {
             try
@@ -859,7 +800,90 @@ namespace AppAPI.Services
                 return false;
             }
         }
+        public List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham)
+        {
+            try
+            {
+                var lst = (from a in _context.Anhs
+                           join ctsp in _context.ChiTietSanPhams on a.IDSanPhamChiTiet equals ctsp.ID
+                           join ms in _context.MauSacs on ctsp.IDMauSac equals ms.ID
+                           where ctsp.IDSanPham == idSanPham
+                           select new UploadAnhViewModel
+                           {
+                               IDChiTietSanPham = ctsp.ID,
+                               TenMau = ms.Ten,
+                               MaMau = ms.Ma,
+                               DuongDan = a.DuongDan
+                           }).ToList();
 
+                return lst;
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi nếu cần
+                Console.WriteLine($"Lỗi khi lấy ảnh: {ex.Message}");
+                return new List<UploadAnhViewModel>();
+            }
+        }
+        public async Task<bool> AddImage(List<AnhRequest> requests)
+        {
+            try
+            {
+                var listAnh = requests.Select(x => new Anh
+                {
+                    ID = Guid.NewGuid(),
+                    IDSanPhamChiTiet = x.IDSanPhamChiTiet,
+                    DuongDan = x.DuongDan,
+                    TrangThai = 1
+                }).ToList();
+
+                _context.Anhs.AddRange(listAnh);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public async Task<bool> UpdateImage(Anh anh)
+        {
+            try
+            {
+                var temp = _context.Anhs.First(x => x.ID == anh.ID);
+                temp.DuongDan = anh.DuongDan;
+                _context.Anhs.Update(temp);
+                await _context.SaveChangesAsync();
+                return true;
+
+            }
+            catch { return false; }
+        }
+        public async Task<bool> DeleteImage(Guid id)
+        {
+            var temp = _context.Anhs
+             .Include(x => x.ChiTietSanPham)
+             .FirstOrDefault(x => x.ID == id);
+
+            if (temp == null) throw new Exception("Không tìm thấy ảnh.");
+
+            // Kiểm tra ChiTietSanPham liên kết có IDMauSac hay không
+            bool hasMauSac = temp.ChiTietSanPham?.IDMauSac != null;
+
+            if (hasMauSac)
+            {
+                temp.DuongDan = "";
+                _context.Anhs.Update(temp);
+            }
+            else
+            {
+                _context.Anhs.Remove(temp);
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+
+        }
         #endregion
 
         #region LoaiSP
@@ -926,38 +950,6 @@ namespace AppAPI.Services
         public async Task<List<ChatLieu>> GetAllChatLieu()
         {
             return await _context.ChatLieus.Where(x => x.TrangThai == 1).ToListAsync();
-        }
-
-        public async Task<List<TenThuocTinhViewModel>> GetTenMauSacsAsync(List<Guid> ids)
-        {
-            return await _context.MauSacs
-                .Where(x => ids.Contains(x.ID))
-                .Select(x => new TenThuocTinhViewModel
-                {
-                    ID = x.ID,
-                    Ten = x.Ten
-                })
-                .ToListAsync();
-        }
-
-        public async Task<List<TenThuocTinhViewModel>> GetTenKichCosAsync(List<Guid> ids)
-        {
-            return await _context.KichCos
-                .Where(x => ids.Contains(x.ID))
-                .Select(x => new TenThuocTinhViewModel
-                {
-                    ID = x.ID,
-                    Ten = x.Ten
-                })
-                .ToListAsync();
-        }
-
-        public async Task<string?> GetTenChatLieuAsync(Guid id)
-        {
-            return await _context.ChatLieus
-                .Where(x => x.ID == id)
-                .Select(x => x.Ten)
-                .FirstOrDefaultAsync();
         }
 
         public Task<List<ChiTietSanPham>> GetAllChiTietSanPham(Guid idSanPham)

@@ -10,7 +10,7 @@ namespace AppData.ViewModels.BanOffline
     {
         public Guid Id { get; set; }
         public Guid IdNhanVien { get; set; }
-        public string PTTT { get; set; }
+        public Guid IDPhuongThucThanhToan { get; set; }
         public DateTime NgayThanhToan { get; set; }
         public Guid IdVoucher { get; set; }
         public int TongTien { get; set; } // Khách phải trả

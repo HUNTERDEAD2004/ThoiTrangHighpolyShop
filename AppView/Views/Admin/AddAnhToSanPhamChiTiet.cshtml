@@ -9,18 +9,28 @@
             <tr>
                 <th>Màu</th>
                 <th>Ảnh</th>
+                <th>Upload ảnh</th>
             </tr>
         </thead>
         <tbody>
             @for (int i = 0; i < Model.Count; i++)
             {
                 <tr>
-                    <td>
+                    @*<td>
                         @Model[i].TenMau
-                        <input type="hidden" name="IDChiTietSanPhams" value="@Model[i].IDChiTietSanPham" />
-                    </td>
+                        <input type="hidden" name="model[@i].IDChiTietSanPham" value="@Model[i].IDChiTietSanPham" />
+                        <input type="hidden" name="model[@i].MaMau" value="@Model[i].MaMau" />
+                        <input type="hidden" name="model[@i].TenMau" value="@Model[i].TenMau" />
+                    </td> *@
                     <td>
-                        <input type="file" name="Images" class="form-control" />
+                        <input type="file" name="model[@i].Image" class="form-control" />
+                    </td>
+                    <td>@Model[i].TenMau</td>
+                    <td><div style="width: 30px; height: 30px; background-color: @Model[i].MaMau;"></div></td>
+                    <td>
+                        <input asp-for="@Model[i].Image" type="file" name="model[@i].Image" class="form-control" />
+                        <input type="hidden" name="model[@i].IDChiTietSanPham" value="@Model[i].IDChiTietSanPham" />
+                        <input type="hidden" name="model[@i].MaMau" value="@Model[i].MaMau" />
                     </td>
                 </tr>
             }
@@ -28,3 +38,4 @@
     </table>
     <button type="submit" class="btn btn-success">Lưu ảnh</button>
 </form>
+

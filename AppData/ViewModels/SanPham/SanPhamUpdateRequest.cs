@@ -12,12 +12,13 @@ namespace AppData.ViewModels.SanPham
     {
         public Guid ID { get; set; }
         [Required]
-        public string Ten { get; set; }
-        public string MoTa { get; set; }
+        public string? Ten { get; set; }
+        public string? AnhDaiDien { get; set; }
+        public string? MoTa { get; set; }
         [Required]
-        public string TenChatLieu { get; set; }
+        public string? TenChatLieu { get; set; }
         [Required]
-        public string TenLoaiSPCha { get; set; }
-        public string TenLoaiSPCon { get; set; }
+        public string? TenLoaiSPCha { get; set; }
+        public string? TenLoaiSPCon { get; set; }
     }
 }
