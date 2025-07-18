@@ -35,7 +35,7 @@ app.UseSession();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Vouchers}/{action=GetAllVoucher}");
+    pattern: "{controller=QuanLyKM}/{action=GetAllKM}");
 
 IWebHostEnvironment env = app.Environment;
 Rotativa.AspNetCore.RotativaConfiguration.Setup(env.WebRootPath, "../Rotativa/Windows");

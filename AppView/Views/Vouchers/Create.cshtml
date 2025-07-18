@@ -66,13 +66,14 @@
             <div class="col-md-6">
                 <label class="form-label text-dark">Ngày bắt đầu</label>
                 <input asp-for="NgayApDung" type="datetime-local" class="form-control" />
-                <span class="text-danger">@ViewData["NgayApDung"]</span>
+                <span asp-validation-for="NgayApDung" class="text-danger"></span>
+           
             </div>
 
             <div class="col-md-6">
                 <label class="form-label text-dark">Ngày kết thúc</label>
                 <input asp-for="NgayKetThuc" type="datetime-local" class="form-control" />
-                <span class="text-danger">@ViewData["NgayKetThuc"]</span>
+                <span asp-validation-for="NgayKetThuc" class="text-danger"></span>
                 <span class="text-danger">@ViewData["Ngay"]</span>
             </div>
         </div>
@@ -97,6 +98,15 @@
             document.querySelector('[name="Ten"]').value = code;
         }
     </script>
-
-    @await Html.PartialAsync("_ValidationScriptsPartial")
+ 
+    <script>
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                alert("@TempData["Error"]");
+            </text>
+        }
+    </script>
 }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+

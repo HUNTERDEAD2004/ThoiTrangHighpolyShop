@@ -6,12 +6,39 @@
 }
 
 <h2 class="text-center text-uppercase mt-4 mb-4 text-primary font-weight-bold">Quản lý Voucher</h2>
+<div class="row g-3 align-items-end mb-3">
+    <form asp-action="FilterVouchers" method="get" class="col-10 row g-3">
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">Tối thiểu:</label>
+            <input type="number" name="MinValue" class="form-control form-control-sm" placeholder="Nhập giảm giá tối thiểu" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">Tối đa:</label>
+            <input type="number" name="MaxValue" class="form-control form-control-sm" placeholder="Nhập giảm giá tối đa" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">Ngày bắt đầu:</label>
+            <input type="date" name="StartDate" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <div class="w-100">
+                <label class="form-label fw-semibold">Ngày kết thúc:</label>
+                <div class="input-group">
+                    <input type="date" name="EndDate" class="form-control form-control-sm" />
+                    <button type="submit" class="btn btn-dark btn-sm">
+                        <i class="fa fa-filter"></i> Lọc
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 
-<!-- Nút Thêm mới -->
-<div class="d-flex justify-content-end mb-2">
-    <a class="btn btn-primary" asp-action="Create">
-        <i class="fa fa-plus"></i> Thêm mới
-    </a>
+    <!-- Nút Thêm -->
+    <div class="col-2 text-end">
+        <a class="btn btn-dark btn-sm" asp-action="Create">
+            <i class="fa fa-plus"></i> Thêm mới
+        </a>
+    </div>
 </div>
 
 <!-- Tiêu đề + Tìm kiếm cùng dòng -->
@@ -39,7 +66,7 @@
 
 <div class="table-responsive">
     <table class="table table-bordered table-hover text-center align-middle">
-        <thead class="thead-dark">
+        <thead class="table-dark text-center">
             <tr>
                 <th>STT</th>
                 <th>Mã Voucher</th>
@@ -59,8 +86,8 @@
         </thead>
         <tbody>
             @foreach (var item in Model.listvouchers
-            .Where(x => x.GiaTri < x.GiaTriToiDa
-            && x.GiaTriToiThieu > x.GiaTri
+            .Where(x => x.GiaTri <= x.GiaTriToiDa
+            && x.GiaTriToiThieu >= x.GiaTri
             && x.GiaTriToiThieu > x.GiaTriToiDa))
             {
                 <tr>
@@ -91,22 +118,22 @@
                             if (item.NgayKetThuc < now)
                             {
                                 trangThaiText = "Không hoạt động";
-                                trangThaiColor = "secondary";
+                                trangThaiColor = "badge bg-primary";
                             }
                             else if (now >= item.NgayApDung && now <= item.NgayKetThuc)
                             {
                                 trangThaiText = "Hoạt động";
-                                trangThaiColor = "success";
+                                trangThaiColor = "badge bg-primary";
                             }
                             else if (now < item.NgayApDung)
                             {
                                 trangThaiText = "Hoạt động";
-                                trangThaiColor = "success";
+                                trangThaiColor = "badge bg-primary";
                             }
                             else
                             {
                                 trangThaiText = "Không xác định";
-                                trangThaiColor = "light";
+                                trangThaiColor = "badge bg-primary";
                             }
                         }
                         <span class="badge bg-@trangThaiColor">@trangThaiText</span>
@@ -120,22 +147,22 @@
                             if (item.NgayKetThuc < now)
                             {
                                 tinhTrangText = "Đã kết thúc";
-                                tinhTrangColor = "dark";
+                                tinhTrangColor = "badge bg-primary";
                             }
                             else if (now >= item.NgayApDung && now <= item.NgayKetThuc)
                             {
                                 tinhTrangText = "Đang diễn ra";
-                                tinhTrangColor = "success";
+                                tinhTrangColor = "badge bg-primary";
                             }
                             else if (now < item.NgayApDung)
                             {
                                 tinhTrangText = "Sắp diễn ra";
-                                tinhTrangColor = "success ";
+                                tinhTrangColor = "badge bg-primary ";
                             }
                             else
                             {
                                 tinhTrangText = "Không xác định";
-                                tinhTrangColor = "light";
+                                tinhTrangColor = "badge bg-primary";
                             }
                         }
 
@@ -143,11 +170,25 @@
                     </td>
 
                     <td>
-                        <div class="btn-group">
-                            <a class="btn btn-sm btn-warning" asp-action="Updates" asp-route-id="@item.Id">
+                         <div class="btn-group" role="group">
+                            <!-- Chỉnh sửa -->
+                            <a class="btn btn-warning btn-sm" asp-action="Updates" asp-route-id="@item.Id" title="Chỉnh sửa">
                                 <i class="fa fa-edit"></i>
                             </a>
-                        </div>
+        <!-- Xem chi tiết -->
+                            <a class="btn btn-dark btn-sm" asp-action="Details" asp-route-id="@item.Id" title="Chi tiết">
+            <i class="fa fa-eye"></i>
+        </a>
+
+       
+
+        <!-- Xóa -->
+        <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa?')" style="display:inline;">
+            <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                <i class="fa fa-trash"></i>
+            </button>
+        </form>
+    </div>
                     </td>
                 </tr>
             }
