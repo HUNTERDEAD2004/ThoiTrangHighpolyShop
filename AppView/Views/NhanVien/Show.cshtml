@@ -8,13 +8,13 @@
    
    
     <hr />
-    <div class="d-flex justify-content-between mb-3">
-       
-        <a class="btn btn-primary" asp-action="Create">Thêm mới</a>
+    <div class="d-flex justify-content-between align-items-center mb-3">
 
-        <form asp-action="SearchTheoTen" method="get" id="searchForm" class="d-flex">
-            <input type="text" name="Ten" class="form-control me-2 tk1" placeholder="Tìm theo tên hoặc SĐT" />
-            <input type="submit" value="Tìm kiếm" class="btn btn-info" />
+        <a class="btn btn-secondary text-white px-4 py-2" asp-action="Create">Thêm mới</a>
+
+        <form asp-action="SearchTheoTen" method="get" id="searchForm" class="d-flex align-items-center gap-2">
+            <input type="text" name="Ten" class="form-control shadow-sm" placeholder="Tìm theo tên hoặc SĐT" style="width: 250px;" />
+            <input type="submit" value="Tìm kiếm" class="btn btn-secondary px-4 py-2" />
         </form>
     </div>
 
@@ -57,10 +57,32 @@
                     </td>
                     <td>@item.MaNhanVien</td>
                     <td>@(item.TrangThai == 1 ? "Đang làm" : "Nghỉ làm")</td>
-                    <td>
-                        <a class="btn btn-sm " asp-action="Sua" asp-route-id="@item.ID">Trạng thái</a>
-                        <a class="btn btn-sm btn-success" asp-action="Edit" asp-route-id="@item.ID">Sửa</a>
-                        <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.ID">Chi tiết</a>
+                    <td class="d-flex gap-1">
+                        <div class="btn-group" role="group">
+                            <!-- Nút đổi trạng thái (đen) -->
+                            <a class="btn btn-sm btn-dark text-white"
+                               asp-action="Sua"
+                               asp-route-id="@item.ID"
+                               title="Đổi trạng thái">
+                                <i class="fa fa-sync-alt"></i>
+                            </a>
+
+                            <!-- Nút sửa (vàng) -->
+                            <a class="btn btn-sm btn-warning text-white"
+                               asp-action="Edit"
+                               asp-route-id="@item.ID"
+                               title="Sửa">
+                                <i class="fa fa-edit"></i>
+                            </a>
+
+                            <a class="btn btn-sm btn-secondary text-white"
+                               asp-action="Details"
+                               asp-route-id="@item.ID"
+                               title="Xem chi tiết">
+                                <i class="fa fa-eye"></i>
+                            </a>
+                        </div>
+
                     </td>
                 </tr>
                 stt++;
@@ -99,6 +121,7 @@
 
 @section Scripts {
     <script>
+
         document.getElementById('searchForm').addEventListener('submit', function (event) {
             let searchInput = document.querySelector('.tk1');
             let searchValue = searchInput.value.trim();
@@ -127,4 +150,10 @@
             }
         });
     </script>
+    <style>
+        .btn-dark:hover, .btn-secondary:hover, .btn-outline-dark:hover {
+            background-color: #343a40 !important;
+            color: white !important;
+        }
+    </style>
 }
