@@ -210,3 +210,32 @@
         }
     </ul>
 </nav>
+@if (TempData["AlertMessage"] != null)
+{
+    var alertType = TempData["AlertType"]?.ToString() ?? "info";
+    <div class="custom-toast alert alert-@alertType alert-dismissible fade show" role="alert">
+        @TempData["AlertMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            const alertBox = document.querySelector('.custom-toast');
+            if (alertBox) {
+                alertBox.style.opacity = '0';
+                setTimeout(() => alertBox.remove(), 500);
+            }
+        }, 4000); // Ẩn sau 4 giây
+    </script>
+}
+<!-- CSS cho alert góc phải -->
+<style>
+    .custom-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1055;
+        min-width: 300px;
+        padding: 15px;
+    }
+</style>

@@ -109,23 +109,33 @@
     <nav>
         @if (TempData["AlertMessage"] != null)
         {
-            <div class="alert alert-@TempData["AlertType"]">
-                @TempData["AlertMessage"]
+            <div id="customAlert" class="alert alert-@TempData["AlertType"] alert-dismissible fade show custom-toast" role="alert">
+                <strong>Thông báo:</strong> @TempData["AlertMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
             <script>
                 setTimeout(() => {
-                    document.querySelector('.alert').style.display = 'none';
-                }, 4000); // Ẩn sau 4 giây
+                    const alertBox = document.getElementById("customAlert");
+                    if (alertBox) {
+                        alertBox.style.opacity = "0";
+                        setTimeout(() => alertBox.remove(), 600); // xóa sau hiệu ứng
+                    }
+                }, 4000);
             </script>
+
         }
-        <ul class="pagination justify-content-center">
-            @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
-            {
-                <li class="page-item">
-                    <a class="page-link text-dark" href="/QuanLyKM/GetAllKM?ProductPage=@i">@i</a>
-                </li>
-            }
-        </ul>
+
     </nav>
+    <style>
+        .custom-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 250px;
+            z-index: 1050;
+            transition: opacity 0.5s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+    </style>
 </div>

@@ -160,6 +160,9 @@ namespace AppView.Controllers
                             }
                         }
 
+                        TempData["AlertMessage"] = "Thêm mã giảm giá thành công!";
+                        TempData["AlertType"] = "success"; // Có thể là: success, warning, danger, info
+                        return RedirectToAction("GetAllVoucher");
 
                     }
                     if (voucher.HinhThucGiamGia == 0)
@@ -211,15 +214,18 @@ namespace AppView.Controllers
                                 ViewData["GiaTri"] = "Giá trị phải nhỏ hơn hoặc bằng số tiền cần";
                                 return View();
                             }
+                           
 
                         }
                     }
-
+             
 
                 }
 
                 return View();
             }
+
+
             catch
             {
                 return View();
