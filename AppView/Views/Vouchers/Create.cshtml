@@ -1,105 +1,119 @@
 ﻿@model AppData.ViewModels.VoucherView
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Thêm mã giảm giá";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
 }
 
-<h1>Thêm Voucher</h1>
+<div class="container mt-4">
+    <h3 class="text-center text-uppercase mb-4 text-primary">Thêm mã giảm giá</h3>
 
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form  asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label class="control-label">Mã Voucher</label>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="Ten" class="form-label text-dark">Tên giảm giá</label>
                 <input asp-for="Ten" class="form-control" />
                 <span asp-validation-for="Ten" class="text-danger"></span>
-                <span  class="text-danger">@ViewData["Ma"]</span>
+                <span class="text-danger">@ViewData["Ma"]</span>
+            </div>
 
-            </div>
-            <div class="form-group">
-                <label class="control-label">Loại giảm giá</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="hinhthucgiamgia" value="1" asp-for="HinhThucGiamGia">
-                    <label class="form-check-label" for="flexRadioDefault1">
-                        Phần trăm
-                    </label>
+            <div class="col-md-6">
+                <label asp-for="MaVoucher" class="form-label text-dark">Mã Voucher</label>
+                <div class="input-group">
+                    <input asp-for="MaVoucher" class="form-control" id="maVoucher" />
+                    <button class="btn btn-outline-secondary" type="button" onclick="generateRandomCode()">Random</button>
                 </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="hinhthucgiamgia" value="0" asp-for="HinhThucGiamGia">
-                    <label class="form-check-label" for="flexRadioDefault2">
-                        Tiền mặt
-                    </label>
-                </div>
+                <span asp-validation-for="MaVoucher" class="text-danger"></span>
             </div>
-            <span class="text-danger">@ViewData["LGG"]</span>
-            <div class="form-group">
-                <label class="control-label"> Số tiền cần</label>
-                <input asp-for="SoTienCan" class="form-control" />
-                <span  class="text-danger">@ViewData["SoTienCan"]</span>
-            </div>
-            
-                     <div class="form-group">
-                        <label class="control-label"> Giá trị</label>
-                        <input asp-for="GiaTri" class="form-control" />
-                <span class="text-danger">@ViewData["GiaTri"]</span>
-                    </div>
-           
-            
-            <div class="form-group">
-                <label class="control-label">Ngày ap dụng</label>
-                <input asp-for="NgayApDung" class="form-control" />
-                <span class="text-danger">@ViewData["NgayApDung"]</span>
-            </div>
-            <div class="form-group">
-                <label class="control-label"> Ngày kết thúc</label>
-                <input asp-for="NgayKetThuc" class="form-control" />
-               <span class="text-danger">@ViewData["NgayKetThuc"]</span>
-                <span class="text-danger">@ViewData["Ngay"]</span>
-            </div>
-            <div class="form-group">
-                <label class="control-label"> Số lượng</label>
-                <input asp-for="SoLuong" class="form-control" />
-                <span class="text-danger">@ViewData["SoLuong"]</span>
-            </div>
-            <div class="form-group">
-                <label class="control-label">Mô tả</label>
+
+            <div class="col-md-6">
+                <label asp-for="MoTa" class="form-label text-dark">Mô tả</label>
                 <input asp-for="MoTa" class="form-control" />
                 <span asp-validation-for="MoTa" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label class="control-label">Trạng thái</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="TrangThai" value="1" asp-for="TrangThai">
-                    <label class="form-check-label" for="flexRadioDefault1">
-                        Sử dụng
-                    </label>
+
+            <div class="col-md-6">
+                <label asp-for="GiaTri" class="form-label text-dark">Giá trị giảm</label>
+                <div class="input-group">
+                    <input asp-for="GiaTri" class="form-control" />
+                    <div class="input-group-text d-flex gap-2">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="HinhThucGiamGia" value="1" checked />
+                            <label class="form-check-label">%</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="HinhThucGiamGia" value="0" />
+                            <label class="form-check-label">VND</label>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="TrangThai" value="0" asp-for="TrangThai">
-                    <label class="form-check-label" for="flexRadioDefault2">
-                        Không sử dụng
-                    </label>
-                </div>
+                <span class="text-danger">@ViewData["GiaTri"]</span>
             </div>
-            <span class="text-danger">@ViewData["TrangThai"]</span>
-            <div class="form-group">
-                <input type="submit" value="Thêm Voucher" class="btn btn-success" />
+
+            <div class="col-md-6">
+                <label asp-for="SoLuong" class="form-label text-dark">Số lượng</label>
+                <input asp-for="SoLuong" class="form-control" />
+                <span asp-validation-for="SoLuong" class="text-danger"></span>
+                <span class="text-danger">@ViewData["SoLuong"]</span>
             </div>
-        </form>
-    </div>
+
+            <div class="col-md-6">
+                <label asp-for="GiaTriToiThieu" class="form-label text-dark">Đơn hàng tối thiểu</label>
+                <input asp-for="GiaTriToiThieu" class="form-control" />
+                <span asp-validation-for="GiaTriToiThieu" class="text-danger"></span>
+                <span class="text-danger">@ViewData["GiaTriToiThieu"]</span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="GiaTriToiDa" class="form-label text-dark">Giảm tối đa</label>
+                <input asp-for="GiaTriToiDa" class="form-control" />
+                <span asp-validation-for="GiaTriToiDa" class="text-danger"></span>
+                <span class="text-danger">@ViewData["GiaTriToiDa"]</span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="NgayApDung" class="form-label text-dark">Ngày bắt đầu</label>
+                <input asp-for="NgayApDung" type="datetime-local" class="form-control" />
+                <span asp-validation-for="NgayApDung" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="NgayKetThuc" class="form-label text-dark">Ngày kết thúc</label>
+                <input asp-for="NgayKetThuc" type="datetime-local" class="form-control" />
+                <span asp-validation-for="NgayKetThuc" class="text-danger"></span>
+                <span class="text-danger">@ViewData["Ngay"]</span>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex justify-content-end gap-2">
+            <a asp-action="GetAllVoucher" class="btn btn-secondary">Đóng</a>
+            <button type="submit" class="btn btn-primary">Lưu</button>
+        </div>
+    </form>
 </div>
 
-<br />
-<button class="btn btn-primary">
-    <a asp-action="GetAllVoucher" style="color:white;">Quay lại</a>
-</button>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function generateRandomCode() {
+            const length = 8;
+            const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            let code = "";
+            for (let i = 0; i < length; i++) {
+                const rand = Math.floor(Math.random() * charset.length);
+                code += charset[rand];
+            }
+            document.getElementById("maVoucher").value = code;
+        }
+    </script>
+
+    <script>
+        @if (TempData["Error"] != null)
+        {
+            <text>alert("@TempData["Error"]"); </text>
+        }
+    </script>
 }
-   
+
+@await Html.PartialAsync("_ValidationScriptsPartial")

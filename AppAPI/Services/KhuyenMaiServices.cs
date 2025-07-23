@@ -31,8 +31,11 @@ namespace AppAPI.Services
         {
             kmv.ID = Guid.NewGuid();
             var khuyenmai = new KhuyenMai();
+          
             khuyenmai.ID = kmv.ID;
+
             khuyenmai.Ten = kmv.Ten?.Trim();
+            khuyenmai.MaKhuyenMai = kmv.MaKhuyenMai;
             khuyenmai.GiaTri = kmv.GiaTri;
             khuyenmai.MoTa = kmv.MoTa?.Trim();
             khuyenmai.NgayApDung = kmv.NgayApDung;

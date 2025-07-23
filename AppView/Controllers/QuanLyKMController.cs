@@ -227,8 +227,8 @@ namespace AppView.Controllers
         {
             return View();
         }
+
         [HttpPost]
-       
         public async Task<IActionResult> Create(KhuyenMaiView kmv)
         {
             try
@@ -237,78 +237,78 @@ namespace AppView.Controllers
                 var response1 = await _httpClient.GetAsync(apiURL);
                 var apiData = await response1.Content.ReadAsStringAsync();
                 var roles = JsonConvert.DeserializeObject<List<KhuyenMaiView>>(apiData);
-                if (kmv.GiaTri != null || kmv.NgayApDung != null || kmv.NgayKetThuc != null || kmv.Ten != null)
+
+                // Validate input
+                bool isValid = true;
+
+                if (kmv.GiaTri <= 0)
                 {
-                    if (kmv.GiaTri <= 0)
-                    {
-                        ViewData["GiaTri"] = "Mời Bạn nhập giá trị lớn hơn 0";
-                    }
-                    if (kmv.NgayApDung == null)
-                    {
-                        ViewData["NgayApDung"] = "Mời bạn nhập ngày áp dụng";
-                    }
-                    if (kmv.NgayKetThuc == null)
-                    {
-                        ViewData["NgayKetThuc"] = "Mời bạn nhập ngày kết thúc";
-                    }
-                    if (kmv.NgayKetThuc < kmv.NgayApDung)
-                    {
-                        ViewData["Ngay"] = "Ngày kết thúc phải lớn hơn hoặc bằng ngày áp dụng";
-                    }
-                    var timkiem = roles.FirstOrDefault(x => x.Ten == kmv.Ten.Trim());
-                    if (timkiem != null)
-                    {
-                        ViewData["Ma"] = "Mã này đã tồn tại";
-                    }
-                    if (kmv.TrangThai == 1)
-                    {
-                        if (kmv.GiaTri <= 0 || kmv.GiaTri > 100)
-                        {
-                            ViewData["GiaTri"] = "Giá trị từ 1 đến 100";
-                            return View();
-                        }
-                        if (kmv.GiaTri > 0 && kmv.GiaTri <= 100)
-                        {
-                            if (kmv.GiaTri > 0 && kmv.NgayKetThuc >= kmv.NgayApDung && timkiem == null)
-                            {
-                                var response = await
-                      _httpClient.PostAsJsonAsync("https://localhost:7095/api/KhuyenMai", kmv);
-                                if (response.IsSuccessStatusCode) return RedirectToAction("GetAllKM");
-                                return View();
-                            }
-                        }
-                    }
-                    if (kmv.TrangThai == 0)
-                    {
-                        if (kmv.GiaTri <= 0)
-                        {
-                            ViewData["GiaTri"] = "Giá trị phải lớn hơn 0";
-                            return View();
-                        }
-                        if (kmv.GiaTri > 0)
-                        {
-                            if (kmv.GiaTri > 0 && kmv.NgayKetThuc >= kmv.NgayApDung && timkiem == null)
-                            {
-                                var response = await
-                      _httpClient.PostAsJsonAsync("https://localhost:7095/api/KhuyenMai", kmv);
-                                if (response.IsSuccessStatusCode) return RedirectToAction("GetAllKM");
-                                return View();
-                            }
-                        }
-                    }
-
-
+                    ViewData["GiaTri"] = "Mời bạn nhập giá trị lớn hơn 0";
+                    isValid = false;
                 }
+
+                if (kmv.NgayApDung == null)
+                {
+                    ViewData["NgayApDung"] = "Mời bạn nhập ngày áp dụng";
+                    isValid = false;
+                }
+
+                if (kmv.NgayKetThuc == null)
+                {
+                    ViewData["NgayKetThuc"] = "Mời bạn nhập ngày kết thúc";
+                    isValid = false;
+                }
+
+                if (kmv.NgayApDung != null && kmv.NgayKetThuc != null && kmv.NgayKetThuc < kmv.NgayApDung)
+                {
+                    ViewData["Ngay"] = "Ngày kết thúc phải lớn hơn hoặc bằng ngày áp dụng";
+                    isValid = false;
+                }
+
+                var timkiem = roles.FirstOrDefault(x => x.Ten == kmv.Ten?.Trim());
+                if (timkiem != null)
+                {
+                    ViewData["Ma"] = "Mã này đã tồn tại";
+                    isValid = false;
+                }
+
+                if (kmv.TrangThai == 1 && (kmv.GiaTri <= 10 || kmv.GiaTri > 50))
+                {
+                    ViewData["GiaTri"] = "Giá trị từ 10 đến 50";
+                    isValid = false;
+                }
+
+                if (!isValid) return View();
+
+                // Submit if valid
+                if (kmv.GiaTri > 0 && kmv.NgayKetThuc >= kmv.NgayApDung && timkiem == null)
+                {
+                    var response = await _httpClient.PostAsJsonAsync(apiURL, kmv);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        TempData["AlertMessage"] = "Thêm khuyến mãi thành công!";
+                        TempData["AlertType"] = "success";
+                        return RedirectToAction("GetAllKM");
+                    }
+                    else
+                    {
+                        TempData["AlertMessage"] = "Thêm khuyến mãi thất bại!";
+                        TempData["AlertType"] = "error";
+                    }
+                }
+
                 return View();
             }
             catch
             {
-                return View();  
+                TempData["AlertMessage"] = "Đã xảy ra lỗi trong quá trình xử lý!";
+                TempData["AlertType"] = "error";
+                return View();
             }
-           
         }
+
         // update
-        public  IActionResult Update(Guid id)
+        public IActionResult Update(Guid id)
         {           
             var url = $"https://localhost:7095/api/KhuyenMai/{id}";
             var response = _httpClient.GetAsync(url).Result;

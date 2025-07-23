@@ -70,7 +70,6 @@ builder.Services.AddScoped<ISanPhamService, SanPhamService>();
 builder.Services.AddScoped<IVoucherServices, VoucherServices>();
 builder.Services.AddScoped<IThongKeService, ThongKeService>();
 builder.Services.AddScoped<IVaiTroService, VaiTroSevice>();
-builder.Services.AddScoped<AssignmentDBContext>();
 builder.Services.AddHttpClient<GHNService>();
 builder.Services.AddScoped<IDiaChiService, DiaChiService>();
 

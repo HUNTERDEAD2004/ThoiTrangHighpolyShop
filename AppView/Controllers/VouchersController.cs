@@ -82,13 +82,14 @@ namespace AppView.Controllers
 
                 if (voucher.SoTienCan != null || voucher.Ten != null || voucher.GiaTri != null || voucher.HinhThucGiamGia != null || voucher.TrangThai != null || voucher.NgayApDung != null || voucher.NgayKetThuc != null)
                 {
+
                     if (voucher.SoTienCan < 0)
                     {
                         ViewData["SoTienCan"] = "Số tiền cần không được âm ";
                     }
-                    if (voucher.GiaTri <= 0)
+                    if (voucher.GiaTri <= 100000)
                     {
-                        ViewData["GiaTri"] = "Mời bạn nhập giá trị lớn hơn 0";
+                        ViewData["GiaTri"] = "Mời bạn nhập giá trị lớn hơn 100000";
                     }
                     if (voucher.SoLuong <= 0)
                     {
@@ -99,22 +100,23 @@ namespace AppView.Controllers
                         ViewData["Ngay"] = "Ngày kết thúc phải lớn hơn ngày áp dụng";
                     }
                     var timkiem = roles.FirstOrDefault(x => x.Ten == voucher.Ten.Trim());
+                   
                     if (timkiem != null)
                     {
                         ViewData["Ma"] = "Mã này đã tồn tại";
-                        
+
                     }
 
                     if (voucher.HinhThucGiamGia == 1)
                     {
                         if (voucher.SoTienCan == 0)
                         {
-                            if (voucher.GiaTri > 100 || voucher.GiaTri <= 0)
+                            if (voucher.GiaTri > 50 || voucher.GiaTri <= 10)
                             {
-                                ViewData["GiaTri"] = "Giá trị từ 1 đến 100";
+                                ViewData["GiaTri"] = "Giá trị từ 10 đến 50";
                                 return View();
                             }
-                            if (voucher.GiaTri <= 100 && voucher.GiaTri > 0)
+                            if (voucher.GiaTri <= 50 && voucher.GiaTri > 0)
                             {
                                 if (voucher.SoTienCan >= 0 && voucher.GiaTri > 0 && voucher.SoLuong > 0 && voucher.NgayKetThuc >= voucher.NgayApDung && timkiem == null)
                                 {
@@ -164,9 +166,9 @@ namespace AppView.Controllers
                     {
                         if (voucher.SoTienCan == 0)
                         {
-                            if (voucher.GiaTri <= 0)
+                            if (voucher.GiaTri > voucher.GiaTriToiDa || voucher.GiaTri > voucher.GiaTriToiThieu)
                             {
-                                ViewData["GiaTri"] = "Giá trị phải lớn hơn 0";
+                                ViewData["GiaTri"] = "Nhập lại giá trị Giảm";
                                 return View();
                             }
                             if (voucher.GiaTri > 0)
@@ -209,6 +211,7 @@ namespace AppView.Controllers
                                 ViewData["GiaTri"] = "Giá trị phải nhỏ hơn hoặc bằng số tiền cần";
                                 return View();
                             }
+
                         }
                     }
 
@@ -221,8 +224,11 @@ namespace AppView.Controllers
             {
                 return View();
             }
-           
+
         }
+
+
+
         // update
         [HttpGet]
         public IActionResult Updates(Guid id)
@@ -311,18 +317,53 @@ namespace AppView.Controllers
             
         }
         // delete
-        //public async Task<IActionResult> Delete(Guid id)
-        //{
-        //    string apiURL = $"https://localhost:7095/api/Voucher/{id}";
+        [HttpPost]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                string apiURL = $"https://localhost:7095/api/Voucher/{id}";
 
-        //    var response = await _httpClient.DeleteAsync(apiURL);
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        return RedirectToAction("GetAllVoucher");
-        //    }
-        //    return View();
-        //}
-        
+                var response = await _httpClient.DeleteAsync(apiURL);
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Xóa voucher thành công.";
+                    return RedirectToAction("GetAllVoucher");
+                }
+
+                TempData["Error"] = "Không thể xóa voucher. Vui lòng thử lại.";
+                return RedirectToAction("GetAllVoucher");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Đã xảy ra lỗi trong quá trình xóa: " + ex.Message;
+                return RedirectToAction("GetAllVoucher");
+            }
+        }
+        public async Task<IActionResult> Details(Guid id)
+        {
+            try
+            {
+                string apiURL = $"https://localhost:7095/api/Voucher/{id}";
+                var response = await _httpClient.GetAsync(apiURL);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    TempData["Error"] = "Không tìm thấy voucher.";
+                    return RedirectToAction("GetAllVoucher");
+                }
+
+                var jsonData = await response.Content.ReadAsStringAsync();
+                var voucher = JsonConvert.DeserializeObject<VoucherView>(jsonData);
+
+                return View(voucher);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi khi lấy thông tin voucher: " + ex.Message;
+                return RedirectToAction("GetAllVoucher");
+            }
+        }
         public async Task<IActionResult> SuDung(Guid id)
         {
             try

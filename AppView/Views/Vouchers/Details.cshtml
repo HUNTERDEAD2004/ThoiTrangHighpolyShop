@@ -1,0 +1,68 @@
+﻿@model AppData.ViewModels.VoucherView
+
+@{
+    ViewData["Title"] = "Chi tiết mã giảm giá";
+    Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
+}
+
+<div class="container mt-4">
+    <h3 class="text-center text-uppercase mb-4 text-primary">Chi tiết mã giảm giá</h3>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label text-dark">Mã giảm giá</label>
+            <input asp-for="Ten" class="form-control" readonly />
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-dark">Mô tả</label>
+            <input asp-for="MoTa" class="form-control" readonly />
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-dark">Giá trị giảm</label>
+            <div class="input-group">
+                <input asp-for="GiaTri" class="form-control" readonly />
+                <div class="input-group-text">
+                    @if (Model.HinhThucGiamGia == 1)
+                    {
+                        <span>%</span>
+                    }
+                    else
+                    {
+                        <span>VND</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-dark">Số lượng</label>
+            <input asp-for="SoLuong" class="form-control" readonly />
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-dark">Đơn hàng tối thiểu</label>
+            <input asp-for="GiaTriToiThieu" class="form-control" readonly />
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-dark">Giảm tối đa</label>
+            <input asp-for="GiaTriToiDa" class="form-control" readonly />
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-dark">Ngày bắt đầu</label>
+            <input value="@Model.NgayApDung.ToString("yyyy-MM-ddTHH:mm")" type="datetime-local" class="form-control" readonly />
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-dark">Ngày kết thúc</label>
+            <input value="@Model.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm")" type="datetime-local" class="form-control" readonly />
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex justify-content-end">
+        <a asp-action="GetAllVoucher" class="btn btn-secondary">Quay lại</a>
+    </div>
+</div>

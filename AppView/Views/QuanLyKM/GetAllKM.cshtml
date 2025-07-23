@@ -2,93 +2,128 @@
 @model AppView.PhanTrang.PhanTrangKhuyenMai
 
 @{
-    ViewData["Title"] = "Quản lý khuyến mãi";
+    ViewData["Title"] = "Danh sách Khuyến Mãi";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
     int stt = 1;
 }
 
-<div class="container py-4">
-    <h2 class="text-center fw-bold mb-4">Quản lý khuyến mãi</h2>
+<h2 class="text-center fw-bold mt-4 mb-4">Danh sách Khuyến Mãi</h2>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <a class="btn btn-primary" asp-action="Create">Thêm mới</a>
 
-        <form asp-action="TimKiemTenKM" asp-controller="QuanLyKM" method="get" class="d-flex" style="width: 400px;">
-            <input type="text" name="TenKM" class="form-control" placeholder="Tìm theo mã khuyến mãi" />
-            <button type="submit" class="btn btn-outline-secondary ms-2">
-                <i class="fa fa-search"></i>
-            </button>
+
+<div class="row mb-3">
+    <!-- Cột trái: Nút tạo khuyến mãi -->
+    <div class="col-md-6 col-12">
+        <a asp-action="Create" class="btn btn-dark">
+            <i class="fa fa-plus"></i> Tạo khuyến mãi
+        </a>
+    </div>
+
+    <!-- Cột phải: Form tìm kiếm -->
+    <div class="col-md-6 col-12 mt-2 mt-md-0">
+        <form asp-action="TimKiemTenKM" asp-controller="QuanLyKM" method="get">
+            <div class="input-group">
+                <input type="text" name="TenKM" class="form-control" placeholder="Tìm theo tên">
+                <button class="btn btn-secondary" type="submit">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
         </form>
     </div>
+</div>
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover text-center align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>STT</th>
-                    <th>Mã</th>
-                    <th>Giá trị</th>
-                    <th>Ngày áp dụng</th>
-                    <th>Ngày kết thúc</th>
-                    <th>Mô tả</th>
-                    <th>Tình trạng</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.listkms)
-                {
-                    <tr>
-                        <td><strong>@stt</strong></td>
-                        <td>@item.Ten</td>
-                        <td class="@((item.TrangThai == 0 || item.TrangThai == 2) ? "text-danger" : "text-success")">
-                            @if (item.TrangThai == 0 || item.TrangThai == 2)
-                            {
-                                @($"{item.GiaTri:n0} VND")
-                            }
-                            else
-                            {
-                                @($"{item.GiaTri} %")
-                            }
-                        </td>
-                        <td class="text-success">@item.NgayApDung.ToString("dd/MM/yyyy hh:mm tt")</td>
-                        <td class="@(item.NgayKetThuc >= DateTime.Now ? "text-success" : "text-danger")">
-                            @item.NgayKetThuc.ToString("dd/MM/yyyy hh:mm tt")
-                        </td>
-                        <td>@item.MoTa</td>
-                        <td class="fw-bold @(item.NgayKetThuc >= DateTime.Now ? "text-success" : "text-danger")">
-                            @(item.NgayKetThuc >= DateTime.Now ? "Còn khuyến mãi" : "Hết khuyến mãi")
-                        </td>
-                        <td class="fw-bold @(item.TrangThai == 0 || item.TrangThai == 1 ? "text-success" : "text-danger")">
-                            @(item.TrangThai == 0 || item.TrangThai == 1 ? "Sử dụng" : "Không sử dụng")
-                        </td>
-                        <td class="d-flex gap-2 justify-content-center">
-                            <a class="btn btn-success btn-sm" asp-action="Update" asp-route-id="@item.ID">Sửa</a>
 
-                            @if (item.TrangThai == 0 || item.TrangThai == 1)
-                            {
-                                <a class="btn btn-primary btn-sm" asp-action="GetSPByIdKM" asp-route-id="@item.ID">Chi tiết</a>
-                                <a class="btn btn-danger btn-sm" asp-action="KoSuDung" asp-route-id="@item.ID">Không sử dụng</a>
-                            }
-                            else
-                            {
-                                <a class="btn btn-warning btn-sm" asp-action="SuDung" asp-route-id="@item.ID">Sử dụng</a>
-                            }
-                        </td>
-                    </tr>
-                    stt++;
-                }
-            </tbody>
-        </table>
-    </div>
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-dark text-center">
+        <tr>
+            <th>STT</th>
+            <th>Ma</th>
+      
+            <th>TÊN</th>
+            <th>GIÁ TRỊ</th>
+            <th>NGÀY BẮT ĐẦU</th>
+            <th>NGÀY KẾT THÚC</th>
+            <th>TÌNH TRẠNG</th>
+            <th>TRẠNG THÁI</th>
+            <th>THAO TÁC</th>
+        </tr>
+    </thead>
+    <tbody class="text-center">
+        @foreach (var item in Model.listkms)
+        {
+            <tr>
+                <td>@(stt++)</td>
+                <td><strong>@item.MaKhuyenMai</strong></td>
+                <td>@item.Ten</td>
+                <td>
+                    @if (item.TrangThai == 0 || item.TrangThai == 2)
+                    {
+                        <span>@item.GiaTri.ToString("n0") VND</span>
+                    }
+                    else
+                    {
+                        <span>@item.GiaTri %</span>
+                    }
+                </td>
+                <td>@item.NgayApDung.ToString("dd-MM-yyyy HH:mm")</td>
+                <td>@item.NgayKetThuc.ToString("dd-MM-yyyy HH:mm")</td>
+                <td>
+                    @if (item.NgayKetThuc < DateTime.Now)
+                    {
+                        <span class="badge bg-primary">Đã kết thúc</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-primary">Đang diễn ra</span>
+                    }
+                </td>
+                <td>
+                    @if (item.TrangThai == 0 || item.TrangThai == 1)
+                    {
+                        <span class="badge bg-primary">Hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-primary">Đã huỷ</span>
+                    }
+                </td>
+                <td>
+                    <div class="d-flex justify-content-center gap-1">
+                        <a asp-action="Update" asp-route-id="@item.ID" class="btn btn-warning btn-sm" title="Sửa">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
+                        <a asp-action="GetSPByIdKM" asp-route-id="@item.ID" class="btn btn-dark btn-sm" title="Xem chi tiết">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-danger btn-sm" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa?');">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
 
-    <nav class="mt-4">
+<div class="col-12">
+    <nav>
+        @if (TempData["AlertMessage"] != null)
+        {
+            <div class="alert alert-@TempData["AlertType"]">
+                @TempData["AlertMessage"]
+            </div>
+
+            <script>
+                setTimeout(() => {
+                    document.querySelector('.alert').style.display = 'none';
+                }, 4000); // Ẩn sau 4 giây
+            </script>
+        }
         <ul class="pagination justify-content-center">
             @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
             {
-                <li class="page-item @(Model.PagingInfo.CurrentPage == i ? "active" : "")">
-                    <a class="page-link" href="/QuanLyKM/GetAllKM?ProductPage=@i">@i</a>
+                <li class="page-item">
+                    <a class="page-link text-dark" href="/QuanLyKM/GetAllKM?ProductPage=@i">@i</a>
                 </li>
             }
         </ul>
