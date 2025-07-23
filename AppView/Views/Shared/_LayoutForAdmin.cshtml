@@ -46,7 +46,18 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.2/css/toastr.min.css" />
 
+    <style>
 
+    .text-primary,
+    .sidebar a,
+    .sidebar span,
+    .price,
+    .product-price,
+    .nav-link,
+    a {
+        color: #000 !important;
+    }
+    </style>
 </head>
 <body>
     <!-- ======= Header ======= -->
@@ -63,7 +74,7 @@
             <ul class="d-flex align-items-center">
                 <li class="nav-item dropdown pe-3">
                     <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-                        <img src="~/img/profile-img.jpg" alt="Profile" class="rounded-circle">
+                        <img src="~/img/profile-imgg.jpg" alt="Profile" class="rounded-circle">
                         <span id="tenAdmin" class="d-none d-md-block dropdown-toggle ps-2">@loginInfor.Ten</span>
                     </a><!-- End Profile Iamge Icon -->
 
@@ -75,20 +86,18 @@
                                 if (nhanvien != null)
                                 {
                                     var phanquyen1 = context.VaiTros.FirstOrDefault(x => x.ID == nhanvien.IDVaiTro);
-                                    if (phanquyen1 != null)
+                                    if (phanquyen1!= null)
                                     {
                                         if (phanquyen1.Ten == "Admin")
                                         {
                                             <span id="ChucVu">Admin</span>
-                                        }
-                                        else
-                                        {
+                                        }else{
                                             <span id="ChucVu">Nhân viên</span>
                                         }
                                     }
                                 }
                             }
-
+                            
                         </li>
                         <li>
                             <hr class="dropdown-divider">
@@ -120,105 +129,226 @@
     </header><!-- End Header -->
     <!-- ======= Sidebar ======= -->
     <aside id="sidebar" class="sidebar">
-        <ul class="sidebar-nav" id="sidebar-nav">
+        @{
+            var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+            var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
 
-            <!-- Thống kê -->
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="ThongKe" asp-action="ThongKeAdmin">
-                    <i class="bi bi-bar-chart-line"></i>
-                    <span>Thống kê</span>
-                </a>
-            </li>
+            if (nhanvien != null)
+            {
+                var phanquyen = context.VaiTros.FirstOrDefault(x => x.ID == nhanvien.IDVaiTro);
+                if (phanquyen != null)
+                {
+                    if (phanquyen.Ten == "Admin")
+                    {
+                        <ul class="sidebar-nav" id="sidebar-nav">
 
-            <!-- Bán hàng -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" asp-controller="BanHangTaiQuay" asp-action="BanHang">
-                    <i class="bi bi-shop-window"></i><span>Bán hàng</span>
-                </a>
-            </li>
+                            <li class="nav-item">
+                                <a class="@(currentController == "ThongKe" ? "nav-link" : "nav-link collapsed")" asp-controller="ThongKe" asp-action="ThongKeAdmin">
+                                    <i class="bi bi-bar-chart-line"></i>
+                                    <span>Thống kê</span>
+                                </a>
+                            </li><!-- End Dashboard Nav -->
+                            <!--Lam thêm  start-->
+                            <!--Lam thêm end-->
 
-            <!-- Quản lý hóa đơn -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" asp-controller="QuanLyHoaDon" asp-action="_QuanLyHoaDon">
-                    <i class="bi bi-receipt"></i><span>Quản lý hóa đơn</span>
-                </a>
-            </li>
+                            <li class="nav-item">
+                                <a class="@(currentController == "BanHangTaiQuay" ? "nav-link" : "nav-link collapsed")" asp-controller="BanHangTaiQuay" asp-action="BanHang">
+                                    <i class="bi bi-shop-window"></i><span>Bán hàng</span>
+                                </a>
+                                <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                                    <li>
+                                        <a asp-controller="LoaiSP" asp-action="Show">
+                                            <i class="bi bi-circle"></i><span>Loại sản phẩm</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="@(currentController == "QuanLyHoaDon" ? "nav-link" : "nav-link collapsed")" asp-controller="QuanLyHoaDon" asp-action="_QuanLyHoaDon">
+                                    <i class="bi bi-menu-button-wide"></i><span>Quản lý hóa đơn</span>
+                                </a>
 
-            <!-- Quản lý sản phẩm -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" asp-controller="Admin" asp-action="ProductManager">
-                    <i class="bi bi-box-seam"></i><span>Quản lý sản phẩm</span>
-                </a>
-            </li>
-
-            <!-- Quản lý thuộc tính -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" data-bs-target="#thuocTinh" data-bs-toggle="collapse">
-                    <i class="bi bi-ui-checks"></i><span>Quản lý thuộc tính</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <ul id="thuocTinh" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                    <li><a asp-controller="MauSac" asp-action="Show"><i class="bi bi-circle"></i> Màu sắc</a></li>
-                    <li><a asp-controller="KichCo" asp-action="Show"><i class="bi bi-circle"></i> Kích cỡ</a></li>
-                    <li><a asp-controller="ChatLieu" asp-action="Show"><i class="bi bi-circle"></i> Chất liệu</a></li>
-                    <li><a asp-controller="LoaiSP" asp-action="Show"><i class="bi bi-circle"></i> Loại sản phẩm</a></li>
-                </ul>
-            </li>
-
-            <!-- Quản lý khuyến mãi -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" data-bs-target="#khuyenMai" data-bs-toggle="collapse">
-                    <i class="bi bi-gift"></i><span>Quản lý các loại khuyến mãi</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <ul id="khuyenMai" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                    <li><a asp-controller="QuanLyKM" asp-action="GetAllKM"><i class="bi bi-circle"></i> Khuyến mãi theo SP</a></li>
-                    <li><a asp-controller="Vouchers" asp-action="GetAllVoucher"><i class="bi bi-circle"></i> Quản lý Voucher</a></li>
-                    <li><a asp-controller="QuyDoiDiem" asp-action="GetAllQuyDoiDiem"><i class="bi bi-circle"></i> Quy đổi điểm</a></li>
-                </ul>
-            </li>
-
-            <!-- Quản lý người dùng -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" data-bs-target="#nguoiDung" data-bs-toggle="collapse">
-                    <i class="bi bi-people-fill"></i><span>Quản lý người dùng</span><i class="bi bi-chevron-down ms-auto"></i>
-                </a>
-                <ul id="nguoiDung" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                    <li><a asp-controller="NhanVien" asp-action="Show"><i class="bi bi-circle"></i> Nhân viên</a></li>
-                    <li><a asp-controller="KhachHang" asp-action="GetAllKhachHang"><i class="bi bi-circle"></i> Khách hàng</a></li>
-                    <li><a asp-controller="VaiTro" asp-action="GetAllVaiTro"><i class="bi bi-circle"></i> Vai trò</a></li>
-                </ul>
-            </li>
-
-        </ul>
-    </aside>
+                                <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                                    <li>
+                                        <a asp-controller="LoaiSP" asp-action="Show">
+                                            <i class="bi bi-circle"></i><span>Loại sản phẩm</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="@(currentController == "Admin" && currentAction == "ProductManager" ? "nav-link" : "nav-link collapsed")"
+                                   asp-controller="Admin" asp-action="ProductManager">
+                                    <i class="bi bi-journal-text"></i><span>Quản lý sản phẩm</span>
+                                </a>
+                                <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                                    <li>
+                                        <a asp-controller="LoaiSP" asp-action="Show">
+                                            <i class="bi bi-circle"></i><span>Loại sản phẩm</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="forms-layouts.html">
+                                            <i class="bi bi-circle"></i><span>Form Layouts</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li><!-- End Forms Nav -->
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" data-bs-target="#thuocTinh" data-bs-toggle="collapse">
+                                    <i class="bi bi-layout-text-window-reverse"></i><span>Quản lý thuộc tính</span><i class="bi bi-chevron-down ms-auto"></i>
+                                </a>
+                                <ul id="thuocTinh" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                                    <li>
+                                        <a asp-controller="MauSac" asp-action="Show">
 
 
+
+                                            <i class="bi bi-circle"></i><span>Quản lý màu sắc </span>
+                                        </a>
+                                    </li>
+                                    <li>
+
+                                        <a asp-controller="KichCo" asp-action="Show">
+
+
+                                            <i class="bi bi-circle"></i><span>Quản lý kích cỡ</span>
+                                        </a>
+                                    </li>
+                                    <li>
+
+                                        <a asp-controller="ChatLieu" asp-action="Show">
+
+
+
+                                            <i class="bi bi-circle"></i><span>Quản lý chất liệu</span>
+                                        </a>
+                                    </li>
+                                    <li>
+
+                                        <a asp-controller="LoaiSP" asp-action="Show">
+
+
+                                            <i class="bi bi-circle"></i><span>Quản lý loại sản phẩm </span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse">
+                                    <i class="bi bi-layout-text-window-reverse"></i><span>Quản lý các loại khuyến mãi</span><i class="bi bi-chevron-down ms-auto"></i>
+                                </a>
+                                <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                                    <li>
+                                        <a asp-controller="QuanLyKM" asp-action="GetAllKM">
+                                            <i class="bi bi-circle"></i><span>Khuyến mãi theo sản phẩm</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a asp-controller="Vouchers" asp-action="GetAllVoucher">
+                                            <i class="bi bi-circle"></i><span>Quản lý Voucher</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a asp-controller="QuyDoiDiem" asp-action="GetAllQuyDoiDiem">
+                                            <i class="bi bi-circle"></i><span>Quản lý quy đổi điểm</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li><!-- End Tables Nav -->
+
+                            <li class="nav-item">
+                                <ul id="charts-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                                    <li>
+                                        <a asp-controller="VaiTro" asp-action="GetAllVaiTro">
+                                            <i class="bi bi-circle"></i><span>Vai trò</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li><!-- End Charts Nav -->
+
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" data-bs-target="#icons-nav" data-bs-toggle="collapse" href="#">
+                                    <i class="bi bi-person-vcard-fill"></i><span>Quản lý người dùng</span><i class="bi bi-chevron-down ms-auto"></i>
+                                </a>
+                                <ul id="icons-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                                    <li>
+                                        <a class="nav-link collapsed" asp-controller="NhanVien" asp-action="Show">
+                                            <i class="bi bi-bar-chart"></i><span>Quản lý nhân viên</span>
+                                        </a>
+                                        <a asp-controller="KhachHang" asp-action="GetAllKhachHang">
+                                            <i class="bi bi-circle"></i><span>Quản lý khách hàng</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li><!-- End Icons Nav -->
+                        </ul>
+                    }
+                    else
+                    {
+                        <ul class="sidebar-nav" id="sidebar-nav">
+                            <!--Lam thêm  start-->
+                            <!--Lam thêm end-->
+
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" asp-controller="BanHangTaiQuay" asp-action="BanHang">
+                                    <i class="bi bi-shop-window"></i><span>Bán hàng</span>
+                                </a>
+                                <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                                    <li>
+                                        <a asp-controller="LoaiSP" asp-action="Show">
+                                            <i class="bi bi-circle"></i><span>Loại Sản Phẩm</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" asp-controller="QuanLyHoaDon" asp-action="_QuanLyHoaDon">
+                                    <i class="bi bi-menu-button-wide"></i><span>Quản lý hóa đơn</span>
+                                </a>
+                                <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                                    <li>
+                                        <a asp-controller="LoaiSP" asp-action="Show">
+                                            <i class="bi bi-circle"></i><span>Loại Sản Phẩm</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
+
+                            <!-- End Tables Nav -->
+                            <!-- End Charts Nav -->
+
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" data-bs-target="#icons-nav" data-bs-toggle="collapse" href="#">
+                                    <i class="bi bi-person-vcard-fill"></i><span>Quản lý người dùng</span><i class="bi bi-chevron-down ms-auto"></i>
+                                </a>
+                                <ul id="icons-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                                    <li>
+
+                                        <a asp-controller="KhachHang" asp-action="GetAllKhachHang">
+                                            <i class="bi bi-circle"></i><span>Quản Lý Khách Hàng</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    }
+                }
+
+            }
+
+        }
+
+
+    </aside><!-- End Sidebar-->
+
+    <!-- ======= Main Content ======= -->
     <main id="main" class="main">
-
-        @*<div class="pagetitle">
-        <h1>Dashboard</h1>
-        <nav>
-        <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-        <li class="breadcrumb-item active">Dashboard</li>
-        </ol>
-        </nav>
-        </div><!-- End Page Title -->*@
-
         <div class="container-fluid">
             @RenderBody()
         </div>
-    </main><!-- End #main -->
-    <!-- ======= Footer ======= -->
-    @* <footer id="footer" class="footer">
-    <div class="copyright">
-    &copy; Copyright <strong><span>ShopAdmin</span></strong>. All Rights Reserved
-    </div>
-    <div class="credits">
-    Designed by <a href="https://bootstrapmade.com/">SD70</a>
-    </div>
-    </footer><!-- End Footer -->
-    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-    *@
+    </main>
 
     <!-- Vendor JS Files -->
     <script src="~/Admin/vendor/apexcharts/apexcharts.min.js"></script>
@@ -238,7 +368,7 @@
 
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
-
+   
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
@@ -250,3 +380,4 @@
 
 </body>
 </html>
+

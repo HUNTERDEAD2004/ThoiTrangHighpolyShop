@@ -11,7 +11,7 @@
 
     <div class="row mb-3">
         <div class="col-md-6">
-            <a class="btn btn-primary" asp-action="Create">
+            <a class="btn btn-dark text-white px-4 py-2 custom-hover" asp-action="Create">
                 <i class="fa fa-plus"></i> Thêm mới
             </a>
         </div>
@@ -19,7 +19,7 @@
             <form asp-action="GetAllKHTheoTimKiem" asp-controller="KhachHang" method="get" class="d-flex gap-2">
                 <input type="text" name="Ten" class="form-control" placeholder="Tìm kiếm theo tên khách hàng">
                 <input type="text" name="SDT" class="form-control" placeholder="Tìm kiếm theo SDT khách hàng">
-                <button class="btn btn-outline-primary" type="submit">
+                <button class="btn btn-secondary text-white" type="submit">
                     <i class="fa fa-search"></i>
                 </button>
             </form>
@@ -28,18 +28,18 @@
 
     <div class="table-responsive">
         <table class="table table-bordered table-hover">
-            <thead class="text-center">
+            <thead class="table table-bordered table-hover">
                 <tr>
-                    <th style="background-color: darkslategray; color: white;">STT</th>
-                    <th style="background-color: darkslategray; color: white;">Mã KH</th>
-                    <th style="background-color: darkslategray; color: white;">Tên</th>
-                    <th style="background-color: darkslategray; color: white;">Giới tính</th>
-                    <th style="background-color: darkslategray; color: white;">Email</th>
-                    <th style="background-color: darkslategray; color: white;">Ngày sinh</th>
-                    <th style="background-color: darkslategray; color: white;">SDT</th>
-                    <th style="background-color: darkslategray; color: white;">Địa chỉ</th>
-                    <th style="background-color: darkslategray; color: white;">Trạng thái</th>
-                    <th style="background-color: darkslategray; color: white;">Thao tác</th>
+                    <th>STT</th>
+                    <th>Mã KH</th>
+                    <th>Tên</th>
+                    <th>Giới tính</th>
+                    <th>Email</th>
+                    <th>Ngày sinh</th>
+                    <th>SDT</th>
+                    <th>Địa chỉ</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -68,24 +68,30 @@
                         </td>
                         <td class="text-center align-middle">
                             <div class="btn-group" role="group">
+                                <!-- Nút Sửa: màu vàng -->
                                 <a asp-action="Updates" asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-outline-success"
+                                   class="btn btn-sm btn-warning text-white"
                                    title="Sửa">
                                     <i class="fa fa-edit"></i>
                                 </a>
+
+                                <!-- Nút Lịch sử: giữ màu đen trắng -->
                                 <a asp-action="GetAllLSTDByIDKH" asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-outline-primary"
+                                   class="btn btn-sm btn-dark text-white"
                                    title="Lịch sử">
                                     <i class="fa fa-history"></i>
                                 </a>
+
+                                <!-- Nút Xóa: màu đỏ -->
                                 <a asp-action="Delete" asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-outline-danger"
+                                   class="btn btn-sm btn-danger text-white"
                                    title="Xóa"
                                    onclick="return confirm('Bạn có chắc muốn xóa khách hàng này?');">
                                     <i class="fa fa-trash"></i>
                                 </a>
                             </div>
                         </td>
+
                     </tr>
                     stt++;
                 }
@@ -143,8 +149,25 @@
         font-size: 0.75rem;
         padding: 0.35em 0.65em;
     }
-</style>
+    /* Header table đen chữ trắng */
+    .table thead th {
+        background-color: #000; /* nền đen */
+        color: #fff; /* chữ trắng */
+        text-align: center;
+    }
 
+    /* Tô màu khi hover dòng */
+    .table tbody tr:hover {
+        background-color: #f2f2f2;
+    }
+
+    /* Căn giữa nội dung trong các cột trạng thái và thao tác */
+    .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+</style>
+    
 <script>
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
