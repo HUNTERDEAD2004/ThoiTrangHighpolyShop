@@ -37,7 +37,7 @@ namespace AppData.Configurations
                 ID = Guid.Parse("2EC27AB7-5F67-4ED5-AE67-52F9C9726EBF"),
                 Ten = "Admin",
                 Email = "admin@gmail.com",
-                PassWord = "$2a$10$SkimxxBIlrv/l33hTFvbkutV/.jF4rlwd9APgp1ZZjNEgVDYXvHa6",
+                PassWord = "$2a$10$UU8q3GWou.7Yvkglaq3vWOLX7CNG7GUMG/puoz1LI39VnUL/JS7Ba",
                 SDT = "0985143915",
                 DiaChi = "Ha Noi",
                 MaNhanVien = "NV001",

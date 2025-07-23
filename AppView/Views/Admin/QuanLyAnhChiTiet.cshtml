@@ -23,7 +23,7 @@
                 <td>
                     @if (!string.IsNullOrEmpty(item.DuongDan))
                     {
-                        <img src="/img/product/@item.DuongDan" style="width:70px;height:80px" />
+                        <img src="@item.DuongDan" style="width:70px;height:80px" />
                     }
                     else
                     {
@@ -39,21 +39,20 @@
                 <!-- ✅ Nút thêm -->
                 <td>
                     <label for="add_@item.IDChiTietSanPham" class="btn btn-primary">Thêm</label><br />
-                    <input id="add_@item.IDChiTietSanPham" style="visibility:hidden;" type="file" multiple
-                           onchange="AddImageToChiTiet(event, '@item.IDChiTietSanPham')">
-
+                    <input id="add_@item.IDChiTietSanPham" type="file" multiple style="display: none;"
+                           onchange="AddImage(event, '@item.IDChiTietSanPham')" />
                 </td>
                 <!-- ✅ Nút sửa -->
                 <td>
                     <label for="update_@item.IDChiTietSanPham" class="btn btn-success">Sửa</label><br />
-                    <input id="update_@item.IDChiTietSanPham" style="visibility:hidden;" type="file"
-                           onchange="UpdateImage(event,'@item.IDChiTietSanPham','@item.DuongDan')">
+                    <input id="update_@item.IDChiTietSanPham" type="file" style="display: none;"
+                           onchange="UpdateImage(event,'@item.IDChiTietSanPham','@item.DuongDan')" />
                 </td>
                 <!-- ✅ Nút xoá -->
                 <td>
                     <a class="btn btn-danger"
                        asp-action="DeleteImage"
-                       asp-route-id="@item.IDChiTietSanPham"
+                       asp-route-id="@item.IDAnh"
                        asp-route-idSanPham="@id"
                        asp-route-duongDan="@item.DuongDan">Xoá</a>
                 </td>
@@ -63,21 +62,22 @@
 </table>
 
 <script>
-    function AddImageToChiTiet(event, idChiTiet) {
-        var files = event.target.files;
+        function AddImage(event, idChiTiet) {
+        const files = event.target.files;
+        const formData = new FormData();
 
-        var formData = new FormData();
         for (let i = 0; i < files.length; i++) {
             if (!files[i].type.startsWith("image/")) {
                 alert("Chỉ chấp nhận file ảnh!");
                 return;
             }
-            formData.append("files", files[i]); // 'files' => List<IFormFile>
+
+            // Phải đặt tên field theo đúng index của model
+            formData.append(`[${i}].Image`, files[i]);
+            formData.append(`[${i}].IDChiTietSanPham`, idChiTiet);
         }
 
-        formData.append("idChiTietSanPham", idChiTiet);
-
-        fetch("/Admin/AddAnhToSanPhamChiTiet", {
+        fetch("/Admin/AddImage", {
             method: "POST",
             body: formData
         }).then(res => {
@@ -88,7 +88,6 @@
             console.error(err);
         });
     }
-
 
     function UpdateImage(event, id, duongdan) {
         var file = event.target.files[0]; // Sửa lại từ 'value' thành 'file'

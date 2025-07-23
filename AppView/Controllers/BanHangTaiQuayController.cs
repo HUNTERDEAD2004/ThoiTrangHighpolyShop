@@ -217,7 +217,6 @@ namespace AppView.Controllers
             ViewBag.lstKH = kh;
             return PartialView("GioHang", hdon);
         }
-
         // Thêm hóa đơn chi tiết
         public async Task<ActionResult> addHdct(HoaDonChiTietRequest request)
         {
@@ -289,7 +288,6 @@ namespace AppView.Controllers
             }
         }
         //Check voucher
-
         [HttpGet]
         public async Task<IActionResult> CheckVoucher(Guid idvoucher, int ttien)
         {
@@ -339,7 +337,6 @@ namespace AppView.Controllers
             //}
             //return Json(new { message = "Đã xảy ra lỗi" });
         }
-
         //Load Modal Thanh Tóan
         [HttpGet("/BanHangTaiQuay/ViewThanhToan/{id}")]
         public async Task<IActionResult> ViewThanhToan(string id)
@@ -417,7 +414,6 @@ namespace AppView.Controllers
                 return RedirectToAction("BanHang", "BanHangTaiQuay");
             }
         }
-
         //ThanhToan
         public async Task<IActionResult> ThanhToan(HoaDonThanhToanRequest request)
         {
@@ -509,7 +505,6 @@ namespace AppView.Controllers
                 return Json(new { success = false, message = "Thêm khách hàng thất bại" });
             }
         }
-
         //Sửa khách hàng
         public async Task<IActionResult> UpdateKHinHD(string idkh, string idhd)
         {

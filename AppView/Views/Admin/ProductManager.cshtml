@@ -126,7 +126,7 @@
         var categorydad = $("#categorydad").val();
         var categoryson = $("#categoryson").val();
         var sort = $("#sort").val();
-        var request = { page: pageIndex, pageSize: pagesize, search: searchName, minPrice: min, maxPrice: max, loaiSPCha: categorydad, loaiSPCon: categoryson, sortSP : sort};
+        var request = { page: pageIndex, pageSize: pagesize, search: searchName, minPrice: min, maxPrice: max, loaiSPCha: categorydad, loaiSPCon: categoryson, sortSP : sort};    
         $.ajax({
             url: "/Admin/ShowProduct",
             type: "GET",
@@ -134,10 +134,11 @@
             success: function (response) {
                 $("#list_products").empty();
                 $.each(response.data, function (i, item) {
+                    var anh = item.anh ? item.anh : "/img/product/default.jpg";
                     if (item.trangThai == 1)
-                        $("#list_products").append(`<tr><td>${item.ten}</td><td>${item.ma}</td><td><img src="/img/product/${item.anh}" style="width:70px;height:80px" /></td><td>${item.giaGoc}</td><td>${item.giaBan}</td><td>${item.soLuong}</td><td>${item.chatLieu}</td><td>${item.loaiSPCha}/${item.loaiSPCon}</td><td id='hoatDong_${item.id}' style="width:228px"><span style="color:green">Hoạt động</span></td><td style="width:250px"><a href='/Admin/ProductDetail?idSanPham=${item.id}' class="btn btn-primary" style="margin-right:5px">Chi tiết</a><a href='/Admin/UpdateSanPham?id=${item.id}' class="btn btn-warning" style="margin-right:5px">Sửa</a><button type='button' onclick="xoa('${item.id}',0)" class="btn btn-danger">Xoá</button></td></tr>`);
+                        $("#list_products").append(`<tr><td>${item.ten}</td><td>${item.ma}</td><td><img src="${item.anh}" style="width:70px;height:80px" /></td><td>${item.giaGoc}</td><td>${item.giaBan}</td><td>${item.soLuong}</td><td>${item.chatLieu}</td><td>${item.loaiSPCha}/${item.loaiSPCon}</td><td id='hoatDong_${item.id}' style="width:228px"><span style="color:green">Hoạt động</span></td><td style="width:250px"><a href='/Admin/ProductDetail?idSanPham=${item.id}' class="btn btn-primary" style="margin-right:5px">Chi tiết</a><a href='/Admin/UpdateSanPham?id=${item.id}' class="btn btn-warning" style="margin-right:5px">Sửa</a><button type='button' onclick="xoa('${item.id}',0)" class="btn btn-danger">Xoá</button></td></tr>`);
                     else {
-                        $("#list_products").append(`<tr><td>${item.ten}</td><td>${item.ma}</td><td><img src="/img/product/${item.anh}" style="width:70px;height:80px" /></td><td>${item.giaGoc}</td><td>${item.giaBan}</td><td>${item.soLuong}</td><td>${item.chatLieu}</td><td>${item.loaiSPCha}/${item.loaiSPCon}</td><td id='hoatDong_${item.id}' style="width:228px"><span style="color:red">Không hoạt động</span></td><td style="width:250px" id='xoa_${item.id}'><a href='/Admin/ProductDetail?idSanPham=${item.id}' class="btn btn-primary" style="margin-right:5px">Chi tiết</a><a href='/Admin/UpdateSanPham?id=${item.id}' class="btn btn-warning" style="margin-right:5px">Sửa</a><button type='button' onclick="xoa('${item.id}',1)"  class="btn btn-success">Hoàn tác</button></td></tr>`);
+                        $("#list_products").append(`<tr><td>${item.ten}</td><td>${item.ma}</td><td><img src="${item.anh}" style="width:70px;height:80px" /></td><td>${item.giaGoc}</td><td>${item.giaBan}</td><td>${item.soLuong}</td><td>${item.chatLieu}</td><td>${item.loaiSPCha}/${item.loaiSPCon}</td><td id='hoatDong_${item.id}' style="width:228px"><span style="color:red">Không hoạt động</span></td><td style="width:250px" id='xoa_${item.id}'><a href='/Admin/ProductDetail?idSanPham=${item.id}' class="btn btn-primary" style="margin-right:5px">Chi tiết</a><a href='/Admin/UpdateSanPham?id=${item.id}' class="btn btn-warning" style="margin-right:5px">Sửa</a><button type='button' onclick="xoa('${item.id}',1)"  class="btn btn-success">Hoàn tác</button></td></tr>`);
                     }
                 });
                 pagingsp(response.total, function () {
@@ -185,7 +186,7 @@
         }
         else {
             document.getElementById("categoryson").value = 'all';
-            $("#categoryson").empty();
+            $("#categoryson").empty(); 
             var rows = `<option selected value="all">Tất cả</option>`;
             $('#categoryson').append(rows);
         }

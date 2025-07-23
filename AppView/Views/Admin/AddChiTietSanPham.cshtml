@@ -63,12 +63,12 @@
         });
     });
 
-        // --- Tạo mới Kích cỡ ---
+     // --- Tạo mới Kích cỡ ---
     function taoMoiKichCo() {
         const ten = prompt("Nhập kích cỡ mới:");
         if (!ten) return;
 
-        $.post("https://localhost:7095/api/KichCo/ThemKichCo", { ten: ten }, function (res) {
+        $.post("/Admin/TaoKichCoTuSanPhamAsync", { ten: ten }, function (res) {
             if (res.success) {
                 alert("Đã thêm!");
                 $.get("/Admin/GetAllKichCo", function (data) {
@@ -88,7 +88,7 @@
         if (!ten || !ma) return;
 
         $.ajax({
-            url: "https://localhost:7095/api/MauSac/ThemMauSac",
+            url: "/Admin/TaoMauMoiTuSanPham",
             type: "POST",
             data: { ten: ten, ma: ma, trangthai: 1 }, // ví dụ trạng thái mặc định là 1 (đang dùng)
             success: function (res) {

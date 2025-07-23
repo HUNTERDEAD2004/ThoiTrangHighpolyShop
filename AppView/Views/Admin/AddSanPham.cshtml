@@ -1,19 +1,5 @@
 ﻿@model AppData.ViewModels.SanPham.SanPhamRequest
 
-@{
-    ViewData["Title"] = "AddSanPham";
-    @if (TempData["SanPhamDaTao"] != null)
-    {
-        <script>
-            alert("Sản phẩm đã được tạo. Vui lòng cập nhật biến thể hoặc ảnh. Đừng nhấn Thêm lại.");
-            document.querySelector("form").onsubmit = function () {
-                return false;
-            };
-        </script>
-    }
-
-}
-
 <h1>Thêm sản phẩm</h1>
 
 <hr />
@@ -122,7 +108,7 @@
         const ten = prompt("Nhập tên chất liệu mới:");
         if (!ten) return;
 
-        $.post("https://localhost:7095/api/ChatLieu/ThemChatLieu" + { ten: ten }, function (res) {
+        $.post("/Admin/TaoChatLieuMoiTuSanPham" + { ten: ten }, function (res) {
             if (res.success) {
                 alert("Thêm thành công!");
                 $.get("/Admin/GetAllChatLieu", function (data) {
@@ -143,7 +129,7 @@
         const ten = prompt("Nhập kích cỡ mới:");
         if (!ten) return;
 
-        $.post("https://localhost:7095/api/KichCo/ThemKichCo", { ten: ten }, function (res) {
+        $.post("/Admin/TaoKichCoTuSanPhamAsync", { ten: ten }, function (res) {
             if (res.success) {
                 alert("Đã thêm!");
                 $.get("/Admin/GetAllKichCo", function (data) {
@@ -163,7 +149,7 @@
         if (!ten || !ma) return;
 
         $.ajax({
-            url: "https://localhost:7095/api/MauSac/ThemMauSac",
+            url: "/Admin/TaoMauMoiTuSanPham",
             type: "POST",
             data: { ten: ten, ma: ma, trangthai: 1 }, // ví dụ trạng thái mặc định là 1 (đang dùng)
             success: function (res) {

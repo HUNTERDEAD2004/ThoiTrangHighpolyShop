@@ -15,9 +15,7 @@ namespace AppData.Models
         public DateTime NgayTao { get; set; }
         public string? QRCode { get; set; }
         public int TrangThai { get; set; }
-        // 1 - mặc định
-        // 2 - ko mặc định
-        // 0 - xóa
+        public bool IsDefault { get; set; } // true - mặc định, false - không mặc định
         public Guid IDSanPham { get; set; }
         public Guid? IDKhuyenMai { get; set; }
         public Guid IDMauSac { get; set; }

@@ -13,7 +13,7 @@ namespace AppData.Models
 
         public DateTime NgayLap { get; set; }
 
-        public Guid IDNhanvien { get; set; }
+        public Guid? IDNhanvien { get; set; }
 
         public string? GhiChu { get; set; }
 

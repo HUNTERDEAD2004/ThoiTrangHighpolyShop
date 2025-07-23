@@ -19,5 +19,7 @@ namespace AppData.ViewModels.SanPham
         public int? SoLuong { get; set; }
         [Range(0, int.MaxValue, ErrorMessage = "Giá bán không được âm")]
         public decimal? GiaBan { get; set; }
+        public int trangThai { get; set; } // 0 - Chưa bán, 1 - Đang bán, 2 - Hết hàng
+        public bool IsDefault { get; set; }
     }
 }

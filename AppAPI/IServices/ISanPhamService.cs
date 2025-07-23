@@ -14,7 +14,7 @@ namespace AppAPI.IServices
         Task<List<SanPhamViewModel>> TimKiemSanPham(SanPhamTimKiemNangCao sp);
         Task<SanPhamUpdateRequest> GetSanPhamById(Guid id);
         Task<List<SanPhamViewModel>> GetSanPhamByIdDanhMuc(Guid idloaisp);
-        Task<ChiTietSanPhamUpdateRequest> AddSanPham(SanPhamRequest request);
+        Task<bool> AddSanPham(SanPhamRequest request);
         Task<bool> UpdateSanPham(SanPhamUpdateRequest request);
         Task<bool> UpdateTrangThaiSanPham(Guid id, int trangThai);
         bool CheckTrungTenSP(SanPhamRequest lsp);
@@ -40,11 +40,9 @@ namespace AppAPI.IServices
         Task<bool> DeleteChiTietSanPham(Guid id);
         Task<bool> UpdateSoluongChiTietSanPham(Guid id, int soLuong);
         Task<decimal> UpdateGiaBanChiTietSanPham(Guid id, decimal giaBan);
-        Task<bool> UpdateTrangThaiChiTietSanPham(Guid id);
+        Task<bool> UpdateTrangThaiChiTietSanPham(Guid id, int trangThai);
         Task<bool> UpdateChiTietSanPham(ChiTietSanPham chiTietSanPham);
-        public Task<bool> AddChiTietSanPhamFromSanPham(ChiTietSanPhamUpdateRequest request);
         Task<bool> UndoChiTietSanPham(Guid id);
-        Task<bool> AddAnhToSanPhamChiTiet(List<AnhRequest> request);
         List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham);
         Task<bool> AddImage(List<AnhRequest> requests);
         Task<bool> UpdateImage(Anh anh);

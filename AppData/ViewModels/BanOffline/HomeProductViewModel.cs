@@ -11,6 +11,7 @@ namespace AppData.ViewModels.BanOffline
         public Guid Id { get; set; }
         public string Ten { get; set; }
         public string Anh { get; set; }
+        public string AnhDaiDien { get; set; }
         public decimal? GiaBan { get; set; }
         public decimal? GiaGoc { get; set; }
         public int? KhuyenMai { get; set; }

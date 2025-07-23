@@ -5,7 +5,7 @@
         public Guid ID { get; set; }
         public string? Ten { get; set; }
         public string? MaVoucher { get; set; }
-        public int HinhThucGiamGia { get; set; }//1 là giảm theo %, 0 là giảm thẳng giá tiền
+        public int HinhThucGiamGia { get; set; } //1 là giảm theo %, 0 là giảm thẳng giá tiền
         public decimal GiaTriToiThieu { get; set; } // Số tiền tối thiểu để áp dụng voucher 
         public decimal GiaTriToiDa { get; set; } // Số tiền tối đa được giảm khi áp dụng voucher`
         public int GiaTri { get; set; }

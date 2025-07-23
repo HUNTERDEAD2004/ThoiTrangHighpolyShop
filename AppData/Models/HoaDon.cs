@@ -4,7 +4,7 @@
     {
         public Guid ID { get; set; }
         public string? MaHoaDon { get; set; }
-        public Guid IDNhanVien { get; set; }
+        public Guid? IDNhanVien { get; set; }
         public Guid? IDVoucher { get; set; }
         public Guid IDKhachHang { get; set; } 
         public Guid IDLichSuHD { get; set; }

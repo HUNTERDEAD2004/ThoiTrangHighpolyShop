@@ -15,6 +15,7 @@ namespace AppData.ViewModels.SanPham
         public string Ten { get; set; } = string.Empty;
         [Display(Name = "Mô tả")]
         public string? MoTa { get; set; }
+        public string MaSanPham { get; set; } = string.Empty;
         public Guid IDChatLieu { get; set; }
         [Display(Name = "Ảnh đại diện")]
         public string? AnhDaiDien { get; set; }

@@ -64,35 +64,48 @@ namespace AppData.Models
                     IDPTTT = Guid.Parse("f29cd85d-0251-4b50-8867-6a88891417f6"),
                     TenPTTT = "Banking"
                 });
+            // 👉 Seeding Gio Hang
+            modelBuilder.Entity<GioHang>().HasData(
+               new GioHang
+               {
+                   IDKhachHang = Guid.Parse("e106c66d-f18d-4609-8a38-08e09d68e78c"),
+                   NgayTao = DateTime.Parse("2024-04-24T15:00:16.780"),
+               },
+                new GioHang
+                {
+                    IDKhachHang = Guid.Parse("992b39ef-127f-4349-9582-4336b5ecebbb"),
+                    NgayTao = DateTime.Parse("2024-04-24T15:00:16.780"),
+                }
+            );
             // 👉 Seeding KhachHang (mặc định khách lẻ)
-            //modelBuilder.Entity<KhachHang>().HasData(
-            //   new KhachHang
-            //   {
-            //       IDKhachHang = Guid.Parse("e106c66d-f18d-4609-8a38-08e09d68e78c"),
-            //       Ten = "KhachLe",
-            //       Password = "$2a$10$0WsRvWARFtP1saUwIlIGz.66qTCg8QBW4TgqmcWnBM3gSZDbXVTDy",
-            //       GioiTinh = null,
-            //       NgaySinh = null,
-            //       Email = "khachle@gmail.com",
-            //       MaKhachHang = "KH001",
-            //       SDT = "0987654327",
-            //       DiemTich = 0,
-            //       TrangThai = 1
-            //   },
-            //   new KhachHang
-            //   {
-            //       IDKhachHang = Guid.Parse("992b39ef-127f-4349-9582-4336b5ecebbb"),
-            //       Ten = "KhachHangDemo",
-            //       Password = "$2a$10$Dtd69oylpK55KA0dSj5x/uAp3OqpPZaLezJGVbdrR9OIIQxOAJavS",
-            //       GioiTinh = null,
-            //       NgaySinh = null,
-            //       Email = "khachhang@gmail.com",
-            //       MaKhachHang = "KH002",
-            //       SDT = "0987654322",
-            //       DiemTich = 9999,
-            //       TrangThai = 1
-            //   }
-            //);
+            modelBuilder.Entity<KhachHang>().HasData(
+               new KhachHang
+               {
+                   IDKhachHang = Guid.Parse("e106c66d-f18d-4609-8a38-08e09d68e78c"),
+                   Ten = "khachle",
+                   Password = "$2a$10$UU8q3GWou.7Yvkglaq3vWOLX7CNG7GUMG/puoz1LI39VnUL/JS7Ba",
+                   GioiTinh = 1,
+                   NgaySinh = null,
+                   Email = "khachle@gmail.com",
+                   MaKhachHang = "kh001",
+                   SDT = "0987654327",
+                   DiemTich = 0,
+                   TrangThai = 1
+               },
+               new KhachHang
+               {
+                   IDKhachHang = Guid.Parse("992b39ef-127f-4349-9582-4336b5ecebbb"),
+                   Ten = "khachhangdemo",
+                   Password = "$2a$10$UU8q3GWou.7Yvkglaq3vWOLX7CNG7GUMG/puoz1LI39VnUL/JS7Ba",
+                   GioiTinh = null,
+                   NgaySinh = null,
+                   Email = "khachhang@gmail.com",
+                   MaKhachHang = "kh002",
+                   SDT = "0987654322",
+                   DiemTich = 9999,
+                   TrangThai = 1
+               }
+            );
             // 👉 Seeding NhanVien test
             modelBuilder.Entity<NhanVien>().HasData(
                new NhanVien

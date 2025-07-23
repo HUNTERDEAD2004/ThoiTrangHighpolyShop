@@ -6,29 +6,34 @@ namespace AppView.Services
 {
     public class FileService : IFileService
     {
-        public async Task<string> AddFile(IFormFile file,string wwwRootPath)
+        public async Task<string> AddFile(IFormFile file, string wwwRootPath)
         {
-            //string wwwrootPath = _hostEnvironment.WebRootPath;
             string fileName = Path.GetFileNameWithoutExtension(file.FileName);
             string extension = Path.GetExtension(file.FileName);
-            fileName = fileName + DateTime.Now.ToString("yymmssfff") + extension;
-            string path = Path.Combine(wwwRootPath + "/img/product/", fileName);
-            using (var fileStream = new FileStream(path, FileMode.Create))
+            fileName = fileName + DateTime.Now.ToString("yyyyMMddHHmmssfff") + extension;
+
+            // Tạo thư mục nếu chưa có
+            string folderPath = Path.Combine(wwwRootPath, "img", "product");
+
+            // Lưu file
+            string filePath = Path.Combine(folderPath, fileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                await file.CopyToAsync(fileStream);
+                await file.CopyToAsync(stream);
             }
-            return fileName;
+
+            // Trả về đường dẫn tương đối dùng cho View
+            return Path.Combine("/img/product/", fileName).Replace("\\", "/");
         }
 
-        public bool DeleteFile(string fileName,string wwwRootPath)
+        public bool DeleteFile(string filePath, string wwwRootPath)
         {
             try
             {
-                string path = Path.Combine(wwwRootPath + "/img/product/", fileName);
-                if (File.Exists(path))
+                string fullPath = Path.Combine(wwwRootPath, filePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+                if (File.Exists(fullPath))
                 {
-                    File.Delete(path);
-                    
+                    File.Delete(fullPath);
                 }
                 return true;
             }
@@ -38,4 +43,5 @@ namespace AppView.Services
             }
         }
     }
+
 }

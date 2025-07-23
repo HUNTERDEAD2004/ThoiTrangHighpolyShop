@@ -67,21 +67,19 @@ namespace AppAPI.Controllers
         [HttpPost("AddSanPham")]
         public async Task<IActionResult> CreateSanPham(SanPhamRequest request)
         {
-            if (request == null) return BadRequest();
-            var response = await _sanPhamServices.AddSanPham(request);
-            return Ok(response);
+            if (request == null) return BadRequest(false); // Trả về false nếu request null
+
+            var result = await _sanPhamServices.AddSanPham(request);
+
+            if (result) return Ok(true);  // Thành công
+            else return BadRequest(false); // Lỗi logic bên trong service
         }
+
         [HttpDelete("UpdateTrangThaiSanPham")]
         public async Task<IActionResult> UpdateTrangThaiSanPham(Guid id, int trangThai)
         {
             await _sanPhamServices.UpdateTrangThaiSanPham(id, trangThai);
             return Ok();
-        }
-        [HttpPost("AddAnh")] 
-        public async Task<IActionResult> AddAnhToSanPhamChiTiet(List<AnhRequest> request)
-        {
-            var reponse = await _sanPhamServices.AddAnhToSanPhamChiTiet(request);
-            return Ok(reponse);
         }
         [HttpGet("GetAllAnhSanPhamChiTiet")]
         public List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham)
@@ -89,13 +87,9 @@ namespace AppAPI.Controllers
             return _sanPhamServices.GetAllAnhSanPhamChiTiet(idSanPham);
         }
         [HttpPost("AddImage")]
-        public async Task<IActionResult> AddImage([FromBody] List<AnhRequest> requests)
+        public async Task<bool> AddImage(List<AnhRequest> requests)
         {
-            if (requests == null || !requests.Any())
-                return BadRequest("Danh sách ảnh rỗng.");
-
-            var result = await _sanPhamServices.AddImage(requests);
-            return result ? Ok() : BadRequest("Thêm ảnh thất bại.");
+            return await _sanPhamServices.AddImage(requests);
         }
         [HttpPut("UpdateImage")]
         public async Task<bool> UpdateImage(Anh anh)
@@ -128,13 +122,6 @@ namespace AppAPI.Controllers
             var lstChiTietSanPham = await _sanPhamServices.GetAllChiTietSanPhamAdmin(idSanPham);
             return Ok(lstChiTietSanPham);
         }
-        [HttpPost("AddChiTietSanPhamFromSanPham")]
-        public async Task<IActionResult> AddChiTietSanPhamFromSanPham(ChiTietSanPhamUpdateRequest request)
-        {
-            if (request == null) return BadRequest();
-            var response = await _sanPhamServices.AddChiTietSanPhamFromSanPham(request);
-            return Ok(response);
-        }
         [HttpPost("AddChiTietSanPham")]
         public async Task<IActionResult> AddChiTietSanPham(ChiTietSanPhamAddRequest request)
         {
@@ -163,9 +150,9 @@ namespace AppAPI.Controllers
             }
         }
         [HttpGet("UpdateTrangThaiChiTietSanPham")]
-        public bool UpdateTrangThaiChiTietSanPham(string id)
+        public bool UpdateTrangThaiChiTietSanPham(string id, int trangthai)
         {
-            var response = _sanPhamServices.UpdateTrangThaiChiTietSanPham(new Guid(id)).Result;
+            var response = _sanPhamServices.UpdateTrangThaiChiTietSanPham(new Guid(id),trangthai).Result;
             return response;
         }
         [HttpGet("GetAllChiTietSanPham")]
