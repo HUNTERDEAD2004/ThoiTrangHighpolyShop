@@ -13,30 +13,37 @@
 
         <div class="row g-3">
             <div class="col-md-6">
-                <label class="form-label text-dark">Mã giảm giá</label>
-                <div class="input-group">
-                    <input asp-for="Ten" class="form-control" />
-                    <button class="btn btn-secondary" type="button" onclick="generateRandomCode()">Random</button>
-                </div>
+                <label asp-for="Ten" class="form-label text-dark">Tên giảm giá</label>
+                <input asp-for="Ten" class="form-control" />
+                <span asp-validation-for="Ten" class="text-danger"></span>
                 <span class="text-danger">@ViewData["Ma"]</span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Mô tả</label>
+                <label asp-for="MaVoucher" class="form-label text-dark">Mã Voucher</label>
+                <div class="input-group">
+                    <input asp-for="MaVoucher" class="form-control" id="maVoucher" />
+                    <button class="btn btn-outline-secondary" type="button" onclick="generateRandomCode()">Random</button>
+                </div>
+                <span asp-validation-for="MaVoucher" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="MoTa" class="form-label text-dark">Mô tả</label>
                 <input asp-for="MoTa" class="form-control" />
                 <span asp-validation-for="MoTa" class="text-danger"></span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Giá trị giảm</label>
+                <label asp-for="GiaTri" class="form-label text-dark">Giá trị giảm</label>
                 <div class="input-group">
                     <input asp-for="GiaTri" class="form-control" />
-                    <div class="input-group-text">
-                        <div class="form-check me-2">
+                    <div class="input-group-text d-flex gap-2">
+                        <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="HinhThucGiamGia" value="1" checked />
                             <label class="form-check-label">%</label>
                         </div>
-                        <div class="form-check">
+                        <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="HinhThucGiamGia" value="0" />
                             <label class="form-check-label">VND</label>
                         </div>
@@ -46,32 +53,34 @@
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Số lượng</label>
+                <label asp-for="SoLuong" class="form-label text-dark">Số lượng</label>
                 <input asp-for="SoLuong" class="form-control" />
+                <span asp-validation-for="SoLuong" class="text-danger"></span>
                 <span class="text-danger">@ViewData["SoLuong"]</span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Đơn hàng tối thiểu</label>
+                <label asp-for="GiaTriToiThieu" class="form-label text-dark">Đơn hàng tối thiểu</label>
                 <input asp-for="GiaTriToiThieu" class="form-control" />
+                <span asp-validation-for="GiaTriToiThieu" class="text-danger"></span>
                 <span class="text-danger">@ViewData["GiaTriToiThieu"]</span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Giảm tối đa</label>
+                <label asp-for="GiaTriToiDa" class="form-label text-dark">Giảm tối đa</label>
                 <input asp-for="GiaTriToiDa" class="form-control" />
+                <span asp-validation-for="GiaTriToiDa" class="text-danger"></span>
                 <span class="text-danger">@ViewData["GiaTriToiDa"]</span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Ngày bắt đầu</label>
+                <label asp-for="NgayApDung" class="form-label text-dark">Ngày bắt đầu</label>
                 <input asp-for="NgayApDung" type="datetime-local" class="form-control" />
                 <span asp-validation-for="NgayApDung" class="text-danger"></span>
-           
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Ngày kết thúc</label>
+                <label asp-for="NgayKetThuc" class="form-label text-dark">Ngày kết thúc</label>
                 <input asp-for="NgayKetThuc" type="datetime-local" class="form-control" />
                 <span asp-validation-for="NgayKetThuc" class="text-danger"></span>
                 <span class="text-danger">@ViewData["Ngay"]</span>
@@ -95,18 +104,16 @@
                 const rand = Math.floor(Math.random() * charset.length);
                 code += charset[rand];
             }
-            document.querySelector('[name="Ten"]').value = code;
+            document.getElementById("maVoucher").value = code;
         }
     </script>
- 
+
     <script>
         @if (TempData["Error"] != null)
         {
-            <text>
-                alert("@TempData["Error"]");
-            </text>
+            <text>alert("@TempData["Error"]"); </text>
         }
     </script>
 }
-    @await Html.PartialAsync("_ValidationScriptsPartial")
 
+@await Html.PartialAsync("_ValidationScriptsPartial")

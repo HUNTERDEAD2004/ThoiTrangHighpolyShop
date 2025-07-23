@@ -21,6 +21,7 @@ namespace AppAPI.Services
             var voucher= new Voucher();
             voucher.ID=voucherview.Id;
             voucher.Ten=voucherview.Ten?.Trim();
+            voucher.MaVoucher=voucherview.MaVoucher;
             voucher.HinhThucGiamGia=voucherview.HinhThucGiamGia;
             voucher.GiaTriToiThieu = voucherview.GiaTriToiThieu;
             voucher.GiaTriToiDa = voucherview.GiaTriToiDa;

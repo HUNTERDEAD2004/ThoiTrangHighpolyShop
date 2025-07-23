@@ -36,8 +36,9 @@
 <table class="table table-bordered table-hover align-middle">
     <thead class="table-dark text-center">
         <tr>
-            <th>ID</th>
-            <th>MÃ</th>
+            <th>STT</th>
+            <th>Ma</th>
+      
             <th>TÊN</th>
             <th>GIÁ TRỊ</th>
             <th>NGÀY BẮT ĐẦU</th>
@@ -51,8 +52,8 @@
         @foreach (var item in Model.listkms)
         {
             <tr>
-                <td>@stt</td>
-                <td>@item.MoTa</td>
+                <td>@(stt++)</td>
+                <td><strong>@item.MaKhuyenMai</strong></td>
                 <td>@item.Ten</td>
                 <td>
                     @if (item.TrangThai == 0 || item.TrangThai == 2)
@@ -106,6 +107,18 @@
 
 <div class="col-12">
     <nav>
+        @if (TempData["AlertMessage"] != null)
+        {
+            <div class="alert alert-@TempData["AlertType"]">
+                @TempData["AlertMessage"]
+            </div>
+
+            <script>
+                setTimeout(() => {
+                    document.querySelector('.alert').style.display = 'none';
+                }, 4000); // Ẩn sau 4 giây
+            </script>
+        }
         <ul class="pagination justify-content-center">
             @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
             {

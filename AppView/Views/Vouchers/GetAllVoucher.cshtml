@@ -70,6 +70,9 @@
             <tr>
                 <th>STT</th>
                 <th>Mã Voucher</th>
+                <th>Tên </th>
+
+
                 <th>Hình thức</th>
                 <th>Giá trị Giảm</th>
                 <th>Đơn hàng tối thiểu</th>
@@ -92,7 +95,8 @@
             {
                 <tr>
                     <td>@(stt++)</td>
-                    <td><strong>@item.Ten</strong></td>
+                    <td><strong>@item.MaVoucher</strong></td>
+                    <td>@item.Ten</td>
                     <td>@(item.HinhThucGiamGia == 0 ? "Tiền mặt" : "Phần trăm")</td>
                     <td>
                         @(item.HinhThucGiamGia == 0

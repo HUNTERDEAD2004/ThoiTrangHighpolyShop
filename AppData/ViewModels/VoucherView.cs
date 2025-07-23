@@ -11,16 +11,21 @@ namespace AppData.ViewModels
     {
         [Key]
         public Guid Id { get; set; }
-        [Required(ErrorMessage = "mời bạn nhập Mã")]
-        [StringLength(40, ErrorMessage = "Mã không được quá 40 kí tự")]
+
+        [Required(ErrorMessage = "Mời bạn nhập tên voucher")]
+        [StringLength(40, ErrorMessage = "Tên không được quá 40 kí tự")]
         public string Ten { get; set; }
+
+        [Required(ErrorMessage = "Mời bạn nhập mã voucher")]
+        [StringLength(20, ErrorMessage = "Mã voucher không được quá 20 kí tự")]
+        public string MaVoucher { get; set; }
         [Required(ErrorMessage = "Mời bạn chọn hình thức giảm giá")]
         [Range(0, 1, ErrorMessage = "Hình thức chỉ nhận 0 (tiền mặt) hoặc 1 (phần trăm)")]
         public int HinhThucGiamGia { get; set; }//0 là giảm theo %, 1 là giảm thẳng giá tiền
         [Required(ErrorMessage = "mời bạn nhập dữ liệu")]
         
         public int SoTienCan { get; set; }
-        [Required(ErrorMessage = "Mời bạn nhập giá trọ giảm")]
+        [Required(ErrorMessage = "Mời bạn nhập giá trị giảm")]
   
 
         public int GiaTri { get; set; }
