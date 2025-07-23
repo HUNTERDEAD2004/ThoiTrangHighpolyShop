@@ -252,7 +252,7 @@
                     $(".product-list").append(`
                                                             <li class="product-item d-flex flex-row" onclick="showSPDetail('${response.data[i].id}')">
                                                                     <div class="product-img">
-                                                                        <img src="${response.data[i].anh}" class="img-fluid rounded-start" alt="..." style="width:70px;height:80px">
+                                                                        <img src="/img/product/${response.data[i].anh}" class="img-fluid rounded-start" alt="..." style="width:70px;height:80px">
                                                                     </div>
                                                                     <div class="product-detail d-flex flex-column flex-grow-1">
                                                                         <span class="product-name mt-1">${response.data[i].ten}</span>
@@ -503,7 +503,7 @@
                                         <li id="sptk" onclick="showSPDetail('${item.id}')">
                                             <div class="d-flex align-items-center p-1">
                                                 <div class="flex-shrink-0">
-                                                    <img src="${item.anh}" style="height:80px; width:70px;" alt="...">
+                                                    <img src="/img/product/${item.anh}" style="height:80px; width:70px;" alt="...">
                                                 </div>
                                                 <div class="flex-grow-1 ms-3 text-dark">
                                                     <span class="product-name mt-1">${item.ten}</span>

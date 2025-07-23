@@ -147,7 +147,7 @@
                             $(".product-list").append(`
                                                         <li class="product-item d-flex flex-row" onclick="showSPDetail('${response.data[i].id}')">
                                                                 <div class="product-img">
-                                                                    <img src="${response.data[i].anh}" class="img-fluid rounded-start" alt="...">
+                                                                    <img src="/img/product/${response.data[i].anh}" class="img-fluid rounded-start" alt="...">
                                                                 </div>
                                                                 <div class="product-detail d-flex flex-column flex-grow-1">
                                                                     <span class="product-name mt-1">${response.data[i].ten}</span>
