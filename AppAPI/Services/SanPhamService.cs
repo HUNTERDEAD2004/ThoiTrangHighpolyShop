@@ -405,45 +405,53 @@ namespace AppAPI.Services
                 return new ChiTietSanPhamUpdateRequest();
             }
         }
-        public ChiTietSanPhamViewModel? GetChiTietSanPhamByID(Guid id)
+        public async Task<ChiTietSanPhamViewModel?> GetChiTietSanPhamByID(Guid id)
         {
-            try
-            {
-                var temp = _context.ChiTietSanPhams.FirstOrDefault(x => x.ID == id);
-                if (temp == null) return null;
+            var temp = await _context.ChiTietSanPhams
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID == id);
+            if (temp == null) return null;
 
-                var sanPham = _context.SanPhams.FirstOrDefault(x => x.ID == temp.IDSanPham);
-                var mauSac = _context.MauSacs.FirstOrDefault(x => x.ID == temp.IDMauSac);
-                var kichCo = _context.KichCos.FirstOrDefault(x => x.ID == temp.IDKichCo);
-                var anh = _context.Anhs.FirstOrDefault(x => x.IDSanPhamChiTiet == temp.ID);
+            var sanPham = await _context.SanPhams
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID == temp.IDSanPham);
 
-                if (sanPham == null || mauSac == null || kichCo == null) return null;
+            var mauSac = await _context.MauSacs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID == temp.IDMauSac);
 
-                var chiTietSanPham = new ChiTietSanPhamViewModel
-                {
-                    ID = temp.ID,
-                    Ten = sanPham.Ten,
-                    SoLuong = temp.SoLuong,
-                    GiaGoc = temp.GiaBan,
-                    TrangThai = sanPham.TrangThai == 0 ? 0 : temp.TrangThai,
-                    Anh = anh?.DuongDan,
-                    MauSac = mauSac.Ten,
-                    KichCo = kichCo.Ten
-                };
+            var kichCo = await _context.KichCos
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID == temp.IDKichCo);
 
-                var khuyenMai = _context.KhuyenMais
-                    .FirstOrDefault(x => x.ID == temp.IDKhuyenMai && x.NgayKetThuc > DateTime.Now);
+            var anh = await _context.Anhs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.IDSanPhamChiTiet == temp.ID);
 
-                chiTietSanPham.GiaBan = khuyenMai != null
-                    ? GetKhuyenMai(khuyenMai.GiaTri, chiTietSanPham.GiaGoc, khuyenMai.TrangThai)
-                    : chiTietSanPham.GiaGoc;
-
-                return chiTietSanPham;
-            }
-            catch
-            {
+            if (sanPham == null || mauSac == null || kichCo == null)
                 return null;
-            }
+
+            var chiTietSanPham = new ChiTietSanPhamViewModel
+            {
+                ID = temp.ID,
+                Ten = sanPham.Ten,
+                SoLuong = temp.SoLuong,
+                GiaGoc = temp.GiaBan,
+                TrangThai = sanPham.TrangThai == 0 ? 0 : temp.TrangThai,
+                Anh = anh?.DuongDan,
+                MauSac = mauSac.Ten,
+                KichCo = kichCo.Ten
+            };
+
+            var khuyenMai = await _context.KhuyenMais
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID == temp.IDKhuyenMai && x.NgayKetThuc > DateTime.Now);
+
+            chiTietSanPham.GiaBan = khuyenMai != null
+                ? GetKhuyenMai(khuyenMai.GiaTri, chiTietSanPham.GiaGoc, khuyenMai.TrangThai)
+                : chiTietSanPham.GiaGoc;
+
+            return chiTietSanPham;
         }
         public async Task<ChiTietSanPhamViewModelHome> GetAllChiTietSanPhamHome(Guid idSanPham)
         {
@@ -639,8 +647,14 @@ namespace AppAPI.Services
                     .FirstOrDefaultAsync(x => x.ID == id);
                 if (chiTiet == null) return false;
 
-                // Nếu sản phẩm đang không hoạt động thì không cho bật chi tiết
+                // ❌ Không được bật nếu sản phẩm đang ngừng hoạt động
                 if (trangThai == 1 && chiTiet.SanPham?.TrangThai != 1)
+                {
+                    return false;
+                }
+
+                // ❌ Không được tắt nếu đang là biến thể mặc định và đang hoạt động
+                if (trangThai == 0 && chiTiet.IsDefault)
                 {
                     return false;
                 }
@@ -1004,8 +1018,8 @@ namespace AppAPI.Services
                                     GiaBan = km == null ? ctsp.GiaBan :
                                     (km.TrangThai == 1 ? (int)(ctsp.GiaBan / 100 * (100 - km.GiaTri)) :
                                     (km.GiaTri < ctsp.GiaBan ? (ctsp.GiaBan - (int)km.GiaTri) : 0)),
-                                    IdLsp = sp.IDLoaiSP,
-                                }).OrderBy(c => c.MaSP).ToListAsync();
+                    IdLsp = sp.IDLoaiSP,
+                                }).OrderBy(c => c.MaSP).Distinct().ToListAsync();
 
             return result;
         }

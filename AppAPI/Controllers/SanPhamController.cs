@@ -105,10 +105,13 @@ namespace AppAPI.Controllers
 
         #region ChiTietSanPham
         [HttpGet("GetChiTietSanPhamByID")]
-        public IActionResult GetChiTietSanPhamByID(Guid id)
+        public async Task<IActionResult> GetChiTietSanPhamByID(Guid id)
         {
-            var response = _sanPhamServices.GetChiTietSanPhamByID(id);
-            return Ok(response);
+            var result = await _sanPhamServices.GetChiTietSanPhamByID(id);
+            if (result == null)
+                return NotFound(new { success = false, message = "Không tìm thấy chi tiết sản phẩm" });
+
+            return Ok(result);
         }
         [HttpGet("GetAllChiTietSanPhamHome")]
         public async Task<IActionResult> GetAllChiTietSanPhamHome(string idSanPham)

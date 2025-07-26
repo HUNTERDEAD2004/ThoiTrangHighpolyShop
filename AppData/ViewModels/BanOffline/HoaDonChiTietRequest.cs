@@ -8,11 +8,11 @@ namespace AppData.ViewModels.BanOffline
 {
     public class HoaDonChiTietRequest // Tạo chi tiết hóa đơn
     {
-        public Guid Id { get; set; }    
+        public Guid? Id { get; set; }    
         public Guid IdHoaDon { get; set; }
         public Guid IdChiTietSanPham { get; set; }
         public int SoLuong { get; set; }
-        //public int DonGia { get; set; } thanh toán r mới lưu
+        public decimal DonGia { get; set; }  // Bắt buộc có
         public int TrangThai { get; set; }
     }
 }

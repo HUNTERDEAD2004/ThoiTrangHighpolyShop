@@ -61,15 +61,18 @@ namespace AppAPI.Services
                 return false;
             }
         }
-        public GioHangViewModel GetCart(List<GioHangRequest> request)
+        public async Task<GioHangViewModel> GetCart(List<GioHangRequest> request)
         {
             var response = new GioHangViewModel();
             long tongTien = 0;
-            ChiTietSanPhamViewModel chiTietSanPham;
+
             foreach (var item in request)
             {
-                chiTietSanPham = _iSanPhamService.GetChiTietSanPhamByID(item.IDChiTietSanPham);
-                item.DonGia = (int?)chiTietSanPham.GiaBan; // Explicitly cast 'decimal' to 'int?'
+                var chiTietSanPham = await _iSanPhamService.GetChiTietSanPhamByID(item.IDChiTietSanPham);
+                if (chiTietSanPham == null)
+                    continue; // hoặc xử lý lỗi riêng nếu cần
+
+                item.DonGia = (int?)chiTietSanPham.GiaBan;
                 item.Ten = chiTietSanPham.Ten;
                 item.MauSac = chiTietSanPham.MauSac;
                 item.KichCo = chiTietSanPham.KichCo;
@@ -77,33 +80,42 @@ namespace AppAPI.Services
                 item.HetHang = chiTietSanPham.SoLuong < item.SoLuong ? false : chiTietSanPham.TrangThai < 1 ? false : true;
                 tongTien += item.DonGia.Value * item.SoLuong;
             }
+
             response.GioHangs = request;
             response.TongTien = tongTien;
             return response;
         }
-        public GioHangViewModel GetCartLogin(string idNguoiDung)
+        public async Task<GioHangViewModel> GetCartLogin(string idNguoiDung)
         {
-            var lstChiTietGioHang = context.ChiTietGioHangs.Where(x => x.IDKhachHang == new Guid(idNguoiDung)).ToList();
-            ChiTietSanPhamViewModel chiTietSanPham;
+            var lstChiTietGioHang = context.ChiTietGioHangs
+                .Where(x => x.IDKhachHang == new Guid(idNguoiDung))
+                .ToList();
+
             List<GioHangRequest> lst = new List<GioHangRequest>();
             var response = new GioHangViewModel();
             long tongTien = 0;
+
             foreach (var item in lstChiTietGioHang)
             {
-                chiTietSanPham = _iSanPhamService.GetChiTietSanPhamByID(item.IDCTSP);
+                var chiTietSanPham = await _iSanPhamService.GetChiTietSanPhamByID(item.IDCTSP);
+
+                if (chiTietSanPham == null) continue; // Optional: tránh null
+
                 lst.Add(new GioHangRequest()
                 {
                     IDChiTietSanPham = chiTietSanPham.ID,
                     SoLuong = item.SoLuong,
-                    DonGia = (int?)chiTietSanPham.GiaBan, // Explicit cast from decimal to int?
+                    DonGia = (int?)chiTietSanPham.GiaBan,
                     Ten = chiTietSanPham.Ten,
                     MauSac = chiTietSanPham.MauSac,
                     KichCo = chiTietSanPham.KichCo,
                     Anh = chiTietSanPham.Anh,
                     HetHang = chiTietSanPham.SoLuong < item.SoLuong ? false : true
                 });
-                tongTien += (long)((int?)chiTietSanPham.GiaBan * item.SoLuong); // Cast to int? then to long
+
+                tongTien += (long)((int?)chiTietSanPham.GiaBan * item.SoLuong);
             }
+
             response.GioHangs = lst;
             response.TongTien = tongTien;
             return response;

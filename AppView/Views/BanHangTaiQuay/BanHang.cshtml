@@ -169,7 +169,6 @@
         </div>
     </div>
 </div>
-
 <!--Model thanh toán -->
 <div class="modal border-0 rounded-0" id="thanhtoan" tabindex="-1">
     <div class="modal-dialog" id="modalthanhtoan">
@@ -234,8 +233,7 @@
             gethdct(elementValue);
             tab.addClass("active");
         }
-    }
-
+    }                                                                                                       
     //LoadDSSanPham
     function loadsp() {
         $.ajax({
@@ -252,7 +250,7 @@
                     $(".product-list").append(`
                                                             <li class="product-item d-flex flex-row" onclick="showSPDetail('${response.data[i].id}')">
                                                                     <div class="product-img">
-                                                                        <img src="/img/product/${response.data[i].anh}" class="img-fluid rounded-start" alt="..." style="width:70px;height:80px">
+                                                                        <img src="${response.data[i].anh}" class="img-fluid rounded-start" alt="..." style="width:70px;height:80px">
                                                                     </div>
                                                                     <div class="product-detail d-flex flex-column flex-grow-1">
                                                                         <span class="product-name mt-1">${response.data[i].ten}</span>
@@ -503,7 +501,7 @@
                                         <li id="sptk" onclick="showSPDetail('${item.id}')">
                                             <div class="d-flex align-items-center p-1">
                                                 <div class="flex-shrink-0">
-                                                    <img src="/img/product/${item.anh}" style="height:80px; width:70px;" alt="...">
+                                                    <img src="${item.anh}" style="height:80px; width:70px;" alt="...">
                                                 </div>
                                                 <div class="flex-grow-1 ms-3 text-dark">
                                                     <span class="product-name mt-1">${item.ten}</span>
@@ -547,7 +545,7 @@
             type: 'GET',
             success: function (data) {
                 // Tạo một iframe ẩn trong trang hiện tại
-                var iframe = document.createElement('iframe');
+                var iframe = document.createElement('iframe'); 
                 iframe.style.display = 'none';
                 document.body.appendChild(iframe);
 

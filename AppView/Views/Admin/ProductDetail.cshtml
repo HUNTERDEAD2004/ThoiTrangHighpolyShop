@@ -202,7 +202,7 @@
             });
         }       
     }
-    function changeTrangThai(idSP) {
+        function changeTrangThai(idSP) {
         $.ajax({
             async: true,
             type: 'POST',
@@ -215,10 +215,17 @@
                     var ip = document.getElementById("xoa_" + idSP);
                     ip.removeChild(ip.children[1]);
                     $("#xoa_" + idSP).append("<button type='button' class='btn btn-danger' onclick = \"xoa('" + idSP + "')\">Xoá</button>");
+                } else {
+                    // ❌ Hiện tại bạn đang bỏ qua trường hợp backend trả false
+                    alert("Không thể cập nhật trạng thái. Có thể do: sản phẩm ngừng hoạt động hoặc chi tiết đang là mặc định.");
                 }
+            },
+            error: function () {
+                alert("Có lỗi xảy ra khi cập nhật trạng thái.");
             }
         });
     }
+
     function xoa(idSP) {
         $.ajax({
             async: true,

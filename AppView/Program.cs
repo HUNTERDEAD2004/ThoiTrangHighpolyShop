@@ -12,6 +12,12 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddScoped<IFileService, FileService>();
 
+builder.Services.AddHttpClient("API", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7095/api/");
+    client.Timeout = TimeSpan.FromMinutes(2); // timeout rõ ràng
+});
+
 // ? Thêm AssignmentDBContext
 builder.Services.AddDbContext<AssignmentDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DBContext")));

@@ -1,4 +1,5 @@
-﻿using AppAPI.IServices;
+﻿using System.Diagnostics;
+using AppAPI.IServices;
 using AppData.IRepositories;
 using AppData.Models;
 using AppData.Repositories;
@@ -17,56 +18,57 @@ namespace AppAPI.Services
 
         public async Task<bool> SaveCTHoaDon(HoaDonChiTietRequest request)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Kiểm tra sp tồn tại trong hóa đơn này chưa
-                var CTSPexist = _context.ChiTietHoaDons.Where(c => c.IDHoaDon == request.IdHoaDon).Any(c => c.IDCTSP == request.IdChiTietSanPham);
-                if (CTSPexist != true) //k tồn tại -> chưa có hdct-> tạo
-                {
-                    var danhgia = new DanhGia()
-                    {
-                        ID = request.Id,
-                        TrangThai = 0,
-                    };
-                    await _context.DanhGias.AddAsync(danhgia);
-                    await _context.SaveChangesAsync();
+                var hdctList = await _context.ChiTietHoaDons
+                .Where(c => c.IDHoaDon == request.IdHoaDon && c.IDCTSP == request.IdChiTietSanPham)
+                .ToListAsync();
 
-                    var hdct = new ChiTietHoaDon()
+                var hdct = hdctList.FirstOrDefault();
+
+                var ctsp = await _context.ChiTietSanPhams.FindAsync(request.IdChiTietSanPham);
+                if (ctsp == null || ctsp.SoLuong < request.SoLuong)
+                    return false;
+
+                if (hdct == null)
+                {
+                    var danhgia = new DanhGia
+                    {
+                        ID = (Guid)request.Id,
+                        IDKhachHang = Guid.Parse("e106c66d-f18d-4609-8a38-08e09d68e78c"),
+                        TrangThai = 0
+                    };
+
+                    var newHDCT = new ChiTietHoaDon
                     {
                         ID = danhgia.ID,
                         IDHoaDon = request.IdHoaDon,
                         IDCTSP = request.IdChiTietSanPham,
+                        DonGia = request.DonGia,
                         SoLuong = request.SoLuong,
-                        //DonGia = request.DonGia,
                         TrangThai = 0,
                     };
-                    await _context.ChiTietHoaDons.AddAsync(hdct);
+
+                    await _context.AddRangeAsync(danhgia, newHDCT);
                     await _context.SaveChangesAsync();
-                    //Trừ số lượng CTSP
-                    var ctsp = _context.ChiTietSanPhams.Find(request.IdChiTietSanPham);
-                    ctsp.SoLuong -= request.SoLuong;
-                    _context.ChiTietSanPhams.Update(ctsp);
-                    await _context.SaveChangesAsync();
-                    return true;
                 }
                 else
                 {
-                    var exist = _context.ChiTietHoaDons.Where(c => c.IDCTSP == request.IdChiTietSanPham && c.IDHoaDon == request.IdHoaDon).FirstOrDefault();
-                    var ctsp = _context.ChiTietSanPhams.Find(request.IdChiTietSanPham);
-                    exist.SoLuong += request.SoLuong;
-                    //exist.DonGia = request.DonGia;
-                    _context.Update(exist);
-                    await _context.SaveChangesAsync();
-
-                    //Thay đổi số lượng ctsp
-                    ctsp.SoLuong -= request.SoLuong;
-                    _context.ChiTietSanPhams.Update(ctsp);
-                    await _context.SaveChangesAsync();
-                    return true;
+                    hdct.SoLuong += request.SoLuong;
+                    _context.ChiTietHoaDons.Update(hdct);
                 }
+
+                ctsp.SoLuong -= request.SoLuong;
+                _context.ChiTietSanPhams.Update(ctsp);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
+                await transaction.RollbackAsync();
                 return false;
             }
         }
@@ -121,9 +123,8 @@ namespace AppAPI.Services
                                                               SoLuong = cthd.SoLuong,
                                                               GiaGoc = ctsp.GiaBan,
                                                               GiaKM = km == null ? ctsp.GiaBan :
-                    (km.TrangThai == 1 ? (int)(ctsp.GiaBan / 100 * (100 - km.GiaTri)) :
-                    (km.GiaTri < ctsp.GiaBan ? (ctsp.GiaBan - (int)km.GiaTri) : 0)),
-                                                              
+                                                            (km.TrangThai == 1 ? (int)(ctsp.GiaBan / 100 * (100 - km.GiaTri)) :
+                                                            (km.GiaTri < ctsp.GiaBan ? (ctsp.GiaBan - (int)km.GiaTri) : 0)),                                                             
                                                           }).ToListAsync();
             return lsthdct;
         }

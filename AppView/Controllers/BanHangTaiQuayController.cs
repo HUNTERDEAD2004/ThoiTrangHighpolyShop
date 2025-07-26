@@ -12,11 +12,9 @@ namespace AppView.Controllers
     {
         private readonly HttpClient _httpClient;
 
-        public BanHangTaiQuayController()
+        public BanHangTaiQuayController(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri("https://localhost:7095/api/");
-
+            _httpClient = httpClientFactory.CreateClient("API");
         }
         //Giao diện bán hàng
         [HttpGet]
@@ -239,10 +237,11 @@ namespace AppView.Controllers
                 {
                     HoaDonChiTietRequest hdct = new HoaDonChiTietRequest()
                     {
-                        Id = new Guid(),
+                        Id = Guid.NewGuid(), 
                         IdChiTietSanPham = request.IdChiTietSanPham,
                         IdHoaDon = request.IdHoaDon,
                         SoLuong = request.SoLuong,
+                        DonGia = ctsp.GiaBan
                     };
                     var response = await _httpClient.PostAsJsonAsync("ChiTietHoaDon/saveHDCT/", hdct);
                     if (response.IsSuccessStatusCode) return Json(new { success = true, message = "Thêm sản phẩm thành công" });

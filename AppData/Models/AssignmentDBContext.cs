@@ -43,7 +43,7 @@ namespace AppData.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Server=DESKTOP-NQ6KMAG\\SQLEXPRESS;Database=AppBanQuanAoThoiTrangNamTest;Trusted_Connection=True;TrustServerCertificate=True");
+                optionsBuilder.UseSqlServer("Server=DESKTOP-NQ6KMAG\\SQLEXPRESS;Database=AppBanQuanAoThoiTrangNam;Trusted_Connection=True;TrustServerCertificate=True");
             }
         }
         //"Server=DESKTOP-NQ6KMAG\SQLEXPRESS;Database=AppBanQuanAoThoiTrangNam;Trusted_Connection=True;TrustServerCertificate=True"

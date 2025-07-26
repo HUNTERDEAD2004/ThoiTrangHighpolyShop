@@ -32,7 +32,6 @@ namespace AppAPI.Controllers
             return gioHangServices.GetById(id);
         }
 
-
         // POST api/<GioHangController>
         [HttpPost]
         public bool Post(Guid IdKhachHang, DateTime ngaytao)
@@ -80,13 +79,13 @@ namespace AppAPI.Controllers
             return gioHangServices.UpdateCart(idctsp,soluong, idNguoiDung).Result;
         }
         [HttpGet("GetCart")]
-        public GioHangViewModel GetCart(string request)
+        public Task<GioHangViewModel> GetCart(string request)
         {
             var lst = JsonConvert.DeserializeObject<List<GioHangRequest>>(request); 
             return gioHangServices.GetCart(lst);
         }
         [HttpGet("GetCartLogin")]
-        public GioHangViewModel GetCartLogin(string idNguoiDung)
+        public Task<GioHangViewModel> GetCartLogin(string idNguoiDung)
         {
             return gioHangServices.GetCartLogin(idNguoiDung);
         }

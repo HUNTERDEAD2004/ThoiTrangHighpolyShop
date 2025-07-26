@@ -19,10 +19,9 @@ namespace AppView.Controllers
         private readonly IFileService _iFileService;
         private readonly AssignmentDBContext _context;
         private readonly ILogger<AdminController> _logger;
-        public AdminController(AssignmentDBContext context, IWebHostEnvironment hostEnvironment, IFileService iFileService, ILogger<AdminController> logger)
+        public AdminController(AssignmentDBContext context, IWebHostEnvironment hostEnvironment, IFileService iFileService, ILogger<AdminController> logger, IHttpClientFactory httpClientFactory)
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri("https://localhost:7095/api/");
+            _httpClient = httpClientFactory.CreateClient("API");
             _hostEnvironment = hostEnvironment;
             _iFileService = iFileService;
             _context = context;
