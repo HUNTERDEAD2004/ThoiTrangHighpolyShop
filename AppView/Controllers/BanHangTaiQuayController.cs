@@ -353,7 +353,7 @@ namespace AppView.Controllers
                 var qddActive = qdd.FirstOrDefault(c => c.TrangThai != 0);
                 //Kiểm tra là hóa đơn của khách có tài khoản không?
                 var khachHang = "Khách lẻ";
-                Guid idkh = Guid.Empty;
+                Guid idkh = Guid.Parse("e106c66d-f18d-4609-8a38-08e09d68e78c");
                 int? dtkh = 0;
                 var response = await _httpClient.GetFromJsonAsync<bool>($"HoaDon/CheckLSGDHD/{id}");
                 if (response == true)

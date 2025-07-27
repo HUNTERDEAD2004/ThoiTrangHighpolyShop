@@ -427,48 +427,75 @@
 
     //Thanh toán chuyển trạng thái
     function thanhToan(id) {
-        var ttien = $("#khachCanTra").text().replaceAll('.', '');
-        ttien = parseInt(ttien.replaceAll(',', ''));
+        // Lấy các giá trị cần thiết
         var pttt = $('input[name="pttt"]:checked').val();
-        var khachdua = $("#khachdua").val();
-        //else if (ttien <= 0) {
-        //    toastr.error('Phiếu hàng đang trống', 'Error Alert', { timeOut: 300 });
-        //}
+        var idpttt = $("#idphuongthuctt").val();
+        var ttien = $("#khachCanTra").text().replaceAll('.', '').replaceAll(',', '');
+        var khachdua = $("#khachdua").val() || 0; // fallback nếu null
+        var idvoucher = $("#idvoucher").text();
+        var tichdiemhd = $("#tichdiemhd").text() || 0;
+        var tichdiemsd = $('#diemKHSD').val() || 0;
 
+         // Ép kiểu để tránh lỗi string số học
+        ttien = parseInt(ttien);
+        khachdua = parseInt(khachdua);
+        tichdiemsd = parseInt(tichdiemsd);
+
+        // Nếu số tiền thanh toán âm
         if (ttien < 0) {
             toastr.error('Số tiền thanh toán không hợp lệ', 'Error Alert', { timeOut: 300 });
-        }else if(khachdua < ttien && pttt === "Tiền mặt"){
-            toastr.error('Khách chưa thanh toán đủ tiền hàng', 'Error Alert', { timeOut: 300 });
-        }else {
-            var pttt = $('input[name="pttt"]:checked').val();
-            var idvoucher = $("#idvoucher").text();
-            var tichdiemhd = $("#tichdiemhd").text();
-            var tichdiemsd = $('#diemKHSD').val();
-            if ($('#tientrutichdiem').text() === 0 || $('#tientrutichdiem').text() === '') {
-                tichdiemsd = 0;
-            };
-            var request = { Id: id, PTTT: pttt, IdNhanVien: '@loginInfor.Id', IdVoucher: idvoucher, TongTien: ttien, DiemTichHD: tichdiemhd, DiemSD: tichdiemsd };
-            $.ajax({
-                url: "/BanHangTaiQuay/ThanhToan",
-                async: false,
-                type: 'POST',
-                dataType: 'json',
-                data: request,
-                success: function (response) {
-                    $("#thanhtoan").modal("hide");
-                    $("#partialGioHang").empty();
-                    toastr.success('Thanh toán thành công', "Success Alert", { timeOut: 300 });
-                    InHD(id);
-                    loadHDCHO(function () {
-                        activeTab(0);
-                    });
-                },
-                error: function (response) {
-                    toastr.error('Thanh toán thất bại', 'Error Alert', { timeOut: 300 });
-                }
-            });
+            return;
         }
+
+        // Nếu chọn tiền mặt mà khách đưa không đủ
+        if (pttt === "Cash" && khachdua < ttien) {
+            toastr.error('Khách chưa thanh toán đủ tiền hàng', 'Error Alert', { timeOut: 300 });
+            return;
+        }
+
+        // Trường hợp không dùng điểm
+        if ($('#tientrutichdiem').text() === "0" || $('#tientrutichdiem').text() === '') {
+            tichdiemsd = 0;
+        }
+
+        // Tạo FormData để map đúng Model
+        var formData = new FormData();
+        formData.append("Id", id);
+        formData.append("IdNhanVien", '@loginInfor.Id');
+        if (!idvoucher || idvoucher.length < 30) {
+        idvoucher = "00000000-0000-0000-0000-000000000000"; // fallback nếu null
+        }
+        formData.append("IdVoucher", idvoucher);
+        formData.append("TongTien", ttien);
+        formData.append("DiemTichHD", tichdiemhd);
+        formData.append("DiemSD", tichdiemsd);
+        formData.append("IDPhuongThucThanhToan", idpttt);
+
+        $.ajax({
+        url: "/BanHangTaiQuay/ThanhToan",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+            if (response.success) {
+                toastr.success('Thanh toán thành công', "Success Alert", { timeOut: 300 });
+                $("#thanhtoan").modal("hide");
+                $("#partialGioHang").empty();
+                InHD(id);
+                loadHDCHO(function () {
+                    activeTab(0);
+                });
+            } else {
+                toastr.error(response.message, 'Error Alert', { timeOut: 300 });
+            }
+        },
+        error: function () {
+            toastr.error('Thanh toán thất bại', 'Error Alert', { timeOut: 300 });
+        }
+    });
     }
+
     //Mở modal scan QRcode
     function scanQRCode() {
         $("#scanqrcodebody").load("/BanHangTaiQuay/ScanQRCode");

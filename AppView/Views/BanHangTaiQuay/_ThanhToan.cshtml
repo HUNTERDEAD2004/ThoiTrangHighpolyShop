@@ -164,22 +164,24 @@
                 <div class="col-8">
                     <div class="d-flex flex-row lh-1">
                         <div class="flex-fill m-2">
-                            <input class="form-check-input" type="radio" name="pttt" value="Tiền mặt" checked onchange="chonPTTT()">
-                            <label class="form-check-label" for="gridRadios1">
-                                Tiền mặt
-                            </label>
+                            <input class="form-check-input" type="radio" name="pttt" value="Cash"
+                                   id="pttt_cash" data-idpttt="9b6289bf-5e83-419a-94d5-926abb264961" checked onchange="chonPTTT()">
+                            <label class="form-check-label" for="pttt_cash">Tiền mặt</label>
                         </div>
+
                         <div class="flex-fill m-2">
-                            <input class="form-check-input" type="radio" name="pttt" value="Chuyển khoản" onchange="chonPTTT()">
-                            <label class="form-check-label" for="gridRadios1">
-                                Chuyển khoản
-                            </label>
+                            <input class="form-check-input" type="radio" name="pttt" value="Banking"
+                                   id="pttt_banking" data-idpttt="f29cd85d-0251-4b50-8867-6a88891417f6" onchange="chonPTTT()">
+                            <label class="form-check-label" for="pttt_banking">Chuyển khoản</label>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="tienmat">
+            <!-- ✅ Đây là input ẩn bạn cần thêm -->
+            <input type="hidden" id="idphuongthuctt" name="IdPhuongThucThanhToan" value="9b6289bf-5e83-419a-94d5-926abb264961" />
+
+            <div id="tienmat" style="display: block">
                 <div class="d-flex flex-row lh-1">
                     <div class="flex-fill"><label class="form-label fw-bold">Khách đưa</label></div>
                     <div class="flex-fill text-end">
@@ -187,7 +189,7 @@
                     </div>
                 </div>
             </div>
-            <div id="tienmattrakhach">
+            <div id="tienmattrakhach" style="display: block">
                 <div class="d-flex flex-row lh-1">
                     <div class="flex-fill"><label class="form-label">Tiền thừa trả khách</label></div>
                     <div class="flex-fill text-end">
@@ -337,7 +339,7 @@
             TinhTien();
         })
     })
-    //    // Hiện nhập voucher
+    //    //Hiện nhập voucher
     //    $("#btn-showvoucher").on("click", function() {
     //      var voucherInput = $("#voucherinput");
     //      if (voucherInput.css('display') === 'none') {
@@ -392,40 +394,64 @@
     //        }
     //    })
     //})
-        //Chọn PTTT
-        function chonPTTT(){
-            var pttt = $('input[name="pttt"]:checked').val();
-            if(pttt === "Tiền mặt"){
-                $("#tienmat").css('display', 'block');
-                $("#tienmattrakhach").css('display', 'block');
-                $("#khachdua").val('');
-                $("#tientrakhach").text('');
-            }else{
-                $("#tienmattrakhach").css('display', 'none');
-                $("#tienmat").css('display', 'none');
-                $("#khachdua").val('');
-                $("#tientrakhach").text('');
-            }
-            TinhTien();
+
+    //Chọn PTTT
+
+    function chonPTTT(){
+        var pttt = $('input[name="pttt"]:checked').val(); // "Cash" hoặc "Banking"
+        var idPTTT = $('input[name="pttt"]:checked').data("idpttt"); // gán lại nếu cần
+        $("#idphuongthuctt").val(idPTTT);
+
+        if(pttt === "Cash"){
+            $("#tienmat").show();
+            $("#tienmattrakhach").show();
+            $("#khachdua").prop("disabled", false);
+        } else {
+            $("#tienmat").hide();
+            $("#tienmattrakhach").hide();
+            $("#khachdua").val('');
+            $("#khachdua").prop("disabled", true);   
+            $("#tientrakhach").text('');
         }
-        function khachDua(value){
-            if(value > 1000000000){
-                toastr.error("Số tiền bạn nhập vào quá lớn", "Error Alert", { timeOut: 1000 });
-                $("#tientrakhach").text('');
-            }else{
-                let cantra = $("#khachCanTra").text() === '' ? '' : $("#khachCanTra").text().replaceAll('.', '');
-                cantra = cantra.replaceAll(',', '');
-                let tientra = value - cantra;
-                $("#tientrakhach").text(Intl.NumberFormat().format(tientra));
-            }
+        TinhTien();
+    }
+
+    function khachDua(value){
+        if(value > 1000000000){
+            toastr.error("Số tiền bạn nhập vào quá lớn", "Error Alert", { timeOut: 1000 });
+            $("#tientrakhach").text('');
+        } else {
+            let cantra = $("#khachCanTra").text().replaceAll('.', '').replaceAll(',', '');
+            let tientra = Number(value) - Number(cantra);
+            $("#tientrakhach").text(Intl.NumberFormat().format(tientra));
         }
-        //Chọn voucher
-        function checkVoucher(){
+    }
+
+    //Tính tiền
+    function TinhTien() {
+        var tt = @Model.TongTien;
+        $("#tongTienHang").text(Intl.NumberFormat().format(tt));
+
+        var trutd = Number($("#tientrutichdiem").text().replaceAll('.', '').replaceAll(',', '') || 0);
+        var voucher = Number($("#giatrivoucher").text().replaceAll('.', '').replaceAll(',', '') || 0);
+
+        var tienkhachtra = tt - trutd - voucher;
+        if(tienkhachtra > 0){
+            $("#khachCanTra").text(Intl.NumberFormat().format(tienkhachtra));
+        } else {
+            $("#khachCanTra").text(0);
+        }
+
+        khachDua($("#khachdua").val()); // Cập nhật tiền thối
+    }
+
+    //Chọn voucher
+    function checkVoucher(){
            var idvoucher = $('input[name="radiovoucher"]:checked').attr('id');
            var tongtien = @Model.TongTien;
            var khachtra = $("#khachCanTra").text().replaceAll(',','');
            khachtra = parseInt(khachtra.replaceAll('.',''));
-           
+
            $.ajax({
                 url: "/BanHangTaiQuay/CheckVoucher",
                 type: "GET",
@@ -435,7 +461,7 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                   
+
                     if(response.success === true){
                         if(parseInt(response.giatri) - khachtra < 0){
                             toastr.success(response.message, "Success Alert", { timeOut: 1000 });
@@ -443,7 +469,7 @@
                             $("#tienkhuyenmai").css('display', 'block');
                             $("#giatrivoucher").text(Intl.NumberFormat().format(response.giatri));
                         }else{
-                            
+
                             toastr.error('Khuyến mãi vượt quá quy định', "Success Alert", { timeOut: 1000 });
                             $("#idvoucher").val('');
                             $("#tienkhuyenmai").css('display', 'none');
@@ -463,25 +489,4 @@
                 },
             });
         }
-
-        //Tính tiền
-       function TinhTien() {
-            var tt = @Model.TongTien;
-            
-            $("#tongTienHang").text(Intl.NumberFormat().format(tt));
-            var trutd = $("#tientrutichdiem").text() === '' ? '' : $("#tientrutichdiem").text().replaceAll('.', '');
-            var voucher = $("#giatrivoucher").text() === '' ? '' : $("#giatrivoucher").text().replaceAll('.', '');
-            trutd = trutd.replaceAll(",", "");
-            voucher = voucher.replaceAll(",", "");
-            var tienkhachtra = tt - trutd - voucher;
-            if(tienkhachtra > 0){
-                $("#khachCanTra").text(Intl.NumberFormat().format(tienkhachtra));
-                 $("#khachdua").val();
-                 khachDua($("#khachdua").val());
-            }else{
-                $("#khachCanTra").text(0);
-                 $("#khachdua").val();
-                 khachDua($("#khachdua").val());
-            }
-       }
 </script>

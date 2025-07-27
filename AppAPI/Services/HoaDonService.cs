@@ -825,65 +825,69 @@ namespace AppAPI.Services
             {
                 //Lấy id quy đổi điểm dùng hiện tại
                 var qdiem = context.QuyDoiDiems.FirstOrDefault(c => c.TrangThai != 0);
-                if (qdiem.TrangThai == 1) // Chỉ tích hoặc tiêu
+                if (qdiem != null)
                 {
-                    if (hoaDon.DiemTichHD >= hoaDon.DiemSD) // Trường hợp tích = tiêu = 0
+                    if (qdiem.TrangThai == 1) // Chỉ tích hoặc tiêu
                     {
-                        lstd.Diem = hoaDon.DiemTichHD;
-                        context.LichSuTichDiems.Update(lstd);
-                        context.SaveChanges();
-                    }
-                    else if (hoaDon.DiemSD > hoaDon.DiemTichHD) // Trường hợp tiêu nhiều hơn tích
-                    {
-                        lstd.Diem = hoaDon.DiemSD;
-                        lstd.TrangThai = 0;
-                        context.LichSuTichDiems.Update(lstd);
-                        context.SaveChanges();
-                    }
-                }
-                else if (qdiem.TrangThai == 2) // Vừa tích vừa tiêu
-                {
-                    if (hoaDon.DiemTichHD != 0)
-                    {
-                        lstd.Diem = hoaDon.DiemTichHD;
-                        context.LichSuTichDiems.Update(lstd);
-                        context.SaveChanges();
-                    }
-                    if (hoaDon.DiemSD != 0)
-                    {
-                        var maKhachHang = (from hd in context.HoaDons
-                                           join k in context.KhachHangs on hd.IDKhachHang equals k.IDKhachHang
-                                           where hd.ID == hoaDon.Id
-                                           select k.MaKhachHang).FirstOrDefault();
-
-                        // Tạo lstieudiem
-                        LichSuTichDiem lstieu = new LichSuTichDiem()
+                        if (hoaDon.DiemTichHD >= hoaDon.DiemSD) // Trường hợp tích = tiêu = 0
                         {
-                            ID = new Guid(),
-                            TrangThai = 0,
-                            IDHoaDon = hoaDon.Id,
-                            MaKhachHang = maKhachHang,
-                            Diem = hoaDon.DiemSD,
-                            IDQuyDoiDiem = qdiem.ID,
-                        };
-                        context.LichSuTichDiems.Add(lstieu);
-                        context.SaveChanges();
+                            lstd.Diem = hoaDon.DiemTichHD;
+                            context.LichSuTichDiems.Update(lstd);
+                            context.SaveChanges();
+                        }
+                        else if (hoaDon.DiemSD > hoaDon.DiemTichHD) // Trường hợp tiêu nhiều hơn tích
+                        {
+                            lstd.Diem = hoaDon.DiemSD;
+                            lstd.TrangThai = 0;
+                            context.LichSuTichDiems.Update(lstd);
+                            context.SaveChanges();
+                        }
                     }
-                }
-                // Thêm điểm cho Khách hàng và trừ
-                var kh = reposKhachHang.GetAll().FirstOrDefault(c => c.MaKhachHang == lstd.MaKhachHang);
-                kh.DiemTich += hoaDon.DiemTichHD;
-                kh.DiemTich -= hoaDon.DiemSD;
-                reposKhachHang.Update(kh);
+                    else if (qdiem.TrangThai == 2) // Vừa tích vừa tiêu
+                    {
+                        if (hoaDon.DiemTichHD != 0)
+                        {
+                            lstd.Diem = hoaDon.DiemTichHD;
+                            context.LichSuTichDiems.Update(lstd);
+                            context.SaveChanges();
+                        }
+                        if (hoaDon.DiemSD != 0)
+                        {
+                            var maKhachHang = (from hd in context.HoaDons
+                                               join k in context.KhachHangs on hd.IDKhachHang equals k.IDKhachHang
+                                               where hd.ID == hoaDon.Id
+                                               select k.MaKhachHang).FirstOrDefault();
+
+                            // Tạo lstieudiem
+                            LichSuTichDiem lstieu = new LichSuTichDiem()
+                            {
+                                ID = new Guid(),
+                                TrangThai = 0,
+                                IDHoaDon = hoaDon.Id,
+                                MaKhachHang = maKhachHang,
+                                Diem = hoaDon.DiemSD,
+                                IDQuyDoiDiem = qdiem.ID,
+                            };
+                            context.LichSuTichDiems.Add(lstieu);
+                            context.SaveChanges();
+                        }
+                    }
+                    // Thêm điểm cho Khách hàng và trừ
+                    var kh = reposKhachHang.GetAll().FirstOrDefault(c => c.MaKhachHang == lstd.MaKhachHang);
+                    kh.DiemTich += hoaDon.DiemTichHD;
+                    kh.DiemTich -= hoaDon.DiemSD;
+                    reposKhachHang.Update(kh);
+                } 
             }
             // Trừ số lượng voucher nếu có
             var vc = context.Vouchers.Find(hoaDon.IdVoucher);
-            if (vc != null)
+            if (vc != null && vc.SoLuong > 0)
             {
                 vc.SoLuong -= 1;
                 context.Vouchers.Update(vc);
                 context.SaveChanges();
             }
+
             // UpdateHD
             update.IDNhanVien = hoaDon.IdNhanVien;
             update.NgayThanhToan = hoaDon.NgayThanhToan;
