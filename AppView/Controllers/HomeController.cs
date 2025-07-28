@@ -1779,6 +1779,7 @@ namespace AppView.Controllers
         [HttpPost]
         public async Task<string> Order([FromBody] HoaDonViewModel hoaDon)
         {
+            string check = string.Empty;
             try
             {
                 List<ChiTietHoaDonViewModel> lstChiTietHoaDon = new List<ChiTietHoaDonViewModel>();
@@ -1836,16 +1837,17 @@ namespace AppView.Controllers
 
                     string returnUrl = "https://localhost:5001/Home/PaymentCallBack";
                     string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-                    string tmnCode = "P4VW9FD1";
-                    string hashSecret = "OPHRXNCKQAUVHIJNWXXTMPPYBVPAXUTF";
+                    string tmnCode = "RZZISK72";
+                    string hashSecret = "1MGOZCCX72BAUIO5JUD5XV0O1KWEULNC";
                     string ip = HttpContext.Connection.RemoteIpAddress?.ToString();
 
                     var order = new OrderInfo
                     {
                         OrderId = DateTime.Now.Ticks,
                         Amount = hoaDon.TongTien,
-                        Status = "0",
-                        CreatedDate = DateTime.Now
+                        CreatedDate = DateTime.Now,
+                        OrderDesc = $"Thanh toán đơn hàng #{DateTime.Now.Ticks}",
+                        BankCode = "VNPAYQR"
                     };
 
                     var vnpay = new VnPayLibrary();
@@ -1857,15 +1859,17 @@ namespace AppView.Controllers
                     vnpay.AddRequestData("vnp_CurrCode", "VND");
                     vnpay.AddRequestData("vnp_IpAddr", ip);
                     vnpay.AddRequestData("vnp_Locale", "vn");
-                    vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang:{order.OrderId}");
+                    vnpay.AddRequestData("vnp_OrderInfo", order.OrderDesc);
                     vnpay.AddRequestData("vnp_OrderType", "other");
                     vnpay.AddRequestData("vnp_ReturnUrl", returnUrl);
                     vnpay.AddRequestData("vnp_TxnRef", order.OrderId.ToString());
+                    vnpay.AddRequestData("vnp_ExpireDate", order.CreatedDate.AddMinutes(15).ToString("yyyyMMddHHmmss"));
+                    vnpay.AddRequestData("vnp_BankCode", "");
 
-                    return vnpay.CreateRequestUrl(url, hashSecret);
+                    return check = vnpay.CreateRequestUrl(url, hashSecret);
                 }
 
-                return "";
+                return check;
             }
             catch (Exception ex)
             {
@@ -1882,7 +1886,7 @@ namespace AppView.Controllers
             {
                 if (Request.Query.Count > 0)
                 {
-                    string vnp_HashSecret = "OPHRXNCKQAUVHIJNWXXTMPPYBVPAXUTF"; //Chuoi bi mat
+                    string vnp_HashSecret = "1MGOZCCX72BAUIO5JUD5XV0O1KWEULNC"; //Chuoi bi mat
                     var vnpayData = Request.Query;
                     VnPayLibrary vnpay = new VnPayLibrary();
 
@@ -1933,7 +1937,8 @@ namespace AppView.Controllers
                         else
                         {
                             //Thanh toan khong thanh cong. Ma loi: vnp_ResponseCode
-                            return BadRequest();
+                            return BadRequest($"Lỗi thanh toán: Mã VNPay = {vnp_ResponseCode}, Trạng thái = {vnp_TransactionStatus}");
+
                         }
                     }
                     else
