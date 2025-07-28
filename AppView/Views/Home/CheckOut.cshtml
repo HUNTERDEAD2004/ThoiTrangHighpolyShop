@@ -220,8 +220,8 @@
                 $.each(response.ketQua, function (i,item) {
                     if (item.hinhThucGiamGia == 1) {
                         $("#vouchers").append(`<option value='${item.ten}'>(-${item.giaTri}%)</option>`)
-                    } 
-                    else 
+                    }
+                    else
                     {
                         $("#vouchers").append(`<option value='${item.ten}'>(-${item.giaTri.toLocaleString('it-IT', { style: 'currency', currency: 'VND' })})</option>`)
                     }
@@ -307,7 +307,9 @@
                     $('#dfward').remove();
                     tienShip = data.data.total;
                     document.getElementById("fee").innerHTML = data.data.total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
-                    var total = tienShip + @tongtien-tienVoucher - tienDiem;
+                  
+                   var total = tienShip +(@tongtien) - tienVoucher - tienDiem;
+
                     if (total < 0) {
                         total = 0
                     }
@@ -403,29 +405,41 @@
         }
 
         else {
-            var objHoaDon = { Ten: ten, Email: email, SDT: sdt, DiaChi: diachi + ", " + xa + ", " + huyen + ", " + tinh, TienShip: tienShip, PhuongThucThanhToan: pttt, TongTien: tienShip + @tongtien-tienVoucher - tienDiem, TenVoucher: voucher, Diem: diemTich, GhiChu: ghiChu};
-            $.ajax({
-                async: false,
-                type: 'POST',
-                dataType: 'text',
-                url: '/Home/Order',
-                data: objHoaDon,
-                success: function (response) {
+      var objHoaDon = {
+        Ten: ten,
+        Email: email,
+        SDT: sdt,
+        DiaChi: diachi + ", " + xa + ", " + huyen + ", " + tinh,
+        TienShip: tienShip,
+        PhuongThucThanhToan: pttt,
+        TongTien: tienShip + @tongtien - tienVoucher - tienDiem,
+        TenVoucher: voucher,
+        Diem: diemTich,
+        GhiChu: ghiChu,
+        NgayNhanHang: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+    };
 
-                    console.log(response);
+             $.ajax({
+        type: 'POST',
+        url: '/Home/Order',
+        data: JSON.stringify(objHoaDon),     
+        contentType: 'application/json',           
+        dataType: 'text',                          
+        success: function (response) {
+            location.href = response;
+        },
+        error: function (xhr) {
+            console.log("❌ Lỗi gửi đơn hàng:", xhr.responseText);
+            alert("Không thể gửi đơn hàng: " + xhr.status);
+        }
+    });
 
-                    location.href = response;
-                },
-                error: function (response) {
-                    alert("Error");
-                }
-            });
         }
     }
 
-    function usevoucher() { 
+    function usevoucher() {
         value = $("#voucher").val();
-        $.ajax({          
+        $.ajax({
             async: true,
             type: 'GET',
             dataType: 'json',
@@ -469,7 +483,7 @@
         // }
         // $("#error-message").text("");
         var value = $("#diemTich").val();
-        if (value > @(loginInfor.DiemTich==null?0:loginInfor.DiemTich)) {
+        if (value > @(loginInfor.DiemTich == null ? 0 : loginInfor.DiemTich)) {
             alert("Số điểm của bạn không đủ");
         }
         else if (value<0) {
@@ -505,7 +519,7 @@
                     alert("Error");
                 }
             });
-        }       
+        }
     }
 </script>
 

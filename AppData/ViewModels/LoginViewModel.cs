@@ -10,9 +10,9 @@ namespace AppData.ViewModels
 {
     public class LoginViewModel
     {
-        
-     
-            public Guid Id { get; set; }
+
+        [JsonPropertyName("IDKhachHang")]
+        public Guid Id { get; set; }
 
             [EmailAddress]
             public string Email { get; set; }

@@ -32,7 +32,7 @@ namespace AppData.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(100)");
 
-                    b.Property<Guid?>("IDSanPhamChiTiet")
+                    b.Property<Guid>("IDSanPhamChiTiet")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("TrangThai")
@@ -796,7 +796,9 @@ namespace AppData.Migrations
                 {
                     b.HasOne("AppData.Models.ChiTietSanPham", "ChiTietSanPham")
                         .WithMany("Anhs")
-                        .HasForeignKey("IDSanPhamChiTiet");
+                        .HasForeignKey("IDSanPhamChiTiet")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ChiTietSanPham");
                 });

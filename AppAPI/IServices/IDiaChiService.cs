@@ -1,5 +1,6 @@
 ﻿using AppData.Models;
 using AppData.ViewModels.DTO;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AppAPI.IServices
 {
@@ -10,5 +11,9 @@ namespace AppAPI.IServices
         Task<string?> UpdateDiaChiAsync(Guid diaChiId, DiaChiDTO dto);
         Task<bool> DeleteDiaChiAsync(Guid diaChiId);
         Task<DiaChiDTO?> GetDefaultDiaChiAsync(Guid khachHangId);
+
+        Task<IActionResult>SetDefaultDiaChiAsync(Guid khachHangId, Guid diaChiId);
+        Task<DiaChiDTO?> GetDiaChiByIdAsync(Guid diaChiId);
+
     }
 }

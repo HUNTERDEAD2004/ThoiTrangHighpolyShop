@@ -15,7 +15,7 @@ namespace AppAPI.Controllers
     public class HoaDonController : ControllerBase
     {
         private readonly IHoaDonService _iHoaDonService;
-        public HoaDonController()
+        public HoaDonController(IHoaDonService iHoaDonService)
         {
             _iHoaDonService = new HoaDonService();
         }

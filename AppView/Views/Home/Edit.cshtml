@@ -1,0 +1,34 @@
+﻿@model AppData.ViewModels.DTO.DiaChiDTO
+@{
+    Layout = "_Layout";
+}
+
+<section class="container py-4">
+    <h3 class="mb-3">Chỉnh sửa địa chỉ</h3>
+
+    <form asp-action="Edit" asp-route-id="@Model.IDDiaChi" method="post">
+        <div class="form-group">
+            <label>Tỉnh/TP</label>
+            <input type="text" name="Tinh" value="@Model.Tinh" class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label>Quận/Huyện</label>
+            <input type="text" name="Huyen" value="@Model.Huyen" class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label>Phường/Xã</label>
+            <input type="text" name="Xa" value="@Model.Xa" class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label>Địa chỉ chi tiết</label>
+            <input type="text" name="DiaChiChiTiet" value="@Model.DiaChiChiTiet" class="form-control" required />
+        </div>
+        <div class="form-group form-check">
+            <input type="checkbox" name="IsDefault" class="form-check-input" @(Model.IsDefault ? "checked" : "") />
+            <label class="form-check-label">Đặt làm mặc định</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+        <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+    </form>
+</section>

@@ -2,6 +2,7 @@
 using AppAPI.IServices;
 using AppData.Models;
 using AppData.ViewModels.DTO;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 public class DiaChiService : IDiaChiService
@@ -97,6 +98,23 @@ public class DiaChiService : IDiaChiService
         return true;
     }
 
+    public async Task<DiaChiDTO?> GetDiaChiByIdAsync(Guid diaChiId)
+    {
+        var diaChi = await _dbContext.DiaChis.FindAsync(diaChiId);
+        if (diaChi == null) return null;
+
+        return new DiaChiDTO
+        {
+            IDDiaChi = diaChi.Id,
+            Tinh = diaChi.Tinh,
+            Huyen = diaChi.Huyen,
+            Xa = diaChi.Xa,
+            DiaChiChiTiet = diaChi.DiaChiChiTiet,
+            IsDefault = diaChi.IsDefault
+        };
+    }
+
+
     public async Task<DiaChiDTO?> GetDefaultDiaChiAsync(Guid khachHangId)
     {
         var diaChi = await _dbContext.DiaChis
@@ -115,5 +133,28 @@ public class DiaChiService : IDiaChiService
             IsDefault = diaChi.IsDefault
         };
     }
+
+    public async Task<IActionResult> SetDefaultDiaChiAsync(Guid khachHangId, Guid diaChiId)
+    {
+        var diaChi = await _dbContext.DiaChis
+            .FirstOrDefaultAsync(x => x.IDKhachHang == khachHangId && x.Id == diaChiId);
+
+        if (diaChi == null) return new NotFoundResult();
+
+        // Bỏ mặc định các địa chỉ khác
+        var others = _dbContext.DiaChis
+            .Where(x => x.IDKhachHang == khachHangId && x.Id != diaChiId);
+
+        foreach (var other in others)
+        {
+            other.IsDefault = false;
+        }
+
+        diaChi.IsDefault = true;
+        await _dbContext.SaveChangesAsync();
+        return new OkObjectResult("Đã cập nhật địa chỉ");
+    }
+
 }
+
 
