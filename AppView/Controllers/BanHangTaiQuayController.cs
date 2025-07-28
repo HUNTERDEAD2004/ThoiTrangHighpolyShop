@@ -2,6 +2,7 @@
 using AppData.ViewModels;
 using AppData.ViewModels.BanOffline;
 using AppData.ViewModels.SanPham;
+using AppData.ViewModels.VNPay;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net.Http.Json;
@@ -418,7 +419,113 @@ namespace AppView.Controllers
         {
             try
             {
-                var hdrequest = new HoaDonThanhToanRequest()
+                // ID cố định hoặc từ config
+                var ID_TIEN_MAT = Guid.Parse("9b6289bf-5e83-419a-94d5-926abb264961");
+                var ID_BANKING = Guid.Parse("f29cd85d-0251-4b50-8867-6a88891417f6");
+
+                if (request.IDPhuongThucThanhToan == ID_TIEN_MAT)
+                {
+                    var hdrequest = new HoaDonThanhToanRequest()
+                    {
+                        Id = request.Id,
+                        IdNhanVien = request.IdNhanVien,
+                        NgayThanhToan = DateTime.Now,
+                        IdVoucher = request.IdVoucher == Guid.Empty ? Guid.Empty : request.IdVoucher,
+                        IDPhuongThucThanhToan = request.IDPhuongThucThanhToan,
+                        TongTien = request.TongTien,
+                        DiemTichHD = request.DiemTichHD,
+                        DiemSD = request.DiemSD,
+                        TrangThai = 6,
+                    };
+
+                    // ✅ Thanh toán tiền mặt: gọi API nội bộ như hiện tại
+                    var response = await _httpClient.PutAsJsonAsync("HoaDon/UpdateHoaDon/", hdrequest);
+                    if (response.IsSuccessStatusCode)
+                        return Json(new { success = true, message = "Thanh toán thành công" });
+
+                    return Json(new { success = false, message = "Thanh toán thất bại" });
+                }
+                else if (request.IDPhuongThucThanhToan == ID_BANKING)
+                {
+                    TempData["HoaDonVNPay"] = JsonConvert.SerializeObject(request);
+
+                    var order = new OrderInfo
+                    {
+                        OrderId = DateTime.Now.Ticks,
+                        Amount = request.TongTien,
+                        Status = "0",
+                        CreatedDate = DateTime.Now
+                    };
+
+                    string returnUrl = "https://localhost:5001/BanHang/PaymentCallBack";
+                    string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+                    string tmnCode = "RZZISK72";
+                    string hashSecret = "1MGOZCCX72BAUIO5JUD5XV0O1KWEULNC";
+                    string ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+                    var vnpay = new VnPayLibrary();
+                    vnpay.AddRequestData("vnp_Version", VnPayLibrary.VERSION);
+                    vnpay.AddRequestData("vnp_Command", "pay");
+                    vnpay.AddRequestData("vnp_TmnCode", tmnCode);
+                    vnpay.AddRequestData("vnp_Amount", ((long)(order.Amount * 100)).ToString()); // ép kiểu 
+                    vnpay.AddRequestData("vnp_CreateDate", order.CreatedDate.ToString("yyyyMMddHHmmss"));
+                    vnpay.AddRequestData("vnp_CurrCode", "VND");
+                    vnpay.AddRequestData("vnp_IpAddr", ip);
+                    vnpay.AddRequestData("vnp_Locale", "vn");
+                    vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan don hang:{order.OrderId}");
+                    vnpay.AddRequestData("vnp_OrderType", "other");
+                    vnpay.AddRequestData("vnp_ReturnUrl", returnUrl);
+                    vnpay.AddRequestData("vnp_TxnRef", order.OrderId.ToString());
+
+                    string paymentUrl = vnpay.CreateRequestUrl(url, hashSecret);
+                    Console.WriteLine("VNPay URL: " + paymentUrl); // hoặc log ra file/log
+                    return Json(new { Success = true, PaymentUrl = paymentUrl });
+                }
+                return Json(new { success = false, message = "Phương thức không hỗ trợ" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> PaymentCallBack()
+        {
+            try
+            {
+                if (Request.Query.Count == 0) return BadRequest("Thiếu dữ liệu từ VNPay");
+
+                string vnp_HashSecret = "1MGOZCCX72BAUIO5JUD5XV0O1KWEULNC";
+                var vnpayData = Request.Query;
+                VnPayLibrary vnpay = new VnPayLibrary();
+
+                foreach (var s in vnpayData)
+                {
+                    if (!string.IsNullOrEmpty(s.Key) && s.Key.StartsWith("vnp_"))
+                    {
+                        vnpay.AddResponseData(s.Key, vnpayData[s.Key]);
+                    }
+                }
+
+                long orderId = Convert.ToInt64(vnpay.GetResponseData("vnp_TxnRef"));
+                string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
+                string vnp_TransactionStatus = vnpay.GetResponseData("vnp_TransactionStatus");
+                string vnp_SecureHash = Request.Query["vnp_SecureHash"];
+
+                bool isValidSignature = vnpay.ValidateSignature(vnp_SecureHash, vnp_HashSecret);
+                if (!isValidSignature)
+                    return Content("Sai chữ ký hash của VNPay.");
+
+                if (vnp_ResponseCode != "00" || vnp_TransactionStatus != "00")
+                    return Content("Thanh toán thất bại. VNPay trả về lỗi.");
+
+                if (!TempData.ContainsKey("HoaDonVNPay"))
+                    return Content("Không tìm thấy thông tin hóa đơn trong TempData.");
+
+                var request = JsonConvert.DeserializeObject<HoaDonThanhToanRequest>(TempData["HoaDonVNPay"]!.ToString());
+
+                var hdrequest = new HoaDonThanhToanRequest
                 {
                     Id = request.Id,
                     IdNhanVien = request.IdNhanVien,
@@ -428,15 +535,25 @@ namespace AppView.Controllers
                     TongTien = request.TongTien,
                     DiemTichHD = request.DiemTichHD,
                     DiemSD = request.DiemSD,
-                    TrangThai = 6,
+                    TrangThai = 6
                 };
-                var response = await _httpClient.PutAsJsonAsync("HoaDon/UpdateHoaDon/", hdrequest);
-                if (response.IsSuccessStatusCode) return Json(new { success = true, message = "Thanh toán thành công" });
-                return Json(new { success = false, message = "Thanh toán thất bại" });
+
+                var response = await _httpClient.PutAsJsonAsync("HoaDon/UpdateHoaDon", hdrequest);
+                if (response.IsSuccessStatusCode)
+                {
+                    // Gọi xoá hóa đơn chờ nếu cần
+                    await _httpClient.DeleteAsync($"HoaDon/DeleteHoaDonCho?idHoaDon={hdrequest.Id}");
+
+                    return Content("Thanh toán thành công. Hóa đơn đã được cập nhật.");
+                }
+                else
+                {
+                    return Content("❌ Giao dịch VNPay thành công nhưng cập nhật hóa đơn thất bại. Vui lòng xử lý thủ công!.");
+                }
             }
             catch (Exception ex)
             {
-                return RedirectToAction("_QuanLyHoaDon", "QuanLyHoaDon");
+                return Content("Lỗi callback: " + ex.Message);
             }
         }
 

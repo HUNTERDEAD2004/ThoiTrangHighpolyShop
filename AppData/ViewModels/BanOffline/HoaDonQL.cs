@@ -14,9 +14,12 @@ namespace AppData.ViewModels.BanOffline
         public string? KhachHang { get; set; }
         public string? SDTKH { get; set; }
         public string? SDTnhanhang { get; set; }
-        public int TongTienHang { get; set; }
-        public int? KhachDaTra { get; set; }
-        //public int? GiamGia { get; set; }
+        public decimal TongTienHang { get; set; }
+        public decimal? KhachDaTra { get; set; }
+
+        public decimal? KhachCanTra { get; set; } // BỔ SUNG
+        public decimal? TienThua => (KhachDaTra ?? 0) - (KhachCanTra ?? 0); // BỔ SUNG (nếu cần)
+
         public string PTTT { get; set; }
         public int TrangThai { get; set; }
         public int LoaiHD { get; set; }

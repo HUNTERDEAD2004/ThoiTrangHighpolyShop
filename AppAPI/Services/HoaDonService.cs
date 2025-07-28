@@ -381,6 +381,7 @@ namespace AppAPI.Services
                           from lstd in lstdGroup.DefaultIfEmpty()
                           join kh in context.KhachHangs on lstd.MaKhachHang equals kh.MaKhachHang into khGroup
                           from kh in khGroup.DefaultIfEmpty()
+                          join pttt in context.PhuongThucThanhToans on hd.IDPhuongThucTT equals pttt.IDPTTT
                           where hd.TrangThaiGiaoHang != 1 && hd.TrangThaiGiaoHang != 0
                           select new HoaDonQL()
                           {
@@ -389,14 +390,10 @@ namespace AppAPI.Services
                               KhachHang = kh != null ? kh.Ten : "Khách lẻ",
                               SDTKH = kh != null ? kh.SDT : null,
                               SDTnhanhang = hd.SDT != null ? hd.SDT : "null",
-                             // PTTT = hd.PhuongThucThanhToan,
+                              PTTT = pttt.TenPTTT,
                               ThoiGian = hd.NgayTao,
-                              //                              GiamGia = (from vc in context.Vouchers
-                              //                                         where vc.ID == hd.IDVoucher
-                              //                                         select vc.TrangThai == 0 ? vc.GiaTri : context.ChiTietHoaDons.Where(c => c.IDHoaDon == hd.ID).ToList().AsEnumerable().Sum(c => c.DonGia * c.SoLuong) / 100 * vc.GiaTri)
-                              //.FirstOrDefault(),
-                              //KhachDaTra = (hd.TrangThaiGiaoHang == 6 || hd.PhuongThucThanhToan == "VNPay" && hd.TrangThaiGiaoHang != 7) == true ? hd.TongTien : 0,
-                             // TongTienHang = context.ChiTietHoaDons.Where(c => c.IDHoaDon == hd.ID).ToList().AsQueryable().Sum(c => c.DonGia * c.SoLuong),
+                              KhachCanTra = hd.TongTien,
+                              //KhachDaTra = hd.TienKhachTra,
                               LoaiHD = hd.LoaiHoaDon,
                               TrangThai = hd.TrangThaiGiaoHang,
                           }).Distinct().ToList();
@@ -431,8 +428,8 @@ namespace AppAPI.Services
                                    GiaGoc = ctsp.GiaBan,
                                    GiaLuu = cthd.DonGia == null ? 0 : cthd.DonGia,
                                    GiaKM = km == null ? ctsp.GiaBan :
-                    (km.TrangThai == 1 ? (int)(ctsp.GiaBan / 100 * (100 - km.GiaTri)) :
-                    (km.GiaTri < ctsp.GiaBan ? (ctsp.GiaBan - (int)km.GiaTri) : 0)),
+                                    (km.TrangThai == 1 ? (int)(ctsp.GiaBan / 100 * (100 - km.GiaTri)) :
+                                    (km.GiaTri < ctsp.GiaBan ? (ctsp.GiaBan - (int)km.GiaTri) : 0)),
                                }).ToList();
 
                 var result = (from hd in context.HoaDons
@@ -451,7 +448,7 @@ namespace AppAPI.Services
                                   NgayTao = hd.NgayTao,
                                   NgayThanhToan = hd.NgayThanhToan != null ? hd.NgayThanhToan : null,
                                   NgayNhanHang = hd.NgayNhanHang != null ? hd.NgayNhanHang : null,
-                                //  PTTT = hd.PhuongThucThanhToan,
+                                  //  PTTT = hd.PhuongThucThanhToan,
                                   NhanVien = nv != null ? nv.Ten : null,
                                   LoaiHD = hd.LoaiHoaDon,
                                   KhachHang = kh == null ? "Khách lẻ" : kh.Ten,
@@ -459,11 +456,11 @@ namespace AppAPI.Services
                                   DiaChi = hd.DiaChi != null ? hd.DiaChi : null,
                                   SĐT = hd.SDT != null ? hd.SDT : null,
                                   Email = hd.Email != null ? hd.Email : null,
-                                //  TienShip = hd.TienShip != null ? hd.TienShip : null,
+                                  //  TienShip = hd.TienShip != null ? hd.TienShip : null,
                                   TrangThai = hd.TrangThaiGiaoHang,
                                   //ThueVAT = hd.ThueVAT,
-                                 // KhachCanTra = hd.TongTien,
-                                 // TienKhachTra = (hd.TrangThaiGiaoHang == 6 || hd.PhuongThucThanhToan == "VNPay" && hd.TrangThaiGiaoHang != 7) ? hd.TongTien : 0,
+                                  // KhachCanTra = hd.TongTien,
+                                  // TienKhachTra = (hd.TrangThaiGiaoHang == 6 || hd.PhuongThucThanhToan == "VNPay" && hd.TrangThaiGiaoHang != 7) ? hd.TongTien : 0,
                                   GhiChu = hd.GhiChu,
                                   TruTieuDiem = (from lstd in context.LichSuTichDiems
                                                  join qdd in context.QuyDoiDiems on lstd.IDQuyDoiDiem equals qdd.ID
@@ -483,7 +480,7 @@ namespace AppAPI.Services
                                   lstlstd = (from lstd in context.LichSuTichDiems
                                              where lstd.IDHoaDon == hd.ID
                                              select lstd).OrderBy(c => c.TrangThai).ToList()
-                              }).FirstOrDefault();
+                              }).AsNoTracking().FirstOrDefault();
 
                 return result;
             }

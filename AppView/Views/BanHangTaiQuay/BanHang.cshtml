@@ -479,19 +479,24 @@
         contentType: false,
         success: function (response) {
             if (response.success) {
-                toastr.success('Thanh toán thành công', "Success Alert", { timeOut: 300 });
-                $("#thanhtoan").modal("hide");
-                $("#partialGioHang").empty();
-                InHD(id);
-                loadHDCHO(function () {
-                    activeTab(0);
-                });
+                if (result.isRedirect) {
+                    // ✅ Banking
+                    window.location.href = response.redirectUrl;
+                } else {
+                    toastr.success('Thanh toán thành công', "Success Alert", { timeOut: 300 });
+                    $("#thanhtoan").modal("hide");
+                    $("#partialGioHang").empty();
+                    InHD(id);
+                    loadHDCHO(function () {
+                        activeTab(0);
+                    });
+                }
             } else {
-                toastr.error(response.message, 'Error Alert', { timeOut: 300 });
+               toastr.error(response.message || 'Thanh toán thất bại', 'Error Alert', { timeOut: 300 });
             }
         },
         error: function () {
-            toastr.error('Thanh toán thất bại', 'Error Alert', { timeOut: 300 });
+            toastr.error('Lỗi hệ thống khi thanh toán', 'Error Alert', { timeOut: 300 });
         }
     });
     }

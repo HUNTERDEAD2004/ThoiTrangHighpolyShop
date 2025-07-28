@@ -411,7 +411,7 @@
     }
 </div>
 <script>
-            $("#save").click(function(){
+        $("#save").click(function(){
                 var inputValue = $("#ghiChuinTTHD").val();
                 if(inputValue === '' || inputValue.trim == ''){
                     toastr.error("Ghi chú hiện tại đang để trống", 'Error Alert', { timeOut: 300 });
@@ -438,7 +438,8 @@
                 });
                 }
             })
-            function InHD(idhd){
+
+        function InHD(idhd){
                 $.ajax({
                 url: "/QuanLyHoaDon/PrintHD/"+ idhd,
                 type: 'GET',
@@ -459,7 +460,8 @@
                     }
                     });
             }
-            function huyDon(IDHD){
+
+        function huyDon(IDHD){
                 var gc = $("#ghiChuinTTHD").val();
                 if(@Model.TrangThai === 4){
                     toastr.error('Đơn hàng trong trạng thái hoàn, không thể hủy', "Error Alert", { timeOut: 1000 });
@@ -491,7 +493,8 @@
                     }
                 }
             }
-    @*function copyDon(IDHD){
+
+        @*function copyDon(IDHD){
         $.ajax({
         url: "/QuanLyHoaDon/HuyHD",
         type: "GET",
@@ -512,7 +515,7 @@
         });
         }*@
 
-            $("#exportPDF").click(function(){
+        $("#exportPDF").click(function(){
                     var id = "@Model.Id"
                     $.ajax({
                         url: "/QuanLyHoaDon/ExportPDF/" + id,
@@ -525,6 +528,7 @@
                         }
                     });
             });
+
         //Đổi trạng thái
         function DoiTrangThai(trangthai){
             var ans = confirm("Cập nhật trạng thái hóa đơn này?");
@@ -548,6 +552,7 @@
                 });
             }
         }
+
         //Hoàn hàng
         function hoanHang(){
             var gc = $("#ghiChuinTTHD").val();
@@ -576,6 +581,7 @@
                 }
             }
         }
+
         //Hoàn hàng thành công
         function hoanHangTC(){
             var ans = confirm("Cập nhật trạng thái hóa đơn này?");
