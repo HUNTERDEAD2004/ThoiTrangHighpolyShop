@@ -214,42 +214,62 @@ namespace AppView.Controllers
         {
             return View();
         }
+
         [HttpPost]
-        public async Task<IActionResult> AddSanPham(SanPhamRequest sanPhamRequest)
+        public async Task<IActionResult> AddSanPham(IFormFile file, string anhDaiDien, SanPhamRequest sanPhamRequest)
         {
             try
             {
-                // Xoá các ID màu sắc và kích cỡ bị đánh dấu xoá
-                if (sanPhamRequest.IDMauSacs != null)
-                {
-                    sanPhamRequest.IDMauSacs.RemoveAll(id => XoaMau(id));
-                }
+                string wwwrootPath = _hostEnvironment.WebRootPath;
+                var filePath = await _iFileService.AddFile(file, wwwrootPath);
 
-                if (sanPhamRequest.IDKichCos != null)
+                var DoiTuongChuaDuongDanANh = new SanPhamRequest()
                 {
-                    sanPhamRequest.IDKichCos.RemoveAll(id => XoaSize(id));
-                }
+                    Ten = sanPhamRequest.Ten,
+                    AnhDaiDien = filePath,
+                    MoTa = sanPhamRequest.MoTa,
+                    IDChatLieu = sanPhamRequest.IDChatLieu,
+                    IDKichCos = sanPhamRequest.IDKichCos,
+                    IDMauSacs = sanPhamRequest.IDMauSacs,
+                    IDLoaiSPCha = sanPhamRequest.IDLoaiSPCha,
+                    IDLoaiSPCon = sanPhamRequest.IDLoaiSPCon
+                };
+
+                // Xoá các ID màu sắc và kích cỡ bị đánh dấu xoá
+                DoiTuongChuaDuongDanANh.IDMauSacs?.RemoveAll(id => XoaMau(id));
+                DoiTuongChuaDuongDanANh.IDKichCos?.RemoveAll(id => XoaSize(id));
 
                 // Gọi API tạo sản phẩm
                 var response = await _httpClient.PostAsJsonAsync(
                     $"{_httpClient.BaseAddress}SanPham/AddSanPham",
-                    sanPhamRequest
+                    DoiTuongChuaDuongDanANh
                 );
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return BadRequest();
+                    _iFileService.DeleteFile(filePath, wwwrootPath);
+                    ModelState.AddModelError("", "Tạo sản phẩm thất bại.");
+                    return View(sanPhamRequest);
                 }
 
                 var responseBody = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrEmpty(responseBody))
+                {
+                    _iFileService.DeleteFile(filePath, wwwrootPath);
+                    ModelState.AddModelError("", "Phản hồi từ server rỗng.");
+                    return View(sanPhamRequest);
+                }
+
                 var chiTietSanPham = JsonConvert.DeserializeObject<ChiTietSanPhamUpdateRequest>(responseBody);
 
                 if (chiTietSanPham?.ChiTietSanPhams == null || !chiTietSanPham.ChiTietSanPhams.Any())
                 {
-                    return RedirectToAction("ProductManager");
+                    _iFileService.DeleteFile(filePath, wwwrootPath);
+                    ModelState.AddModelError("", "Không có biến thể được tạo.");
+                    return View(sanPhamRequest);
                 }
 
-                // Truyền dữ liệu sang TempData để sử dụng tiếp ở view khác
+                // 6. Lưu TempData và đánh dấu sản phẩm đã được tạo
                 TempData["UpdateChiTietSanPham"] = responseBody;
                 TempData["IDMauSacs"] = JsonConvert.SerializeObject(sanPhamRequest.IDMauSacs);
 
@@ -389,33 +409,6 @@ namespace AppView.Controllers
                     return RedirectToAction("QuanLyAnhChiTiet", new { idSanPham });
                 }
                 return BadRequest();
-            }
-            catch
-            {
-                return BadRequest();
-            }
-        }
-        [HttpPost]
-        public async Task<IActionResult> AddImageToChiTiet(IFormFile file, string idChiTietSanPham)
-        {
-            try
-            {
-                string wwwrootPath = _hostEnvironment.WebRootPath;
-                var imagePath = await _iFileService.AddFile(file, wwwrootPath);
-
-                // Tạo đúng DTO cho API
-                var request = new List<AnhRequest>()
-        {
-            new AnhRequest()
-            {
-                IDSanPhamChiTiet = Guid.Parse(idChiTietSanPham),
-                DuongDan = imagePath,
-                MaMau = "" // nếu backend không dùng thì giữ rỗng
-            }
-        };
-
-                var response = await _httpClient.PostAsJsonAsync("SanPham/AddAnh", request);
-                return response.IsSuccessStatusCode ? Ok() : BadRequest();
             }
             catch
             {
@@ -584,6 +577,7 @@ namespace AppView.Controllers
                 if (string.IsNullOrEmpty(idSanPhamStr)) return BadRequest("Thiếu ID sản phẩm");
 
                 Guid idSanPham = Guid.Parse(idSanPhamStr);
+
                 var listCTSP = _context.ChiTietSanPhams
                     .Where(ctsp => ctsp.IDSanPham == idSanPham)
                     .Select(ctsp => new { ctsp.ID, ctsp.IDMauSac })
@@ -603,32 +597,31 @@ namespace AppView.Controllers
                 return View(new List<UploadAnhViewModel>());
             }
         }
+
         [HttpPost]
-        public async Task<IActionResult> AddAnhToSanPhamChiTiet(List<Guid> IDChiTietSanPhams, List<IFormFile> Images)
+        public async Task<IActionResult> AddAnhToSanPhamChiTiet(List<UploadAnhViewModel> model)
         {
             try
             {
                 string wwwrootPath = _hostEnvironment.WebRootPath;
                 var lstAnhRequest = new List<AnhRequest>();
 
-                for (int i = 0; i < IDChiTietSanPhams.Count; i++)
+                foreach (var item in model)
                 {
-                    var idChiTiet = IDChiTietSanPhams[i];
-                    var image = Images.Count > i ? Images[i] : null;
+                    if (item.Image == null || item.Image.Length == 0) continue;
 
-                    if (image == null) continue;
-
-                    string imagePath = await _iFileService.AddFile(image, wwwrootPath);
+                    string imagePath = await _iFileService.AddFile(item.Image, wwwrootPath);
 
                     lstAnhRequest.Add(new AnhRequest
                     {
-                        IDSanPhamChiTiet = idChiTiet,
+                        IDSanPhamChiTiet = item.IDChiTietSanPham,
                         DuongDan = imagePath,
-                        MaMau = "" // có thể bỏ nếu không dùng
+                        MaMau = item.MaMau
                     });
                 }
 
                 var response = await _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "SanPham/AddAnh", lstAnhRequest);
+
                 if (response.IsSuccessStatusCode)
                 {
                     return RedirectToAction("ProductDetail", new { idSanPham = TempData.Peek("IDSanPham") });

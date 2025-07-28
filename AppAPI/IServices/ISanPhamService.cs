@@ -18,7 +18,7 @@ namespace AppAPI.IServices
         Task<bool> UpdateSanPham(SanPhamUpdateRequest request);
         Task<bool> UpdateTrangThaiSanPham(Guid id, int trangThai);
         bool CheckTrungTenSP(SanPhamRequest lsp);
-        List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham);
+        List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPhamChiTiet);
         Task<bool> UpdateImage(Anh anh);
         Task<bool> DeleteImage(Guid id);
         public Guid GetIDsanPhamByIdCTSP(Guid idctsp);
@@ -54,9 +54,6 @@ namespace AppAPI.IServices
         Task<List<MauSac>> GetAllMauSac();
         Task<List<KichCo>> GetAllKichCo();
         Task<List<ChatLieu>> GetAllChatLieu();
-        Task<List<TenThuocTinhViewModel>> GetTenMauSacsAsync(List<Guid> ids);
-        Task<List<TenThuocTinhViewModel>> GetTenKichCosAsync(List<Guid> ids);
-        Task<string?> GetTenChatLieuAsync(Guid id);
         #endregion
 
         //Nhinh thêm
