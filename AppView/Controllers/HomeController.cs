@@ -1835,10 +1835,10 @@ namespace AppView.Controllers
                 {
                     TempData["HoaDon"] = JsonConvert.SerializeObject(hoaDon);
 
-                    string returnUrl = "https://localhost:5001/Home/PaymentCallBack";
+                    string returnUrl = "https://localhost:5001/Home/CheckOutSuccess";
                     string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-                    string tmnCode = "RZZISK72";
-                    string hashSecret = "1MGOZCCX72BAUIO5JUD5XV0O1KWEULNC";
+                    string tmnCode = "NJJ0R8FS";
+                    string hashSecret = "BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW";
                     string ip = HttpContext.Connection.RemoteIpAddress?.ToString();
 
                     var order = new OrderInfo
@@ -1847,7 +1847,7 @@ namespace AppView.Controllers
                         Amount = hoaDon.TongTien,
                         CreatedDate = DateTime.Now,
                         OrderDesc = $"Thanh toán đơn hàng #{DateTime.Now.Ticks}",
-                        BankCode = "VNPAYQR"
+                        BankCode = ""
                     };
 
                     var vnpay = new VnPayLibrary();
@@ -1865,11 +1865,12 @@ namespace AppView.Controllers
                     vnpay.AddRequestData("vnp_TxnRef", order.OrderId.ToString());
                     vnpay.AddRequestData("vnp_ExpireDate", order.CreatedDate.AddMinutes(15).ToString("yyyyMMddHHmmss"));
                     vnpay.AddRequestData("vnp_BankCode", "");
-
-                    return check = vnpay.CreateRequestUrl(url, hashSecret);
+                    check = vnpay.CreateRequestUrl(url, hashSecret);
+                    return vnpay.CreateRequestUrl(url, hashSecret);
+                  
                 }
 
-                return check;
+                return "https://localhost:5001/Home/CheckOutSuccess";
             }
             catch (Exception ex)
             {
@@ -1886,7 +1887,7 @@ namespace AppView.Controllers
             {
                 if (Request.Query.Count > 0)
                 {
-                    string vnp_HashSecret = "1MGOZCCX72BAUIO5JUD5XV0O1KWEULNC"; //Chuoi bi mat
+                    string vnp_HashSecret = "BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW"; //Chuoi bi mat
                     var vnpayData = Request.Query;
                     VnPayLibrary vnpay = new VnPayLibrary();
 
