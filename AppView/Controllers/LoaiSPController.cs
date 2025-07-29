@@ -215,6 +215,14 @@ namespace AppView.Controllers
             }
             catch (Exception) { throw; }
         }
+        [HttpGet]
+        [HttpGet]
+        public async Task<IActionResult> GetLoaiSPCon(Guid idLoaiSPCha)
+        {
+            var response = await _httpClient.GetAsync($"https://localhost:7095/api/LoaiSP/GetLoaiSPCon?idLoaiSPCha={idLoaiSPCha}");
+            var data = await response.Content.ReadAsStringAsync();
+            return Content(data, "application/json");
+        }
 
         [HttpGet]
 

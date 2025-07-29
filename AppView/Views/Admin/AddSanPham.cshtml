@@ -1,63 +1,113 @@
 ﻿@model AppData.ViewModels.SanPham.SanPhamRequest
 
-<h1>Thêm sản phẩm</h1>
-
+<h1 class="mb-4 text-center">Thêm sản phẩm</h1>
 <hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="AddSanPham" enctype="multipart/form-data" id="formAddSanPham" onsubmit="return disableSubmit(this)">
+<form asp-action="AddSanPham" enctype="multipart/form-data" id="formAddSanPham" onsubmit="return disableSubmit(this)">
+    <div class="row">
+        <!-- Cột trái -->
+        <div class="col-md-6">
             <!-- Tên -->
-            <div class="form-group">
-                <label asp-for="Ten" class="control-label"></label>
+            <div class="form-group mb-3">
+                <label asp-for="Ten" class="control-label fw-bold"></label>
                 <input asp-for="Ten" class="form-control" autocomplete="off" />
                 <span asp-validation-for="Ten" class="text-danger"></span>
             </div>
+
             <!-- Mô tả -->
-            <div class="form-group">
-                <label asp-for="MoTa" class="control-label"></label>
+            <div class="form-group mb-3">
+                <label asp-for="MoTa" class="control-label fw-bold"></label>
                 <input asp-for="MoTa" class="form-control" autocomplete="off" />
                 <span asp-validation-for="MoTa" class="text-danger"></span>
             </div>
+
             <!-- CHẤT LIỆU -->
-            <div class="form-group">
-                <label for="ChatLieuID" class="control-label">Chất liệu</label>
-                <select name="IDChatLieu" id="ChatLieuID" class="form-select" style="width: 250px;"></select>
-                <button type="button" class="btn btn-success btn-sm" onclick="taoMoiChatLieu()">➕</button>
-            </div>
-            <!-- MÀU SẮC -->
-            <div class="form-group">
-                <label class="control-label">Màu sắc</label>
-                <div id="lstMauSac" class="d-flex flex-column gap-2"></div>
-                <input type="button" class="btn btn-primary mt-2" value="Thêm biến thể màu" onclick="themBienTheMauSac()" />
-                <input type="button" class="btn btn-primary mt-2" value="Thêm màu" onclick="taoMoiMauSac()" />
-            </div>
-            <!-- KÍCH CỠ -->
-            <div class="form-group">
-                <label class="control-label">Kích cỡ</label>
-                <div id="lstKichCo" class="d-flex flex-column gap-2"></div>
-                <input type="button" class="btn btn-primary mt-2" value="Thêm biến thể kích cỡ" onclick="themBienTheKichCo()" />
-                <input type="button" class="btn btn-primary mt-2" value="Thêm kích cỡ" onclick="taoMoiKichCo()" />
-            </div>
-            <!-- LOẠI SẢN PHẨM CHA & CON -->
-            <div class="form-group">
-                <label class="control-label">Loại sản phẩm</label>
+            <div class="form-group mb-3">
+                <label for="ChatLieuID" class="control-label fw-bold">Chất liệu</label>
                 <div class="d-flex gap-2">
-                    <select name="IDLoaiSPCha" id="LoaiSPChaID" class="form-select" style="width: 200px;" onchange="loadLoaiSPCon()"></select>
-                    <select name="IDLoaiSPCon" id="LoaiSPConID" class="form-select" style="width: 200px;"></select>
+                    <select name="IDChatLieu" id="ChatLieuID" class="form-select flex-grow-1"></select>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="taoMoiChatLieu()">➕</button>
                 </div>
             </div>
+
+            <!-- LOẠI SẢN PHẨM CHA & CON -->
+            <div class="form-group mb-3">
+                <label class="control-label fw-bold">Loại sản phẩm</label>
+                <div class="d-flex gap-2">
+                    <select name="IDLoaiSPCha" id="LoaiSPChaID" class="form-select" onchange="loadLoaiSPCon()"></select>
+                    <select name="IDLoaiSP" id="LoaiSPConID" class="form-select"></select>
+                </div>
+            </div>
+
             <!-- Ảnh đại diện -->
-            <div class="form-group">
-                <label class="control-label">Ảnh đại diện</label>
+            <div class="form-group mb-4">
+                <label class="control-label fw-bold">Ảnh đại diện</label>
                 <input type="file" name="file" class="form-control" accept="image/*" />
                 <span asp-validation-for="AnhDaiDien" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Thêm" class="btn btn-primary" />
+        </div>
+
+        <!-- Cột phải -->
+        <div class="col-md-6">
+            <!-- MÀU SẮC -->
+            <div class="form-group mb-3">
+                <label class="control-label fw-bold">Màu sắc</label>
+                <div id="lstMauSac" class="d-flex flex-wrap gap-2">
+                    <!-- JS sẽ render tại đây -->
+                </div>
+                <div class="d-flex gap-2 mt-2">
+                    <button type="button" class="btn btn-secondary btn-sm flex-grow-1" onclick="themBienTheMauSac()"> Thêm biến thể màu</button>
+                    <button type="button" class="btn btn-secondary btn-sm flex-grow-1" onclick="taoMoiMauSac()"> Thêm màu</button>
+                </div>
             </div>
-        </form>
+
+            <!-- KÍCH CỠ -->
+            <div class="form-group mb-3">
+                <label class="control-label fw-bold">Kích cỡ</label>
+                <div id="lstKichCo" class="d-flex flex-wrap gap-2">
+                    <!-- JS sẽ render tại đây -->
+                </div>
+                <div class="d-flex gap-2 mt-2">
+                    <button type="button" class="btn btn-secondary btn-sm flex-grow-1" onclick="themBienTheKichCo()"> Thêm biến thể kích cỡ</button>
+                    <button type="button" class="btn btn-secondary btn-sm flex-grow-1" onclick="taoMoiKichCo()"> Thêm kích cỡ</button>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+
+    <!-- Nút submit -->
+    <div class="form-group text-center mt-4">
+        <input type="submit" value=" Thêm sản phẩm" class="btn btn-secondary px-4 py-2" />
+    </div>
+</form>
+
+<style>
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-control, .form-select {
+        height: 42px;
+    }
+
+    .btn-secondary {
+        background: #6c757d !important;
+        color: #fff !important;
+        border: none;
+    }
+
+        .btn-secondary:hover {
+            background: #5a6268 !important;
+        }
+
+    .gap-2 {
+        gap: 8px;
+    }
+
+    #lstMauSac > div,
+    #lstKichCo > div {
+        width: 48%;
+    }
+</style>
 
 <script src="~/js/jquery-3.3.1.min.js"></script>
 <script>
@@ -98,10 +148,10 @@
         const cha = $("#LoaiSPChaID");
         cha.empty().append('<option value="">-- Chọn loại cha --</option>');
         res.forEach(x => {
-            cha.append(`<option value="${x.id}">${x.ten}</option>`);
+        cha.append(`<option value="${x.id}">${x.ten}</option>`);
         });
         });
-    });
+     });
 
     // --- Tạo mới Chất liệu ---
     function taoMoiChatLieu() {
@@ -237,19 +287,25 @@
     }
 
     // --- LOẠI SẢN PHẨM ---
-    function loadLoaiSPCon() {
-        const idCha = $("#LoaiSPChaID").val();
-        const con = $("#LoaiSPConID");
-        con.empty().append('<option value="">-- Chọn loại con --</option>');
+   function loadLoaiSPCon() {
+    const idCha = $("#LoaiSPChaID").val();
+    console.log("ID loại cha đã chọn:", idCha);
 
-        if (!idCha) return;
+    const con = $("#LoaiSPConID");
+    con.empty().append('<option value="">-- Chọn loại con --</option>');
 
-        $.get("/Admin/GetLoaiSPCon", { idLoaiSPCha: idCha }, function (res) {
+    if (!idCha) return;
+
+    $.get("/LoaiSP/GetLoaiSPCon", { idLoaiSPCha: idCha }, function (res) {
+        console.log("Loại con trả về:", res);
         res.forEach(x => {
             con.append(`<option value="${x.id}">${x.ten}</option>`);
         });
+    }).fail(function (xhr, status, err) {
+        console.error("Gọi API lỗi:", status, err);
     });
-    }
+}
+
 
     function disableSubmit(form) {
         const btn = form.querySelector('input[type="submit"], button[type="submit"]');

@@ -8,6 +8,26 @@
 }
 <link href="~/css/productdetail.css" rel="stylesheet" type="text/css" />
 <style>
+    /* Nút hỏi chấm góc trên bên phải */
+    .help-size-floating {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #6c757d;
+        color: #fff;
+        border: none;
+        text-align: center;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1000;
+    }
+
+        .help-size-floating:hover {
+            background: #495057;
+        }
     .icon-hover:hover {
         border-color: #3b71ca !important;
         background-color: white !important;
@@ -159,6 +179,10 @@
 </style>
 <div class="container mt-5 mb-5">
     <div class="card py-4">
+        <!-- Nút hỏi chấm -->
+        <button type="button" class="help-size-floating" id="helpSizeBtn" title="Hướng dẫn chọn size">
+            <i class="fas fa-question"></i>
+        </button>
         <div class="row g-0">
             <div class="col-md-5 border-end p-3">
                 <div class="d-flex flex-column justify-content-center">
@@ -225,12 +249,15 @@
                                 <label id="tronMau">
                                     <input type="radio" class="btn-check" id="btn-check-outlined_@item.GiaTri" autocomplete="off" value="@item.ID" name="color" onclick="getMauSac(this)" />
                                     <label for="btn-check-outlined_@item.GiaTri" style="background-color:@item.GiaTri;border:gray 1px solid;cursor:pointer" id="label_@item.ID">
+                                        @item.TenMau  <!-- Hiển thị tên màu sắc -->
                                     </label>
                                 </label>
+                               
                             }
-
                         </div>
                     </div>
+
+
                     <div class="mt-3">
                         <span class="fw-bold">Kích cỡ</span>
                         <div class="colors">
@@ -249,19 +276,24 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <span class="fw-bold">Số lượng</span>
-                        <div class="colors">
-                            <ul id="sizes" style="height:35px">
-                                <td class="quantity__item">
-                                    <div class="quantity">
-                                        <div class="pro-qty-2">
-                                            <input id="sl" style="width: 50px; border: none; text-align: center;" type="number" value="1">
-                                        </div>
-                                    </div>
-                                </td>
-                            </ul>
-                        </div>
-                    </div>
+    <div class="d-flex align-items-center">
+        <span class="fw-bold" style="margin-right: 10px;">Số lượng còn lại: </span>
+        @foreach (var item in Model.ChiTietSanPhams)
+        {
+            <span class="badge bg-light" style="border: 1px solid #ccc; padding: 5px 10px;">@item.SoLuong</span>
+        }
+    </div>
+
+    <div class="d-flex align-items-center mt-3">
+        <span class="fw-bold" style="margin-right: 10px;">Số lượng bán</span>
+        <div class="quantity">
+            <div class="pro-qty-2">
+                <input id="sl" style="width: 50px; border: none; text-align: center;" type="number" value="1">
+            </div>
+        </div>
+    </div>
+</div>
+
                     <div class="buttons d-flex flex-row mt-3">
                         <div class="d-flex w-50 fw-bold pr-2 ">
                             <button onclick="buyNow()" class="btn btn-block btn-outline-dark">MUA NGAY</button>
@@ -403,9 +435,68 @@
             </div>
         </div>
     </section>
+    <!-- Modal hướng dẫn chọn size -->
+    <div class="modal fade" id="helpSizeModal" tabindex="-1" aria-labelledby="helpSizeLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="helpSizeLabel">Hướng dẫn chọn size</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <p>👉 <b>Cách chọn size phù hợp:</b></p>
+                    <ul>
+                        <li>Đo chiều dài của bạn.</li>
+                        <li>So sánh với bảng size chuẩn:</li>
+                    </ul>
+                    <table class="table table-bordered text-center">
+                        <thead>
+                            <tr>
+                                <th>Chiều dài(cm)</th>
+                                <th>Size</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>22 - 22.5</td>
+                                <td>S</td>
+                            </tr>
+                            <tr>
+                                <td>23 - 23.5</td>
+                                <td>M</td>
+                            </tr>
+                            <tr>
+                                <td>24 - 24.5</td>
+                                <td>L</td>
+                            </tr>
+                            <tr>
+                                <td>25 - 25.5</td>
+                                <td>XL</td>
+                            </tr>
+                            <tr>
+                                <td>26 - 26.5</td>
+                                <td>2XL</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="text-muted small">*Nếu phân vân giữa 2 size, hãy chọn size lớn hơn.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đã hiểu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 <script src="~/js/jquery-3.3.1.min.js"></script>
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("helpSizeBtn").addEventListener("click", function () {
+            var helpModal = new bootstrap.Modal(document.getElementById('helpSizeModal'));
+            helpModal.show();
+        });
+    });
     var anhs = @Html.Raw(Json.Serialize(Model.Anhs));
     var chiTietSanPhams = @Html.Raw(Json.Serialize(Model.ChiTietSanPhams));
     var kichCos = @Html.Raw(Json.Serialize(Model.KichCos));
@@ -418,6 +509,7 @@
         console.log(chiTietSanPhams);
         var anhMacDinh = anhs.find(x => x.maMau == color).duongDan;
         document.getElementById("main_product_image").src = "/img/product/" + anhMacDinh;
+        document.getElementById("soLuongConLai").innerText = "Số lượng còn lại: " + chiTietSanPham.soLuong;
         if (chiTietSanPham.soLuong > 0){
             document.getElementById("trangthai").innerHTML = "Còn hàng"
         }else{
@@ -509,6 +601,12 @@
 
         }
         var chiTietSP = chiTietSanPhams.find(x => x.mauSac == element.value);
+        // Lấy thông tin tên màu sắc từ model
+        var colorName = Model.MauSacs.find(x => x.ID == element.value)?.Ten || "Không xác định";
+
+        // Cập nhật tên màu sắc trong giao diện
+        document.getElementById("colorName").innerText = colorName;
+
         //console.log(chiTietSP);
         var anh = anhs.find(x => x.maMau == element.value);
         var lstMauSacElement = document.getElementById("filter-color").children;
@@ -519,7 +617,7 @@
         }
         var label = document.getElementById("label_" + element.value);
         label.style.border = "2px black solid";
-        document.getElementById("main_product_image").src = "/img/product/" + anh.duongDan;
+        document.getElementById("main_product_image").src = anh.duongDan;
         document.getElementById("maSP").innerHTML = chiTietSP.maCTSP;
         document.getElementById("giaCTSP").innerHTML = Intl.NumberFormat().format(chiTietSP.giaBan) + " " + "VNĐ";
         if (chiTietSP.soLuong > 0) {

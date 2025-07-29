@@ -68,3 +68,7 @@ artifacts/
 /AppView/wwwroot/img/product/0ec5a82f0249bc4dbf091afbeac302ee230503769251250167254228952.jpg
 /AppView/wwwroot/img/product/0ec5a82f0249bc4dbf091afbeac302ee230503769251250167255447360.jpg
 /AppData/Migrations/AssignmentDBContextModelSnapshot.cs
+/AppView/appsettings.json
+/AppAPI/appsettings.json
+/.gitignore
+/.gitignore
