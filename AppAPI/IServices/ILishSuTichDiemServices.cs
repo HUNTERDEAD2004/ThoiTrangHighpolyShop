@@ -14,5 +14,9 @@ namespace AppAPI.IServices
         public Task<List<LichSuTichDiemTieuDiemViewModel>> GetALLLichSuTichDiembyIdUser(Guid idKhachHang);
         public Task<List<DonMuaChiTietViewModel>> getAllDonMuaChiTiet(Guid idHoaDon);
         public Task<ChiTietHoaDonDanhGiaViewModel> getCTHDDanhGia (Guid idcthd);
+
+        void AddPoint(Guid hoaDonId, string maKH, int diem, int trangThai, Guid idQuyDoi);
+        void UpdateCustomerPoint(string maKH, int diem);
+        void ReduceCustomerPoint(string maKH, int diem);
     }
 }

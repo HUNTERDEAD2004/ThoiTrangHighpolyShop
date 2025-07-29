@@ -17,7 +17,6 @@ namespace AppData.Models
         public DateTime? NgayDanhGia { get; set; }
         public Guid IDKhachHang { get; set; }
         public int TrangThai { get; set; }
-        public virtual ChiTietHoaDon? ChiTietHoaDon { get; set; }
         public virtual KhachHang? KhachHang { get; set; }
     }
 }

@@ -1837,8 +1837,8 @@ namespace AppView.Controllers
 
                     string returnUrl = "https://localhost:5001/Home/PaymentCallBack";
                     string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-                    string tmnCode = "RZZISK72";
-                    string hashSecret = "1MGOZCCX72BAUIO5JUD5XV0O1KWEULNC";
+                    string tmnCode = "NJJ0R8FS";
+                    string hashSecret = "BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW";
                     string ip = HttpContext.Connection.RemoteIpAddress?.ToString();
 
                     var order = new OrderInfo
@@ -1886,7 +1886,7 @@ namespace AppView.Controllers
             {
                 if (Request.Query.Count > 0)
                 {
-                    string vnp_HashSecret = "1MGOZCCX72BAUIO5JUD5XV0O1KWEULNC"; //Chuoi bi mat
+                    string vnp_HashSecret = "BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW"; //Chuoi bi mat
                     var vnpayData = Request.Query;
                     VnPayLibrary vnpay = new VnPayLibrary();
 

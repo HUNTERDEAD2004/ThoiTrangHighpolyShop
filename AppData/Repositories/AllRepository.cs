@@ -13,10 +13,7 @@ namespace AppData.Repositories
     {
         private readonly AssignmentDBContext context;
         private readonly DbSet<T> dbset;
-        public AllRepository()
-        {
 
-        }
         public AllRepository(AssignmentDBContext context, DbSet<T> dbset)
         {
             this.context = context;

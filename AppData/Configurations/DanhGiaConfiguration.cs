@@ -18,8 +18,7 @@ namespace AppData.Configurations
             builder.Property(x => x.BinhLuan).HasColumnType("nvarchar(100)");
             builder.Property(x => x.Sao).HasColumnType("int");
             builder.Property(x => x.NgayDanhGia).HasColumnType("datetime");
-            builder.Property(x => x.TrangThai).HasColumnType("int");
-            builder.HasOne(x => x.ChiTietHoaDon).WithOne(x => x.DanhGia).HasForeignKey<ChiTietHoaDon>().OnDelete(DeleteBehavior.Restrict);
+            builder.Property(x => x.TrangThai).HasColumnType("int");         
             builder.HasOne(x => x.KhachHang).WithMany(x => x.DanhGias).HasForeignKey(x => x.IDKhachHang);
         }
     }

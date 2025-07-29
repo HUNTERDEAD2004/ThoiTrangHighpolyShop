@@ -90,6 +90,7 @@ namespace AppData.Migrations
             modelBuilder.Entity("AppData.Models.ChiTietHoaDon", b =>
                 {
                     b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("DonGia")
@@ -824,12 +825,6 @@ namespace AppData.Migrations
 
             modelBuilder.Entity("AppData.Models.ChiTietHoaDon", b =>
                 {
-                    b.HasOne("AppData.Models.DanhGia", "DanhGia")
-                        .WithOne("ChiTietHoaDon")
-                        .HasForeignKey("AppData.Models.ChiTietHoaDon", "ID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("AppData.Models.ChiTietSanPham", "ChiTietSanPham")
                         .WithMany("ChiTietHoaDons")
                         .HasForeignKey("IDCTSP")
@@ -843,8 +838,6 @@ namespace AppData.Migrations
                         .IsRequired();
 
                     b.Navigation("ChiTietSanPham");
-
-                    b.Navigation("DanhGia");
 
                     b.Navigation("HoaDon");
                 });
@@ -1056,11 +1049,6 @@ namespace AppData.Migrations
                     b.Navigation("ChiTietGioHangs");
 
                     b.Navigation("ChiTietHoaDons");
-                });
-
-            modelBuilder.Entity("AppData.Models.DanhGia", b =>
-                {
-                    b.Navigation("ChiTietHoaDon");
                 });
 
             modelBuilder.Entity("AppData.Models.GioHang", b =>
