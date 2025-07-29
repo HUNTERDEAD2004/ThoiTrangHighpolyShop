@@ -205,20 +205,20 @@
     var pageSizesp = 10;// Tối đa 10sp 1 trang
     var pageIndexsp = 1;//Trang ban đầu
     $(document).ready(function () {
-        loadsp();
-        //if (@lsthdcho.Count == 0) {
-        //    addHDCho();
-        //}
-        activeTab(0);
-        $(function () {
-            $(document).on("click", ".tab", function (e) {
-                e.preventDefault();
-                $(".tab").removeClass("active");
-                $(this).addClass("active");
-            });
+        // không gọi loadsp() ở đây nữa
+        loadHDCHO(function () {
+            activeTab(0);
         });
-        $("#resultsp").css("display","none");
-    })
+
+        $(document).on("click", ".tab", function (e) {
+            e.preventDefault();
+            $(".tab").removeClass("active");
+            $(this).addClass("active");
+        });
+
+        $("#resultsp").css("display", "none");
+    });
+
     //TabActive
     function activeTab(index) {
         var allTabs = $(".tabs-box .tab");
@@ -297,38 +297,43 @@
                 dataType: "json"
             });
             $(".tabs-box").empty();
-            //if (data.length === 0) {
-            //    addHDCho();
-            //}
+
             for (let i = 0; i < data.length; i++) {
                 const item = data[i];
                 const itemID = item.id;
                 const index = i + 1;
-                if(item.trangThaiGiaoHang === 1){
+                if (item.trangThaiGiaoHang === 1) {
                     $(".tabs-box").append(`
                         <li class="tab" onclick="gethdct('${itemID}')">
                             <span value="${itemID}">
-                            <a>Hoá đơn ${index}</a>
-                            <a style="padding-left: 10px;" onclick="deleteHDCho('${itemID}')" title="Xóa"><i class="fas fa-times"></i></a>
+                                <a>Hoá đơn ${index}</a>
+                                <a style="padding-left: 10px;" onclick="deleteHDCho('${itemID}')" title="Xóa"><i class="fas fa-times"></i></a>
                             </span>
-                        </li>
-                        `);
-                }else{
+                        </li>`);
+                } else {
                     $(".tabs-box").append(`
                         <li class="tab" onclick="gethdct('${itemID}')">
                             <span value="${itemID}">
-                            <a>${item.ghiChu}</a>
-                            <a style="padding-left: 10px;" onclick="deleteHDCho('${itemID}')" title="Xóa"><i class="fas fa-times"></i></a>
+                                <a>${item.ghiChu}</a>
+                                <a style="padding-left: 10px;" onclick="deleteHDCho('${itemID}')" title="Xóa"><i class="fas fa-times"></i></a>
                             </span>
-                        </li>
-                        `);
-                };
+                        </li>`);
+                }
             }
+
+            // ✅ Kiểm tra có hóa đơn hay không
+            if (data.length > 0) {
+                toggleProductSection(true);  // Có hóa đơn → hiện sản phẩm
+            } else {
+                toggleProductSection(false); // Không có hóa đơn → ẩn sản phẩm
+            }
+
             setTimeout(callback, 50);
         } catch (error) {
             console.log('Error:', error);
         }
     }
+
     //THÊM HÓA ĐƠN CHỜ
     function addHDCho() {
         $.ajax({
@@ -350,28 +355,39 @@
             }
         });
     }
-    //Xóa hóa đơn chờ
+    // Xóa hóa đơn chờ
     function deleteHDCho(idhd) {
         var ans = confirm("Bạn có chắc chắn xóa Đơn Nháp này?");
-        if (ans) {
-            $.ajax({
-                url: "https://localhost:7095/api/HoaDon/deleteHoaDon/" + idhd,
-                type: "DELETE",
-                dataType: 'json',
-                contentType: 'application/json',
-                success: function (response) {
-                    $("#partialGioHang").empty();
-                    loadHDCHO(function () {
+        if (!ans) return;
+
+        $.ajax({
+            url: "https://localhost:7095/api/HoaDon/deleteHoaDon/" + idhd,
+            type: "DELETE",
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (response) {
+                $("#partialGioHang").empty(); // Xóa giỏ hàng đang hiển thị
+
+                // Load lại danh sách hóa đơn
+                loadHDCHO(function () {
+                    var remainingTabs = $(".tabs-box .tab");
+
+                    if (remainingTabs.length > 0) {
+                        // ✅ Vẫn còn hóa đơn → chọn lại hóa đơn đầu tiên
                         activeTab(0);
-                    });
-                    loadsp();
-                },
-                error: function (response) {
-                    toastr.error('Xóa thất bại', 'Error Alert', { timeOut: 300 });
-                }
-            });
-        }
+                    } else {
+                        // ❌ Không còn hóa đơn nào → ẩn hoàn toàn sản phẩm
+                        $(".product-list").empty(); // Xóa luôn sản phẩm đang hiển thị
+                        $(".d-flex.flex-column.p-2.mt-3.border-0.rounded-3.bg-white").hide(); // Ẩn container sản phẩm
+                    }
+                });
+            },
+            error: function (response) {
+                toastr.error('Xóa thất bại', 'Error Alert', { timeOut: 300 });
+            }
+        });
     }
+
     //Thêm SP vào Hóa đơn
     function addCTSP(idctsp) {
         var activeTab = $(".tabs-box .tab").filter(".active");
@@ -592,4 +608,14 @@
             }
         });
     }
+    // hàm toggleProductSection
+    function toggleProductSection(hasInvoice) {
+        if (hasInvoice) {
+            $(".product-list").closest(".d-flex").show();  // hiện cả khung sản phẩm
+            loadsp(); // chỉ load sản phẩm khi có hóa đơn
+        } else {
+            $(".product-list").closest(".d-flex").hide();  // ẩn hoàn toàn khung sản phẩm
+        }
+    }
+
 </script>

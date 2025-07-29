@@ -19,41 +19,29 @@ namespace AppAPI.Services
         #region SanPham
         public async Task<bool> UpdateSanPham(SanPhamUpdateRequest request)
         {
-            try
+            var existing = await _context.SanPhams.FirstOrDefaultAsync(x => x.ID == request.ID);
+            if (existing == null) return false;
+
+            existing.Ten = request.Ten;
+            existing.AnhDaiDien = request.AnhDaiDien;
+            existing.MoTa = request.MoTa;
+            existing.IDChatLieu = request.IDChatLieu;
+
+            // Gán IDLoaiSP theo logic cha/con
+            if (request.IDLoaiSPCon.HasValue && request.IDLoaiSPCon != Guid.Empty)
             {
-                var sanpham = await _context.SanPhams.FirstAsync(x => x.ID == request.ID);
-                LoaiSP? loaiSPCon = _context.LoaiSPs.Where(x => x.IDLoaiSPCha != null).FirstOrDefault(x => x.Ten == request.TenLoaiSPCon);
-                ChatLieu? chatLieu = _context.ChatLieus.FirstOrDefault(x => x.Ten == request.TenChatLieu);
-                if (loaiSPCon == null)
-                {
-                    LoaiSP? loaiSPCha = _context.LoaiSPs.Where(x => x.IDLoaiSPCha == null).FirstOrDefault(x => x.Ten == request.TenLoaiSPCha);
-                    if (loaiSPCha == null)
-                    {
-                        loaiSPCha = new LoaiSP() { ID = Guid.NewGuid(), Ten = request.TenLoaiSPCha, TrangThai = 1 };
-                        _context.LoaiSPs.AddAsync(loaiSPCha);
-                    }
-                    loaiSPCon = new LoaiSP() { ID = Guid.NewGuid(), Ten = request.TenLoaiSPCon, IDLoaiSPCha = loaiSPCha.ID, TrangThai = 1 };
-                    await _context.LoaiSPs.AddAsync(loaiSPCon);
-                }
-                if (chatLieu == null)
-                {
-                    chatLieu = new ChatLieu() { ID = Guid.NewGuid(), Ten = request.TenChatLieu, TrangThai = 1 };
-                    await _context.AddAsync(chatLieu);
-                }
-                sanpham.Ten = request.Ten;
-                sanpham.MoTa = request.MoTa;
-                sanpham.AnhDaiDien = request.AnhDaiDien;
-                sanpham.IDChatLieu = chatLieu.ID;
-                sanpham.IDLoaiSP = loaiSPCon.ID;
-                _context.SanPhams.Update(sanpham);
-                _context.SaveChanges();
-                return true;
+                existing.IDLoaiSP = request.IDLoaiSPCon.Value;
             }
-            catch
+            else
             {
-                return false;
+                existing.IDLoaiSP = request.IDLoaiSPCha;
             }
+
+            _context.SanPhams.Update(existing);
+            await _context.SaveChangesAsync();
+            return true;
         }
+
         public Task<List<SanPhamViewModel>> TimKiemSanPham(SanPhamTimKiemNangCao sp)
         {
             throw new NotImplementedException();
@@ -68,14 +56,18 @@ namespace AppAPI.Services
             {
                 var sanPham = await _context.SanPhams.FirstAsync(x => x.ID == id);
                 var loaiSP = await _context.LoaiSPs.FirstAsync(x => x.ID == sanPham.IDLoaiSP);
+
+                // Nếu là loại con thì lấy cha, nếu không thì cha là chính nó
+                Guid idLoaiSPCha = loaiSP.IDLoaiSPCha ?? loaiSP.ID;
+                Guid? idLoaiSPCon = loaiSP.IDLoaiSPCha != null ? loaiSP.ID : null;
                 var response = new SanPhamUpdateRequest()
                 {
                     ID = sanPham.ID,
                     Ten = sanPham.Ten,
                     MoTa = sanPham.MoTa,
-                    TenChatLieu = _context.ChatLieus.First(x => x.ID == sanPham.IDChatLieu).Ten,
-                    TenLoaiSPCha = _context.LoaiSPs.First(x => x.ID == loaiSP.IDLoaiSPCha).Ten,
-                    TenLoaiSPCon = loaiSP.Ten
+                    IDChatLieu = sanPham.IDChatLieu,
+                    IDLoaiSPCha = idLoaiSPCha,
+                    IDLoaiSPCon = idLoaiSPCon
                 };
                 return response;
             }
@@ -84,6 +76,7 @@ namespace AppAPI.Services
                 return new SanPhamUpdateRequest();
             }
         }
+
         public List<SanPhamViewModelAdmin> GetAllSanPhamAdmin()
         {
             try
@@ -467,7 +460,14 @@ namespace AppAPI.Services
                 var mauSacIds = lstChiTietSanPham.Select(x => x.IDMauSac).Distinct().ToList();
                 var kichCoIds = lstChiTietSanPham.Select(x => x.IDKichCo).Distinct().ToList();
 
-                var mauSacs = await _context.MauSacs.Where(x => mauSacIds.Contains(x.ID)).ToListAsync();
+                //var mauSacs = await _context.MauSacs.Where(x => mauSacIds.Contains(x.ID)).ToListAsync();
+                var mauSacs = await _context.MauSacs.Where(x => mauSacIds.Contains(x.ID))
+            .Select(x => new GiaTriViewModel
+            {
+                ID = x.ID,
+                GiaTri = x.Ma,     // Mã màu
+                TenMau = x.Ten    // Tên màu sắc
+            }).ToListAsync();
                 var kichCos = await _context.KichCos.Where(x => kichCoIds.Contains(x.ID)).ToListAsync();
 
                 var anhList = await (from a in _context.Anhs
@@ -481,7 +481,7 @@ namespace AppAPI.Services
                     Ten = sanPham.Ten,
                     MoTa = sanPham.MoTa,
                     Anhs = anhList.Select(x => new AnhRequest { DuongDan = x }).ToList(),
-                    MauSacs = mauSacs.Select(x => new GiaTriViewModel { ID = x.ID, GiaTri = x.Ma }).ToList(),
+                    MauSacs = mauSacs, // Trả về tên màu sắc và mã màu
                     KichCos = kichCos.OrderByDescending(x => x.Ten).Select(x => new GiaTriViewModel { ID = x.ID, GiaTri = x.Ten }).ToList(),
                     ChiTietSanPhams = new List<ChiTietSanPhamViewModel>()
                 };
@@ -1126,7 +1126,9 @@ namespace AppAPI.Services
                                     GiaBan = km == null ? ctsp.GiaBan :
                                     (km.TrangThai == 1 ? (int)(ctsp.GiaBan / 100 * (100 - km.GiaTri)) :
                                     (km.GiaTri < ctsp.GiaBan ? (ctsp.GiaBan - (int)km.GiaTri) : 0)),
-                                    KhuyenMai = (km == null ? null : km.GiaTri)
+                                    KhuyenMai = (km == null ? null : km.GiaTri),
+
+                                    SoLuongSP = ctsp.SoLuong,
                                 }).ToListAsync();
             return result;
         }

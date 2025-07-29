@@ -10,5 +10,6 @@ namespace AppData.ViewModels.SanPham
     {
         public Guid ID { get; set; }
         public string GiaTri { get; set; }
+        public string TenMau { get; set; }
     }
 }

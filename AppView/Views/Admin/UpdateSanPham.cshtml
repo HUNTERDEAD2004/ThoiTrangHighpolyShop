@@ -1,11 +1,15 @@
-﻿@model AppData.ViewModels.SanPham.SanPhamRequest
+﻿@model AppData.ViewModels.SanPham.SanPhamUpdateRequest
 
 <h1>Cập nhật sản phẩm</h1>
 
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="UpdateSanPham" enctype="multipart/form-data" id="formUpdateSanPham" onsubmit="return disableSubmit(this)">
+        <form asp-action="UpdateSanPham" method="post" enctype="multipart/form-data" id="formUpdateSanPham" onsubmit="return disableSubmit(this)">
+            
+            <!--ID ẩn để cập nhật đúng sản phẩm -->
+            <input type="hidden" asp-for="ID" />
+
             <!-- Tên -->
             <div class="form-group">
                 <label asp-for="Ten" class="control-label"></label>
@@ -23,7 +27,7 @@
             <!-- Chất liệu -->
             <div class="form-group">
                 <label for="ChatLieuID" class="control-label">Chất liệu</label>
-                <select name="IDChatLieu" id="ChatLieuID" class="form-select" style="width: 250px;"></select>
+                <select id="ChatLieuID" asp-for="IDChatLieu" asp-items="ViewBag.ChatLieus" class="form-control"></select>
                 <button type="button" class="btn btn-success btn-sm" onclick="taoMoiChatLieu()">➕</button>
             </div>
 
@@ -31,8 +35,8 @@
             <div class="form-group">
                 <label class="control-label">Loại sản phẩm</label>
                 <div class="d-flex gap-2">
-                    <select name="IDLoaiSPCha" id="LoaiSPChaID" class="form-select" style="width: 200px;" onchange="loadLoaiSPCon()"></select>
-                    <select name="IDLoaiSPCon" id="LoaiSPConID" class="form-select" style="width: 200px;"></select>
+                    <select id="LoaiSPChaID" asp-for="IDLoaiSPCha" asp-items="ViewBag.LoaiSPChas" class="form-control" onchange="loadLoaiSPCon()"></select>
+                    <select id="LoaiSPConID" asp-for="IDLoaiSPCon" asp-items="ViewBag.LoaiSPCons" class="form-control"></select>
                 </div>
             </div>
 
@@ -50,6 +54,7 @@
     </div>
 </div>
 
+
 <script>
     $(document).ready(function () {
         // Load chất liệu
@@ -57,40 +62,43 @@
             const select = $("#ChatLieuID");
             select.empty().append('<option value="">-- Chọn chất liệu --</option>');
             res.forEach(x => {
-                const selected = "@Model.IDChatLieu" === x.id ? "selected" : "";
+                const selected = x.id.toLowerCase() === "@(Model.IDChatLieu.ToString().ToLower())" ? "selected" : "";
                 select.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
             });
         });
 
-        // Load loại sản phẩm cha
-        $.get("/Admin/GetLoaiSPCha", function (res) {
-            const cha = $("#LoaiSPChaID");
-            cha.empty().append('<option value="">-- Chọn loại cha --</option>');
-            res.forEach(x => {
-                const selected = "@Model.IDLoaiSPCha" === x.id ? "selected" : "";
-                cha.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
-            });
-
-            if ("@Model.IDLoaiSPCha") {
-                loadLoaiSPCon("@Model.IDLoaiSPCon");
-            }
+        // Load lại LoạiSP cha và con
+    $.get("/Admin/GetLoaiSPCha", function (res) {
+        const cha = $("#LoaiSPChaID");
+        cha.empty().append('<option value="">-- Chọn loại cha --</option>');
+        res.forEach(x => {
+            const selected = x.id === selectedLoaiCha ? "selected" : "";
+            cha.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
         });
+
+        if (selectedLoaiCha) {
+            loadLoaiSPCon(selectedLoaiCon);
+        }
     });
 
-    function loadLoaiSPCon(selectedConID = "") {
-        const idCha = $("#LoaiSPChaID").val();
-        const con = $("#LoaiSPConID");
-        con.empty().append('<option value="">-- Chọn loại con --</option>');
+    // Load chất liệu nếu bạn muốn gọi lại từ API (nếu không thì ViewBag đủ rồi)
+    // Không cần gọi lại nếu ViewBag.ChatLieus đã có và dùng SelectList đúng
+});
 
-        if (!idCha) return;
+function loadLoaiSPCon(selectedID = "") {
+    const idCha = $("#LoaiSPChaID").val();
+    const con = $("#LoaiSPConID");
+    con.empty().append('<option value="">-- Chọn loại con --</option>');
 
-        $.get("/Admin/GetLoaiSPCon", { idLoaiSPCha: idCha }, function (res) {
-            res.forEach(x => {
-                const selected = selectedConID == x.id ? "selected" : "";
-                con.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
-            });
+    if (!idCha) return;
+
+    $.get("/LoaiSP/GetLoaiSPCon", { idLoaiSPCha: idCha }, function (res) {
+        res.forEach(x => {
+            const selected = x.id === selectedID ? "selected" : "";
+            con.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
         });
-    }
+    });
+}
 
     function taoMoiChatLieu() {
         const ten = prompt("Nhập tên chất liệu mới:");

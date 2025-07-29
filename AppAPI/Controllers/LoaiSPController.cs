@@ -57,18 +57,15 @@ namespace AppAPI.Controllers
             return Ok();
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetLoaiSpTheoCha(Guid id)
+        [HttpGet("GetLoaiSPCon")]
+        public async Task<IActionResult> GetLoaiSPCon(Guid idLoaiSPCha)
         {
-            // Lấy danh sách các LoaiSPCha
-            var listLoaiSpTheoCha = await context.LoaiSPs
-              .Where(lsp => lsp.IDLoaiSPCha == id)
-              .ToListAsync();
-            if (listLoaiSpTheoCha == null)
-            {
-                return BadRequest();
-            }
-            return Ok(listLoaiSpTheoCha);
+            var loaiCons = await context.LoaiSPs
+                .Where(x => x.IDLoaiSPCha == idLoaiSPCha)
+                .Select(x => new { id = x.ID, ten = x.Ten })
+                .ToListAsync();
+
+            return Ok(loaiCons);
         }
         [HttpPost]
         public async Task<IActionResult> AddLoaiSPCha(Guid idLoaiSPCha, string ten, int trangthai)

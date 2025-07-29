@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using QRCoder;
 using System.Drawing;
 using System.Drawing.Imaging;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AppView.Controllers
 {
@@ -406,6 +407,7 @@ namespace AppView.Controllers
                 return Json(new { status = false });
             }
         }
+
         [HttpGet]
         public IActionResult QuanLyAnhChiTiet(Guid idSanPham)
         {
@@ -685,18 +687,42 @@ namespace AppView.Controllers
             }
         }
         [HttpGet]
-        public IActionResult UpdateSanPham(Guid id)
+public async Task<IActionResult> UpdateSanPham(Guid id)
+{
+    try
+    {
+        // Lấy thông tin sản phẩm
+        var response = await _httpClient.GetFromJsonAsync<SanPhamUpdateRequest>($"SanPham/GetSanPhamById?id={id}");
+
+        // Load danh sách chất liệu
+        var chatLieus = await _httpClient.GetFromJsonAsync<List<ChatLieu>>("SanPham/GetAllChatLieu");
+        ViewBag.ChatLieus = new SelectList(chatLieus, "ID", "Ten", response.IDChatLieu);
+
+        // Load danh sách loại sản phẩm cha
+        var loaiSPChas = await _httpClient.GetFromJsonAsync<List<LoaiSP>>("SanPham/GetAllLoaiSPCha");
+        ViewBag.LoaiSPChas = new SelectList(loaiSPChas, "ID", "Ten", response.IDLoaiSPCha);
+
+        // Load danh sách loại sản phẩm con theo cha
+        if (response.IDLoaiSPCha != Guid.Empty)
         {
-            try
-            {
-                var response = JsonConvert.DeserializeObject<SanPhamUpdateRequest>(_httpClient.GetAsync("SanPham/GetSanPhamById?id=" + id).Result.Content.ReadAsStringAsync().Result);
-                return View(response);
-            }
-            catch
-            {
-                return View(new SanPhamUpdateRequest());
-            }
+            var loaiSPCons = await _httpClient.GetFromJsonAsync<List<LoaiSP>>(
+                $"SanPham/GetAllLoaiSPCon?idLoaiSPCha={response.IDLoaiSPCha}");
+
+            ViewBag.LoaiSPCons = new SelectList(loaiSPCons, "ID", "Ten", response.IDLoaiSPCon);
         }
+        else
+        {
+            ViewBag.LoaiSPCons = new SelectList(new List<LoaiSP>(), "ID", "Ten");
+        }
+
+        return View(response);
+    }
+    catch
+    {
+        return View(new SanPhamUpdateRequest());
+    }
+}
+
         [HttpPost]
         public IActionResult UpdateSanPham(SanPhamUpdateRequest request)
         {
