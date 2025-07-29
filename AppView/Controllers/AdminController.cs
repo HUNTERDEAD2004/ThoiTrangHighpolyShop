@@ -286,6 +286,7 @@ namespace AppView.Controllers
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> AddSanPham(IFormFile file, SanPhamRequest sanPhamRequest)
         {

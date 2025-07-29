@@ -13,13 +13,20 @@ namespace AppData.ViewModels.SanPham
         public string Email { get; set; }
         public string SDT { get; set; }
         public string DiaChi { get; set; }
+
         public string PhuongThucThanhToan { get; set; }
-        public int TongTien { get; set; }
+        public Guid? IDPhuongThucTT { get; set; } // ➕ nếu frontend cần
+
+        public decimal TongTien { get; set; } // ✅ sửa từ int → decimal
         public int DiemTich { get; set; }
         public int DiemSuDung { get; set; }
+
         public string MaVoucher { get; set; }
         public bool Login { get; set; }
         public string GhiChu { get; set; }
+        public Guid? IDDiaChi { get; set; }
+
         public List<GioHangRequest> GioHangs { get; set; }
     }
+
 }

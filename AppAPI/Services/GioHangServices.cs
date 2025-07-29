@@ -4,6 +4,7 @@ using AppData.Models;
 using AppData.Repositories;
 using AppData.ViewModels;
 using AppData.ViewModels.SanPham;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppAPI.Services
 {
@@ -124,21 +125,31 @@ namespace AppAPI.Services
         {
             try
             {
-                var temp = context.ChiTietGioHangs.FirstOrDefault(x => x.IDKhachHang == chiTietGioHang.IDKhachHang && x.IDCTSP == chiTietGioHang.IDCTSP);
-                if (temp != null)
+                
+                var existingItem = await context.ChiTietGioHangs.FirstOrDefaultAsync(x =>
+                    x.IDKhachHang == chiTietGioHang.IDKhachHang &&
+                    x.IDCTSP == chiTietGioHang.IDCTSP);
+
+                if (existingItem != null)
                 {
-                    temp.SoLuong += chiTietGioHang.SoLuong;
-                    context.ChiTietGioHangs.Update(temp);
+                   
+                    existingItem.SoLuong += chiTietGioHang.SoLuong;
+                    
                 }
                 else
                 {
+                    
                     context.ChiTietGioHangs.Add(chiTietGioHang);
                 }
+
                 await context.SaveChangesAsync();
                 return true;
             }
             catch (Exception e)
             {
+                
+                Console.WriteLine(e.ToString()); 
+                                               
                 return false;
             }
         }

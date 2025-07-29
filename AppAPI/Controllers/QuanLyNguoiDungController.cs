@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -33,7 +34,6 @@ namespace AppAPI.Controllers
         }
 
 
-        // POST api/<DangNhapController>
         [HttpGet("DangNhap")]
         public async Task<IActionResult> Login(string lg, string password)
         {
@@ -41,7 +41,10 @@ namespace AppAPI.Controllers
 
             if (login.Message == "Đăng nhập thành công")
             {
-                return Ok(login); // ✅ thành công
+                // ✅ Gán session ở đây
+                HttpContext.Session.SetString("LoginInfor", JsonConvert.SerializeObject(login));
+
+                return Ok(login);
             }
 
             if (login.IsAccountLocked)
@@ -49,11 +52,12 @@ namespace AppAPI.Controllers
                 return Unauthorized(new { error = login.Message });
             }
 
-            return BadRequest(new { error = login.Message }); // ❌ chỉ khi thực sự có lỗi
+            return BadRequest(new { error = login.Message });
         }
 
 
-     
+
+
 
 
 

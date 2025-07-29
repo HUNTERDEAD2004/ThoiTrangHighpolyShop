@@ -49,5 +49,20 @@ namespace AppAPI.Controllers
             var diaChi = await _diaChiService.GetDefaultDiaChiAsync(id);
             return diaChi == null ? NotFound("Không có địa chỉ mặc định") : Ok(diaChi);
         }
+
+        [HttpPost("{khachHangId}/datmacdinh/{diaChiId}")]
+        public async Task<IActionResult> SetDefault(Guid khachHangId, Guid diaChiId)
+        {
+            var result = await _diaChiService.SetDefaultDiaChiAsync(khachHangId, diaChiId);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+        [HttpGet("diachi/{diaChiId}")]
+        public async Task<IActionResult> GetDiaChiById(Guid diaChiId)
+        {
+            var diaChi = await _diaChiService.GetDiaChiByIdAsync(diaChiId);
+            return diaChi == null ? NotFound("Không tìm thấy địa chỉ") : Ok(diaChi);
+        }
+
     }
 }
