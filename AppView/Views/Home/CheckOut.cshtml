@@ -3,7 +3,7 @@
 @using Newtonsoft.Json;
 @{
     LoginViewModel loginInfor = new LoginViewModel();
-    string? session = Context.Session.GetString("LoginInfor");
+    string session = Context.Session.GetString("LoginInfor");
     if (session != null)
     {
         loginInfor = JsonConvert.DeserializeObject<LoginViewModel>(Context.Session.GetString("LoginInfor"));
@@ -13,13 +13,7 @@
     long tienship = 0;
     Layout = "_Layout";
 }
-<style>
-    a:hover {
-        text-decoration: none;
-        outline: none;
-        color: black;
-    }
-</style>
+
 <!-- Breadcrumb Section Begin -->
 <section class="breadcrumb-option">
     <div class="container">
@@ -44,18 +38,13 @@
         <div class="checkout__form">
             <div class="row">
                 <div class="col-lg-8 col-md-6">
-                    @*                     <h6 class="coupon__code">
-                    <span class="icon_tag_alt"></span>Có phiếu giảm giá?<a href="#">
-                    Bấm vào đây
-                    </a> ể nhập mã của bạn
-                    </h6> *@
                     <h6 class="checkout__title">Chi tiết thanh toán</h6>
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="checkout__input">
                                 <label for="ten">Tên</label>
-                                <input type="text" class="form-control" id="name" placeholder="" value="@loginInfor.Ten" required="" style="height:38px">
-                                <div class="invalid-feedback"> Không để trống tên</div>
+                                <input type="text" class="form-control" id="name" placeholder="Nhập tên" value="@loginInfor.Ten" required>
+                                <div class="invalid-feedback">Không để trống tên</div>
                             </div>
                         </div>
                     </div>
@@ -63,51 +52,97 @@
                         <div class="col-lg-6">
                             <div class="checkout__input">
                                 <label for="sdt">SĐT</label>
-                                <input type="text" class="form-control" id="phone" placeholder="" value="@loginInfor.SDT" required="" style="height:38px">
-                                <div class="invalid-feedback"> Không để trống SDT </div>
+                                <input type="text" class="form-control" id="phone" placeholder="Nhập số điện thoại" value="@loginInfor.SDT" required>
+                                <div class="invalid-feedback">Không để trống SĐT</div>
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="checkout__input">
                                 <label for="email">Email</label>
-                                <input type="text" class="form-control" id="email" placeholder="" value="@loginInfor.Email" required="" style="height:38px">
-                                <div class="invalid-feedback"> Không để trống email </div>
+                                <input type="text" class="form-control" id="email" placeholder="Nhập email" value="@loginInfor.Email" required>
+                                <div class="invalid-feedback">Không để trống email</div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="checkout__input">
-                                <label for="tinh">Tỉnh</label>
-                                <select class="custom-select d-block w-100" id="province" required="">
-                                    <option selected id="dfprovince">--------------------Chọn tỉnh--------------------</option>
+                                <label for="province">Tỉnh</label>
+                                <select class="custom-select d-block w-100" id="province" required>
+                                    <option value="">-- Chọn tỉnh --</option>
                                 </select>
-                                <div class="invalid-feedback"> Tên hợp lệ là bắt buộc. </div>
+                                <div class="invalid-feedback">Vui lòng chọn tỉnh</div>
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="checkout__input">
-                                <label for="huyen">Huyện</label>
-                                <select class="custom-select d-block w-100" id="district" required="">
+                                <label for="district">Huyện</label>
+                                <select class="custom-select d-block w-100" id="district" required>
+                                    <option value="">-- Chọn huyện --</option>
                                 </select>
-                                <div class="invalid-feedback"> Tên hợp lệ là bắt buộc. </div>
+                                <div class="invalid-feedback">Vui lòng chọn huyện</div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="checkout__input">
-                                <label for="xa">Xã</label>
-                                <select class="custom-select d-block w-100" id="ward" required="">
+                                <label for="ward">Xã</label>
+                                <select class="custom-select d-block w-100" id="ward" required>
+                                    <option value="">-- Chọn xã --</option>
                                 </select>
-                                <div class="invalid-feedback"> Tên hợp lệ là bắt buộc. </div>
+                                <div class="invalid-feedback">Vui lòng chọn xã</div>
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="checkout__input">
-                                <label for="diachi">Địa chỉ</label>
-                                <input type="text" class="form-control" id="address" placeholder="" required="" style="height:38px">
-                                <div class="invalid-feedback"> Valid first name is required. </div>
+                                <label for="address">Địa chỉ</label>
+                                <input type="text" class="form-control" id="address" placeholder="Nhập địa chỉ chi tiết" required>
+                                <div class="invalid-feedback">Vui lòng nhập địa chỉ</div>
+                            </div>
+                          
+                        </div>
+                          <div class="checkout__input">
+                                <label>Chọn địa chỉ đã lưu</label>
+                                <select id="savedAddress" class="custom-select d-block w-100">
+                                    <option value="">-- Chọn địa chỉ --</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-toggle="modal" data-target="#addAddressModal">
+                                    + Thêm địa chỉ mới
+                                </button>
+                            </div>
+                    </div>
+                    <div class="modal fade" id="addAddressModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Thêm địa chỉ mới</h5>
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                </div>
+                                <div class="modal-body">
+                                    <label>Tỉnh</label>
+                                    <select id="newProvince" class="form-control">
+                                        <option value="">-- Chọn tỉnh --</option>
+                                    </select>
+                                    <label>Huyện</label>
+                                    <select id="newDistrict" class="form-control">
+                                        <option value="">-- Chọn huyện --</option>
+                                    </select>
+                                    <label>Xã</label>
+                                    <select id="newWard" class="form-control">
+                                        <option value="">-- Chọn xã --</option>
+                                    </select>
+                                    <label>Địa chỉ chi tiết</label>
+                                    <input type="text" class="form-control" id="newChiTiet" placeholder="Nhập địa chỉ chi tiết">
+                                    <div class="form-check mt-2">
+                                        <input type="checkbox" class="form-check-input" id="isDefaultAddress">
+                                        <label class="form-check-label">Đặt làm mặc định</label>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" data-dismiss="modal">Huỷ</button>
+                                    <button class="btn btn-primary" onclick="submitNewAddress()">Lưu địa chỉ</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -139,33 +174,28 @@
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="checkout__input">
-                                <label for="ten">Ghi chú</label>
-                                <textarea class="form-control" id="note" placeholder="" value=""></textarea>
-                                <div class="invalid-feedback"> Không để trống tên</div>
-
+                                <label for="note">Ghi chú</label>
+                                <textarea class="form-control" id="note" placeholder="Nhập ghi chú (nếu có)" rows="4"></textarea>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
-                    <div class="cart__discount" style="margin-bottom:20px!important">
+                    <div class="cart__discount">
                         <h6>Hình thức giảm giá</h6>
-                        <div style="position:relative;margin-bottom:5px">
-                            <input type="text" id="voucher" placeholder="Nhập mã giảm giá" style="font-size:14px;color:#b7b7b7;height: 50px;width: 100%;border: 1px solid #e1e1e1;padding-left: 20px;" list="vouchers" />
-                            <datalist id="vouchers">
-                            </datalist>
-                            <button onclick="usevoucher()" style="font-size: 14px;color: #ffffff;font-weight: 700;letter-spacing: 2px;text-transform: uppercase;background: #111111;padding: 0 30px;border: none;position: absolute;right: 0;top: 0;height: 100%;">
-                                Áp dụng
-                            </button>
+                        <div style="position: relative; margin-bottom: 15px;">
+                            <input type="text" id="voucher" placeholder="Nhập mã giảm giá" list="vouchers">
+                            <datalist id="vouchers"></datalist>
+                            <button onclick="usevoucher()">Áp dụng</button>
                         </div>
                         @if (session != null)
                         {
-                            <div style="position:relative">
-                                <input type="number" placeholder="Nhập số điểm" style="font-size:14px;color:#b7b7b7;height: 50px;width: 100%;border: 1px solid #e1e1e1;padding-left: 20px;" id="diemTich">
-                                <button onclick="usediem()" type="submit" style="font-size: 14px;color: #ffffff;font-weight: 700;letter-spacing: 2px;text-transform: uppercase;background: #111111;padding: 0 30px;border: none;position: absolute;right: 0;top: 0;height: 100%;">Áp dụng</button>
+                            <div style="position: relative;">
+                                <input type="number" id="diemTich" placeholder="Nhập số điểm">
+                                <button onclick="usediem()">Áp dụng</button>
+                                <span id="error-message" style="color: #dc3545; font-size: 12px;"></span>
+                                <p>Bạn hiện tại có: @loginInfor.DiemTich điểm</p>
                             </div>
-                            <span id="error-message" style="color: red; font-size: 12px;"></span>
-                            <p>Bạn hiện tại có: @loginInfor.DiemTich điểm</p>
                         }
                         else
                         {
@@ -174,13 +204,6 @@
                     </div>
                     <div class="checkout__order">
                         <h4 class="order__title">Đơn hàng của bạn</h4>
-                        @* <div class="checkout__order__products">Product <span>Total</span></div>
-                        <ul class="checkout__total__products">
-                        <li>01. Vanilla salted caramel <span>$ 300.0</span></li>
-                        <li>02. German chocolate <span>$ 170.0</span></li>
-                        <li>03. Sweet autumn <span>$ 170.0</span></li>
-                        <li>04. Cluten free mini dozen <span>$ 110.0</span></li>
-                        </ul> *@
                         <ul class="checkout__order__products">
                             <li>Tiền hàng <span id="tienHang"></span></li>
                             <li id="moneyvoucher" hidden></li>
@@ -188,16 +211,17 @@
                             <li>Tiền ship <span id="fee">0 VND</span></li>
                             <li>Tổng tiền <span id="total"></span></li>
                         </ul>
-                        <button onclick="createhoadon()" class="site-btn">
-                            XÁC NHẬN
-                        </button>
+                        <button onclick="createhoadon()" class="site-btn">XÁC NHẬN</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+<!-- Checkout Section End -->
 <script src="~/js/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 <script type="text/javascript">
     var tienShip = 0;
     var tienDiem = 0;
@@ -207,72 +231,134 @@
     var xa = "";
     var voucher = "";
     var diemTich = 0;
+
     $(document).ready(function () {
         var tienHang = @tongtien;
-    document.getElementById("tienHang").innerHTML = tienHang.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
+        document.getElementById("tienHang").innerHTML = tienHang.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
         document.getElementById("total").innerHTML = tienHang.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
+
+        // Load vouchers
         $.ajax({
             type: "GET",
             url: "/Home/GetAllVoucherByTien",
             dataType: "json",
-            data: { tongTien : tienHang},
+            data: { tongTien: tienHang },
             success: function (response) {
-                $.each(response.ketQua, function (i,item) {
+                $.each(response.ketQua, function (i, item) {
                     if (item.hinhThucGiamGia == 1) {
-                        $("#vouchers").append(`<option value='${item.ten}'>(-${item.giaTri}%)</option>`)
-                    }
-                    else
-                    {
-                        $("#vouchers").append(`<option value='${item.ten}'>(-${item.giaTri.toLocaleString('it-IT', { style: 'currency', currency: 'VND' })})</option>`)
+                        $("#vouchers").append(`<option value='${item.ten}'>(-${item.giaTri}%)</option>`);
+                    } else {
+                        $("#vouchers").append(`<option value='${item.ten}'>(-${item.giaTri.toLocaleString('it-IT', { style: 'currency', currency: 'VND' })})</option>`);
                     }
                 });
             },
-            error: function (reponse) {
-                console(reponse);
+            error: function (response) {
+                console.log(response);
             }
         });
-        $.ajax({
-            type: "GET",
-            url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/province",
-            headers: { token: '9f4e42e4-fde8-11ed-a281-3aa62a37e0a5' },
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function (data) {
-                for (var i = 0; i < data.data.length; i++) {
-                    var rows = "<option id='" + data.data[i].ProvinceID + "' value='" + data.data[i].ProvinceID + "'>" + data.data[i].ProvinceName + "</option>";
-                    $('#province').append(rows);
-                }
-            },
-            error: function (reponse) {
-                alert(reponse.responseText);
-            }
-        });
-        $("#province").change(function () {
-            var value = document.getElementById("province").value;
-            tinh = document.getElementById(value).innerHTML;
+
+        // Load provinces for both main form and modal
+        function loadProvinces() {
             $.ajax({
                 type: "GET",
-                url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=" + value,
-                headers: { token: '9f4e42e4-fde8-11ed-a281-3aa62a37e0a5' },
+                url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/province",
+                headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
-                    $('#dfprovince').remove();
-                    document.getElementById('district').innerHTML = '';
-                    $('#district').append('<option selected id="dfdistrict">--------------------Chọn huyện--------------------</option>');
+                    $('#province, #newProvince').empty().append('<option value="">-- Chọn tỉnh --</option>');
                     for (var i = 0; i < data.data.length; i++) {
-                        var rows = "<option id='" + data.data[i].DistrictID + "' value='" + data.data[i].DistrictID + "'>" + data.data[i].DistrictName + "</option>";
-                        $('#district').append(rows);
+                        var rows = `<option id="prov_${data.data[i].ProvinceID}" value="${data.data[i].ProvinceID}">${data.data[i].ProvinceName}</option>`;
+                        $('#province, #newProvince').append(rows);
                     }
                 },
-                error: function (reponse) {
-                    alert(reponse.responseText);
+                error: function (response) {
+                    alert(response.responseText);
+                }
+            });
+        }
+        loadProvinces();
+
+        // Province change for main form
+        $("#province").change(function () {
+            var value = $(this).val();
+            tinh = $("#prov_" + value).text();
+            $.ajax({
+                type: "GET",
+                url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=" + value,
+                headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    $('#district').empty().append('<option value="">-- Chọn huyện --</option>');
+                    for (var i = 0; i < data.data.length; i++) {
+                        var rows = `<option id="dist_${data.data[i].DistrictID}" value="${data.data[i].DistrictID}">${data.data[i].DistrictName}</option>`;
+                        $('#district').append(rows);
+                    }
+                    calculateShipping(value); // Calculate shipping when province changes
+                },
+                error: function (response) {
+                    alert(response.responseText);
                 }
             });
         });
+
+        // District change for main form
         $("#district").change(function () {
-            var value = document.getElementById("district").value;
-            huyen = document.getElementById(value).innerHTML;
+            var value = $(this).val();
+            huyen = $("#dist_" + value).text();
+            $.ajax({
+                type: "GET",
+                url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=" + value,
+                headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    $('#ward').empty().append('<option value="">-- Chọn xã --</option>');
+                    for (var i = 0; i < data.data.length; i++) {
+                        var rows = `<option id="ward_${data.data[i].WardCode}" value="${data.data[i].WardCode}">${data.data[i].WardName}</option>`;
+                        $('#ward').append(rows);
+                    }
+                },
+                error: function (response) {
+                    alert(response.responseText);
+                }
+            });
+        });
+
+        // Ward change for main form
+        $("#ward").change(function () {
+            var value1 = $(this).val();
+            var value2 = $("#district").val();
+            xa = $("#ward_" + value1).text();
+            calculateShipping(value2, value1); // Recalculate shipping with ward
+        });
+
+        // Province change for modal
+        $("#newProvince").change(function () {
+            var value = $(this).val();
+            $.ajax({
+                type: "GET",
+                url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=" + value,
+                headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    $('#newDistrict').empty().append('<option value="">-- Chọn huyện --</option>');
+                    for (var i = 0; i < data.data.length; i++) {
+                        var rows = `<option id="dist_${data.data[i].DistrictID}" value="${data.data[i].DistrictID}">${data.data[i].DistrictName}</option>`;
+                        $('#newDistrict').append(rows);
+                    }
+                },
+                error: function (response) {
+                    alert(response.responseText);
+                }
+            });
+        });
+
+        // District change for modal
+        $("#newDistrict").change(function () {
+            var value = $(this).val();
             $.ajax({
                 type: "GET",
                 url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=" + value,
@@ -280,46 +366,18 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (data) {
-                    $('#dfdistrict').remove();
-                    document.getElementById('ward').innerHTML = '';
-                    $('#ward').append('<option selected id="dfward">--------------------Chọn xã--------------------</option>');
+                    $('#newWard').empty().append('<option value="">-- Chọn xã --</option>');
                     for (var i = 0; i < data.data.length; i++) {
-                        var rows = "<option id='" + data.data[i].WardCode + "' value='" + data.data[i].WardCode + "'>" + data.data[i].WardName + "</option>";
-                        $('#ward').append(rows);
+                        var rows = `<option id="ward_${data.data[i].WardCode}" value="${data.data[i].WardCode}">${data.data[i].WardName}</option>`;
+                        $('#newWard').append(rows);
                     }
                 },
-                error: function (reponse) {
-                    alert(reponse.responseText);
+                error: function (response) {
+                    alert(response.responseText);
                 }
             });
         });
-        $("#ward").change(function () {
-            var value1 = document.getElementById("ward").value;
-            var value2 = document.getElementById("district").value;
-            xa = document.getElementById(value1).innerHTML;
-            $.ajax({
-                type: "GET",
-                url: "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee?shop_id=4643378?to_ward_code=" + value1 + "&to_district_id=" + value2 + "&weight="+500*@soLuong+"&service_type_id=2",
-                headers: { token: '9f4e42e4-fde8-11ed-a281-3aa62a37e0a5' },
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (data) {
-                    $('#dfward').remove();
-                    tienShip = data.data.total;
-                    document.getElementById("fee").innerHTML = data.data.total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
-                  
-                   var total = tienShip +(@tongtien) - tienVoucher - tienDiem;
 
-                    if (total < 0) {
-                        total = 0
-                    }
-                    document.getElementById("total").innerHTML = total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
-                },
-                error: function (reponse) {
-                    alert(reponse.responseText);
-                }
-            });
-        });
         $('.checkout__input input').on('input', function () {
             $(this).removeClass('is-invalid');
             $(this).next('.invalid-feedback').text('');
@@ -332,6 +390,88 @@
             $('#pttt-error').hide();
         });
     });
+
+    const userId = '@loginInfor.Id';
+
+    function loadSavedAddresses() {
+        $("#savedAddress").empty().append('<option value="">-- Chọn địa chỉ --</option>');
+        $.ajax({
+            url: `https://localhost:7095/api/DiaChi/khachhang/${userId}/diachi`,
+            method: 'GET',
+            success: function (list) {
+                for (const item of list) {
+                    $("#savedAddress").append(`
+                        <option 
+                            value="${item.idDiaChi}" 
+                            data-tinh="${item.tinh}" 
+                            data-huyen="${item.huyen}" 
+                            data-xa="${item.xa}" 
+                            data-chitiet="${item.diaChiChiTiet}">
+                            ${item.diaChiChiTiet}, ${item.xa}, ${item.huyen}, ${item.tinh}
+                        </option>
+                    `);
+                }
+            }
+        });
+    }
+
+    loadSavedAddresses();
+    $("#savedAddress").change(function () {
+        const selected = $(this).find("option:selected");
+        if (!selected.val()) return;
+
+        $("#province option").filter(function () {
+            return $(this).text().trim() === selected.data("tinh");
+        }).prop("selected", true).trigger("change");
+
+        setTimeout(() => {
+            $("#district option").filter(function () {
+                return $(this).text().trim() === selected.data("huyen");
+            }).prop("selected", true).trigger("change");
+        }, 300);
+
+        setTimeout(() => {
+            $("#ward option").filter(function () {
+                return $(this).text().trim() === selected.data("xa");
+            }).prop("selected", true).trigger("change");
+        }, 600);
+
+        $("#address").val(selected.data("chitiet"));
+        calculateShipping(); // Recalculate shipping when saved address is selected
+    });
+
+    function submitNewAddress() {
+        const diaChiMoi = {
+            tinh: $("#newProvince option:selected").text().trim(),
+            huyen: $("#newDistrict option:selected").text().trim(),
+            xa: $("#newWard option:selected").text().trim(),
+            diaChiChiTiet: $("#newChiTiet").val(),
+            isDefault: $("#isDefaultAddress").is(":checked")
+        };
+
+        if (!diaChiMoi.tinh || !diaChiMoi.huyen || !diaChiMoi.xa || !diaChiMoi.diaChiChiTiet) {
+            alert("Vui lòng điền đầy đủ thông tin địa chỉ!");
+            return;
+        }
+
+        $.ajax({
+            url: `https://localhost:7095/api/DiaChi/khachhang/${userId}/diachi`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(diaChiMoi),
+            success: function () {
+                alert("✅ Đã thêm địa chỉ mới");
+                $('#addAddressModal').modal('hide');
+                loadSavedAddresses(); // Update saved addresses without reloading page
+                // Optionally reload page if needed
+                // location.reload();
+            },
+            error: function () {
+                alert("❌ Không thể thêm địa chỉ");
+            }
+        });
+    }
+
     function createhoadon() {
         var ten = $("#name").val();
         var email = $("#email").val();
@@ -355,36 +495,32 @@
             $('#phone').addClass('is-invalid');
             $('#phone').next('.invalid-feedback').text('Không để trống sdt');
             hasError = true;
-        }
-        else if (!phoneNumberRegex.test(sdt)) {
+        } else if (!phoneNumberRegex.test(sdt)) {
             $('#phone').addClass('is-invalid');
             $('#phone').next('.invalid-feedback').text('Số điện thoại không hợp lệ');
             hasError = true;
         }
-        var emailRegex = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (email.trim().length == 0) {
-            $('#email').addClass('is-invalid');
-            $('#email').next('.invalid-feedback').text('Không để trống email');
-            hasError = true;
-        }
-        else if (!emailRegex.test(email)) {
-            $('#email').addClass('is-invalid');
-            $('#email').next('.invalid-feedback').text('Email không hợp lệ');
-            hasError = true;
-        }
-        if (tinh == "--------------------Chọn tỉnh--------------------") {
+       // var emailRegex = /^[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+       //  if (email.trim().length == 0) {
+       //      $('#email').addClass('is-invalid');
+       //      $('#email').next('.invalid-feedback').text('Không để trống email');
+       //      hasError = true;
+       //  } else if (!emailRegex.test(email)) {
+       //      $('#email').addClass('is-invalid');
+       //      $('#email').next('.invalid-feedback').text('Email không hợp lệ');
+       //      hasError = true;
+       //  }
+        if (tinh == "-- Chọn tỉnh --") {
             $('#province').addClass('is-invalid');
             $('#province').next('.invalid-feedback').text('Vui lòng chọn tỉnh');
             hasError = true;
         }
-
-        if (huyen.trim().length == 0 || huyen == "--------------------Chọn huyện--------------------") {
+        if (huyen.trim().length == 0 || huyen == "-- Chọn huyện --") {
             $('#district').addClass('is-invalid');
             $('#district').next('.invalid-feedback').text('Vui lòng chọn huyện');
             hasError = true;
         }
-
-        if (xa.trim().length == 0 || xa == "--------------------Chọn xã--------------------") {
+        if (xa.trim().length == 0 || xa == "-- Chọn xã --") {
             $('#ward').addClass('is-invalid');
             $('#ward').next('.invalid-feedback').text('Vui lòng chọn xã');
             hasError = true;
@@ -395,75 +531,70 @@
             hasError = true;
         }
         if (pttt == undefined) {
-            $('#pttt-error').show(); // Hiển thị thông báo lỗi
+            $('#pttt-error').show();
             hasError = true;
         } else {
-            $('#pttt-error').hide(); // Ẩn thông báo lỗi
+            $('#pttt-error').hide();
         }
         if (hasError) {
-            alert("Vui long dien day du thong tin");
-        }
+            alert("Vui lòng điền đầy đủ thông tin");
+        } else {
+            var objHoaDon = {
+                Ten: ten,
+                Email: email,
+                SDT: sdt,
+                DiaChi: diachi + ", " + xa + ", " + huyen + ", " + tinh,
+                TienShip: tienShip,
+                PhuongThucThanhToan: pttt,
+                TongTien: tienShip + @tongtien - tienVoucher - tienDiem,
+                TenVoucher: voucher,
+                Diem: diemTich,
+                GhiChu: ghiChu,
+                NgayNhanHang: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+            };
 
-        else {
-      var objHoaDon = {
-        Ten: ten,
-        Email: email,
-        SDT: sdt,
-        DiaChi: diachi + ", " + xa + ", " + huyen + ", " + tinh,
-        TienShip: tienShip,
-        PhuongThucThanhToan: pttt,
-        TongTien: tienShip + @tongtien - tienVoucher - tienDiem,
-        TenVoucher: voucher,
-        Diem: diemTich,
-        GhiChu: ghiChu,
-        NgayNhanHang: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
-    };
-
-             $.ajax({
-        type: 'POST',
-        url: '/Home/Order',
-        data: JSON.stringify(objHoaDon),     
-        contentType: 'application/json',           
-        dataType: 'text',                          
-        success: function (response) {
-            location.href = response;
-        },
-        error: function (xhr) {
-            console.log("❌ Lỗi gửi đơn hàng:", xhr.responseText);
-            alert("Không thể gửi đơn hàng: " + xhr.status);
-        }
-    });
-
+            $.ajax({
+                type: 'POST',
+                url: '/Home/Order',
+                data: JSON.stringify(objHoaDon),
+                contentType: 'application/json',
+                dataType: 'text',
+                success: function (response) {
+                    location.href = response;
+                },
+                error: function (xhr) {
+                    console.log("❌ Lỗi gửi đơn hàng:", xhr.responseText);
+                    alert("Không thể gửi đơn hàng: " + xhr.status);
+                }
+            });
         }
     }
 
     function usevoucher() {
-        value = $("#voucher").val();
+        var value = $("#voucher").val();
         $.ajax({
             async: true,
             type: 'GET',
             dataType: 'json',
             url: '/Home/UseVoucher',
-            data: { ma: value, tongTien: @tongtien},
+            data: { ma: value, tongTien: @tongtien },
             success: function (response) {
                 if (response.trangThai == true) {
                     voucher = value;
                     if (response.hinhThuc == 1) {
                         tienVoucher = (@tongtien * response.giaTri) / 100;
-                    }
-                    else if (response.hinhThuc == 0) {
+                    } else if (response.hinhThuc == 0) {
                         tienVoucher = response.giaTri;
                     }
                     var ipVoucher = document.getElementById("moneyvoucher");
                     ipVoucher.hidden = false;
-                    ipVoucher.innerHTML = "Số tiền giảm (Voucher)<span>" + tienVoucher.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }) + " </span>";
-                    var total = tienShip + @tongtien-tienVoucher - tienDiem;
+                    ipVoucher.innerHTML = "Số tiền giảm (Voucher)<span>" + tienVoucher.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }) + "</span>";
+                    var total = tienShip + @tongtien - tienVoucher - tienDiem;
                     if (total < 0) {
-                        total = 0
+                        total = 0;
                     }
                     document.getElementById("total").innerHTML = total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
-                }
-                else {
+                } else {
                     alert(response.loi);
                 }
             },
@@ -472,26 +603,16 @@
             }
         });
     }
+
     function usediem() {
-        // if (isNaN(diemTich)) {
-        //     $("#error-message").text("Số điểm không hợp lệ. Vui lòng nhập số nguyên.");
-        //     return;
-        // }
-        // if (diemTich < 0) {
-        //     $("#error-message").text("Số điểm không thể âm.");
-        //     return;
-        // }
-        // $("#error-message").text("");
         var value = $("#diemTich").val();
         if (value > @(loginInfor.DiemTich == null ? 0 : loginInfor.DiemTich)) {
             alert("Số điểm của bạn không đủ");
-        }
-        else if (value<0) {
+        } else if (value < 0) {
             alert("Số điểm không thể âm");
         } else if (isNaN(value)) {
             alert("Giá trị không hợp lệ");
-        }
-        else {
+        } else {
             $.ajax({
                 async: true,
                 type: 'GET',
@@ -505,13 +626,12 @@
                         ipDiem.hidden = false;
                         tienDiem = response.soTienGiam;
                         ipDiem.innerHTML = "Số tiền giảm (Điểm)<span>" + tienDiem.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }) + "</span>";
-                        var total = tienShip + @tongtien-tienVoucher - tienDiem;
-                        if(total < 0){
-                            total = 0
+                        var total = tienShip + @tongtien - tienVoucher - tienDiem;
+                        if (total < 0) {
+                            total = 0;
                         }
                         document.getElementById("total").innerHTML = total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
-                    }
-                    else {
+                    } else {
                         alert(response.loi);
                     }
                 },
@@ -521,6 +641,52 @@
             });
         }
     }
-</script>
 
-<!-- Checkout Section End -->
+    // Function to calculate shipping based on province, district, and ward
+  
+    function calculateShipping(districtId, wardCode) {
+    const provinceId = $("#province").val() || $("#newProvince").val();
+    districtId = districtId || $("#district").val() || $("#newDistrict").val();
+    wardCode = wardCode || $("#ward").val() || $("#newWard").val();
+
+    if (!provinceId || !districtId || !wardCode) {
+        tienShip = 0;
+        $("#fee").text("0 VND");
+        updateTotal();
+        return;
+    }
+
+    $.ajax({
+        type: "GET",
+        url: "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee",
+        headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c', "Content-Type": "application/json" },
+        data: {
+            shop_id: 4839851,
+            to_district_id: districtId,
+            to_ward_code: wardCode,
+            weight: 500 * (@soLuong || 1),
+            service_type_id: 2
+        },
+        dataType: "json",
+        success: (data) => {
+            tienShip = data.code === 200 && data.data?.total ? Math.round(data.data.total) : 0;
+            $("#fee").text(tienShip.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }));
+            updateTotal();
+        },
+        error: (response) => {
+            console.log("Lỗi API GHN:", response.responseText);
+            tienShip = 0;
+            $("#fee").text("0 VND");
+            updateTotal();
+        }
+    });
+}
+
+// Hàm cập nhật tổng tiền
+function updateTotal() {
+    var total = tienShip + @tongtien - tienVoucher - tienDiem;
+    if (total < 0) total = 0;
+    document.getElementById("total").innerHTML = total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
+}
+    
+</script>

@@ -53,7 +53,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // DbContext
 builder.Services.AddDbContext<AssignmentDBContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DBContext")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBContext"), o => o.CommandTimeout(60)));
 
 // DI Services
 builder.Services.AddScoped<IChiTietGioHangServices, ChiTietGioHangServices>();

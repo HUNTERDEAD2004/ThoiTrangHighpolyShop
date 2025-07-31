@@ -120,7 +120,7 @@ namespace AppAPI.Services
                 if (khachHang.DiemTich >= hoaDon.Diem.GetValueOrDefault() && hoaDon.Diem != 0)
                 {
                     khachHang.DiemTich -= hoaDon.Diem.Value;
-                    reposKhachHang.Update(khachHang);
+                    context.KhachHangs.Update(khachHang);
                     AddLichSuTichDiem(newHoaDon.ID, khachHang.MaKhachHang, hoaDon.Diem.Value, 0, quyDoi.ID);
                 }
             }
@@ -137,7 +137,7 @@ namespace AppAPI.Services
                 TrangThai = trangThai,
                 IDQuyDoiDiem = idQuyDoi
             };
-            reposLichSuTichDiem.Add(lichSu);
+           context.LichSuTichDiems.Add(lichSu);
         }
 
 
