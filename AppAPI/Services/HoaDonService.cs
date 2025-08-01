@@ -5,9 +5,11 @@ using AppData.Repositories;
 using AppData.ViewModels;
 using AppData.ViewModels.BanOffline;
 using AppData.ViewModels.SanPham;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Security.Cryptography.Xml;
 namespace AppAPI.Services
 {
@@ -21,8 +23,8 @@ namespace AppAPI.Services
         private readonly IAllRepository<LichSuTichDiem> reposLichSuTichDiem;
         private readonly IAllRepository<KhachHang> reposKhachHang;
         private readonly IAllRepository<SanPham> reposSanPham;
-        private readonly IAllRepository<DanhGia> reposDanhGia;
-        private readonly IAllRepository<DiaChi> reposDiaChi;                
+       // private readonly IAllRepository<DanhGia> reposDanhGia;
+        //private readonly IAllRepository<DiaChi> reposDiaChi;                
         AssignmentDBContext context = new AssignmentDBContext();
         private readonly IGioHangServices _iGioHangServices;
 
@@ -36,8 +38,8 @@ namespace AppAPI.Services
             reposLichSuTichDiem = new AllRepository<LichSuTichDiem>(context, context.LichSuTichDiems);
             reposKhachHang = new AllRepository<KhachHang>(context, context.KhachHangs);
             reposSanPham = new AllRepository<SanPham>(context, context.SanPhams);        
-            reposDanhGia = new AllRepository<DanhGia>(context, context.DanhGias);         
-            reposDiaChi = new AllRepository<DiaChi>(context, context.DiaChis);
+           // reposDanhGia = new AllRepository<DanhGia>(context, context.DanhGias);         
+           // reposDiaChi = new AllRepository<DiaChi>(context, context.DiaChis);
              context = new AssignmentDBContext();
             _iGioHangServices = new GioHangServices();
             this.context = context;               
@@ -108,7 +110,7 @@ namespace AppAPI.Services
                 else if (khachHang.DiemTich >= hoaDon.Diem)
                 {
                     khachHang.DiemTich -= hoaDon.Diem.Value;
-                    reposKhachHang.Update(khachHang);
+                    context.KhachHangs.Update(khachHang);
                     AddLichSuTichDiem(newHoaDon.ID, khachHang.MaKhachHang, hoaDon.Diem.Value, 0, quyDoi.ID);
                 }
             }
@@ -214,6 +216,8 @@ namespace AppAPI.Services
                 result.DiaChi = diaChi;
                 result.PhuongThucThanhToan = hoaDon.PhuongThucThanhToan;
                 result.DiemSuDung = hoaDon.Diem ?? 0;
+                result.MaHoaDon = hoaDonEntity.MaHoaDon;
+
 
                 return result;
             }
@@ -498,6 +502,8 @@ namespace AppAPI.Services
                               from lstd in lstdGroup.DefaultIfEmpty()
                               join kh in context.KhachHangs on lstd.MaKhachHang equals kh.MaKhachHang into khGroup
                               from kh in khGroup.DefaultIfEmpty()
+                              join pt in context.PhuongThucThanhToans on hd.IDPhuongThucTT equals pt.IDPTTT
+                              
                               where hd.ID == idhd
                               select new ChiTietHoaDonQL
                               {
@@ -506,7 +512,7 @@ namespace AppAPI.Services
                                   NgayTao = hd.NgayTao,
                                   NgayThanhToan = hd.NgayThanhToan != null ? hd.NgayThanhToan : null,
                                   NgayNhanHang = hd.NgayNhanHang != null ? hd.NgayNhanHang : null,
-                                  //  PTTT = hd.PhuongThucThanhToan,
+                                  PTTT = pt.TenPTTT,
                                   NhanVien = nv != null ? nv.Ten : null,
                                   LoaiHD = hd.LoaiHoaDon,
                                   KhachHang = kh == null ? "Khách lẻ" : kh.Ten,
@@ -514,11 +520,11 @@ namespace AppAPI.Services
                                   DiaChi = hd.DiaChi != null ? hd.DiaChi : null,
                                   SĐT = hd.SDT != null ? hd.SDT : null,
                                   Email = hd.Email != null ? hd.Email : null,
-                                  //  TienShip = hd.TienShip != null ? hd.TienShip : null,
+                                    TienShip = hd.TienShip != null ? hd.TienShip : null,
                                   TrangThai = hd.TrangThaiGiaoHang,
                                   //ThueVAT = hd.ThueVAT,
-                                  // KhachCanTra = hd.TongTien,
-                                  // TienKhachTra = (hd.TrangThaiGiaoHang == 6 || hd.PhuongThucThanhToan == "VNPay" && hd.TrangThaiGiaoHang != 7) ? hd.TongTien : 0,
+                                   KhachCanTra = hd.TongTien,
+                                   TienKhachTra = (hd.TrangThaiGiaoHang == 6 || pt.TenPTTT == "VNPay" && hd.TrangThaiGiaoHang != 7) ? hd.TongTien : 0,
                                   GhiChu = hd.GhiChu,
                                   TruTieuDiem = (from lstd in context.LichSuTichDiems
                                                  join qdd in context.QuyDoiDiems on lstd.IDQuyDoiDiem equals qdd.ID
@@ -955,54 +961,71 @@ namespace AppAPI.Services
         public bool UpdateTrangThaiGiaoHang(Guid idHoaDon, int trangThai, Guid? idNhanVien)
         {
             var update = reposHoaDon.GetAll().FirstOrDefault(p => p.ID == idHoaDon);
-            List<ChiTietHoaDon> chitiethoadon = reposChiTietHoaDon.GetAll().Where(p => p.IDHoaDon == idHoaDon).ToList();
-            if (update != null)
+            var chitiethoadon = reposChiTietHoaDon.GetAll().Where(p => p.IDHoaDon == idHoaDon).ToList();
+
+            if (update == null) return false;
+
+            // Các trạng thái đặc biệt cần xử lý logic
+            switch (trangThai)
             {
-                if (trangThai == 10)
-                {
+                case 11: // Đã xác nhận → trừ kho
                     foreach (var item in chitiethoadon)
                     {
                         var ctSanPham = repsCTSanPham.GetAll().FirstOrDefault(p => p.ID == item.IDCTSP);
-                        ctSanPham.SoLuong -= item.SoLuong;
-                        repsCTSanPham.Update(ctSanPham);
+                        if (ctSanPham != null)
+                        {
+                            ctSanPham.SoLuong -= item.SoLuong;
+                            context.ChiTietSanPhams.Update(ctSanPham);
+                        }
                     }
-                }
-                if (trangThai == 5)
-                {
+                    break;
+
+                case 5: // Hoàn hàng thành công → cộng lại kho
                     foreach (var item in chitiethoadon)
                     {
                         var CTsanPham = repsCTSanPham.GetAll().FirstOrDefault(p => p.ID == item.IDCTSP);
-                        CTsanPham.SoLuong += item.SoLuong;
-                        repsCTSanPham.Update(CTsanPham);
+                        if (CTsanPham != null)
+                        {
+                            CTsanPham.SoLuong += item.SoLuong;
+                            context.ChiTietSanPhams.Update(CTsanPham);
+                        }
                     }
-                }
-                if (trangThai == 6)
-                {
+                    break;
+
+                case 6: // Giao hàng thành công → cộng điểm + cập nhật ngày
                     var lstlstd = context.LichSuTichDiems.Where(c => c.IDHoaDon == idHoaDon).ToList();
                     if (lstlstd.Count != 0)
                     {
-                        var td = lstlstd.Where(c => c.TrangThai == 1).FirstOrDefault();
+                        var td = lstlstd.FirstOrDefault(c => c.TrangThai == 1);
                         if (td != null)
                         {
-                            var kh = context.KhachHangs.Where(c => c.MaKhachHang == td.MaKhachHang).FirstOrDefault();
-                            kh.DiemTich += td.Diem;
-                            context.KhachHangs.Update(kh);
-                            context.SaveChanges();
+                            var kh = context.KhachHangs.FirstOrDefault(c => c.MaKhachHang == td.MaKhachHang);
+                            if (kh != null)
+                            {
+                                kh.DiemTich += td.Diem;
+                                context.KhachHangs.Update(kh);
+                                context.SaveChanges();
+                            }
                         }
                     }
-                    update.NgayThanhToan = update.NgayThanhToan == null ? DateTime.Now : update.NgayThanhToan;
-                    update.NgayNhanHang = update.NgayNhanHang == null ? DateTime.Now : update.NgayNhanHang;
-                }
-                update.TrangThaiGiaoHang = trangThai;
-                // update.IDNhanVien = idNhanVien;
-                reposHoaDon.Update(update);
-                return true;
+
+                    update.NgayThanhToan ??= DateTime.Now;
+                    update.NgayNhanHang ??= DateTime.Now;
+                    break;
             }
-            else
+
+            // Không được hủy khi đang giao hàng
+            if (update.TrangThaiGiaoHang == 3 && (trangThai == 7 || trangThai == 8))
             {
-                return false;
+                return false; // không cho hủy
             }
+
+            update.TrangThaiGiaoHang = trangThai;
+            // update.IDNhanVien = idNhanVien; // nếu cần
+            reposHoaDon.Update(update);
+            return true;
         }
+
         //Giao thành công
         public bool ThanhCong(Guid idhd, Guid idnv) // Chỉ cho đơn online
         {
@@ -1150,7 +1173,79 @@ namespace AppAPI.Services
             }
         }
 
-        public List<HoaDon> LichSuGiaoDich(Guid idNguoiDung)
+
+
+        public List<HoaDonViewModel> LichSuGiaoDich(Guid idNguoiDung)
+        {
+          throw new NotImplementedException("This method is not implemented yet.");
+        }
+
+        // Trong Service:
+        public object TraCuuHoaDon(string? maHoaDon, int trangThai, int page, int pageSize)
+        {
+            var query = context.HoaDons.AsQueryable();
+
+            // lọc trạng thái
+            var trangThaiHienThi = new List<int> { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+            query = query.Where(h => trangThaiHienThi.Contains(h.TrangThaiGiaoHang));
+
+            if (!string.IsNullOrEmpty(maHoaDon))
+                query = query.Where(h => h.MaHoaDon.Contains(maHoaDon));
+
+            if (trangThai != 0)
+                query = query.Where(h => h.TrangThaiGiaoHang == trangThai);
+
+            var total = query.Count();
+
+            var result = query
+                .OrderByDescending(h => h.NgayTao)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(h => new {
+                    idHoaDon = h.ID,
+                    maHD = h.MaHoaDon,
+                    ngaytao1 = h.NgayTao.ToString("dd/MM/yyyy HH:mm"),
+                    ngaythanhtoan1 = h.NgayThanhToan.HasValue ? h.NgayThanhToan.Value.ToString("dd/MM/yyyy HH:mm") : null,
+                    ngaynhanhang1 = h.NgayNhanHang.HasValue ? h.NgayNhanHang.Value.ToString("dd/MM/yyyy HH:mm") : null,
+                    tongTien = h.TongTien ?? 0,
+                    trangThaiGiaoHang = h.TrangThaiGiaoHang,
+                    loaiHoaDon = h.LoaiHoaDon
+                })
+                .ToList();
+
+            return new { total, data = result };
+        }
+
+
+
+
+
+
+
+        private static string GetTrangThaiText(int trangThai)
+        {
+            return trangThai switch
+            {
+                1 => "Đơn nháp",
+                2 => "Chờ xác nhận",
+                3 => "Đang giao hàng",
+                4 => "Đang hoàn hàng",
+                5 => "Hoàn hàng thành công",
+                6 => "Giao hàng thành công",
+                7 => "Đơn hủy",
+                8 => "Chờ xác nhận hủy",
+                9 => "Chờ xác nhận hoàn hàng",
+                11 => "Đã xác nhận",
+                _ => "Không xác định"
+            };
+        }
+
+        List<HoaDon> IHoaDonService.LichSuGiaoDich(Guid idNguoiDung)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TraCuuDonHangViewModel? TraCuuDonHang(string maHoaDon)
         {
             throw new NotImplementedException();
         }

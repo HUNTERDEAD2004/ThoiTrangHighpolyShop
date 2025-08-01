@@ -20,13 +20,13 @@ namespace AppData.ViewModels.BanOffline
         public string? SĐT { get; set; }
         public string? Email { get; set; }
         public string? DiaChi { get; set; }
-        public int? TienShip { get; set; }
+        public decimal? TienShip { get; set; }
         public int TrangThai { get; set; }
         public string PTTT { get; set; }
         public int? TruTieuDiem { get; set; }
         public string GhiChu { get; set; }
-        public int? KhachCanTra { get; set; }
-        public int? TienKhachTra { get; set; }
+        public decimal? KhachCanTra { get; set; }
+        public decimal? TienKhachTra { get; set; }
         public List<HoaDonChiTietViewModel> listsp { get; set; }
         public List<LichSuTichDiem> lstlstd { get; set; }
         public Voucher voucher { get; set; }

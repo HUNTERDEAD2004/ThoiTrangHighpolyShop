@@ -42,6 +42,12 @@
                     </span>
                     <span class="item-text">Chờ xác nhận</span>
                 </li>
+                <li class="item">
+                    <span class="checkbox">
+                        <i class="fa-solid fa-check check-icon" data-value="11"></i>
+                    </span>
+                    <span class="item-text">Đã xác Nhận</span>
+                </li>
                  <li class="item">
                     <span class="checkbox">
                         <i class="fa-solid fa-check check-icon" data-value="10"></i>
@@ -298,6 +304,7 @@
                                <td>${response.data[i].khachHang}</td>
                                <td>
                                    ${response.data[i].trangThai === 2 ? '<label class="badge bg-info">Chờ xác nhận</label>' :
+                                   response.data[i].trangThai === 11 ? '<label class="badge bg-info">Đã xác nhận</label>' :
                                    response.data[i].trangThai === 10 ? '<label class="badge bg-info">Đang đóng hàng</label>' :
                                    response.data[i].trangThai === 3 ? '<label class="badge bg-primary">Đang giao hàng</label>' :
                                    response.data[i].trangThai === 4 ? '<label class="badge bg-danger">Đang hoàn hàng</label>' :

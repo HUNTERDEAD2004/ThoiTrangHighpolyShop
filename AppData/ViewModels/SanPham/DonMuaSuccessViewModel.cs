@@ -13,7 +13,7 @@ namespace AppData.ViewModels.SanPham
         public string Email { get; set; }
         public string SDT { get; set; }
         public string DiaChi { get; set; }
-
+        public string? MaHoaDon { get; set; }   
         public string PhuongThucThanhToan { get; set; }
         public Guid? IDPhuongThucTT { get; set; } // ➕ nếu frontend cần
 

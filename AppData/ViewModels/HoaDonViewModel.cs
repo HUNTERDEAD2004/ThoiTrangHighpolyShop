@@ -1,4 +1,4 @@
-
+﻿
 using AppData.Models;
 
 namespace AppData.ViewModels
@@ -23,5 +23,8 @@ namespace AppData.ViewModels
         public bool TrangThai { get; set; }
         public string? GhiChu { get; set; }
         public Guid? IDDiaChi { get; set; }
+        public string? MaHoaDon { get; set; }
+
+        public int TrangThaiGiaoHang { get; set; } // Trạng thái giao hàng
     }
 }

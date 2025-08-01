@@ -148,6 +148,14 @@ namespace AppAPI.Controllers
         {
             return _iHoaDonService.DeleteHoaDon(id);
         }
+
+       
+        [HttpGet("tra-cuu")]
+        public IActionResult TraCuuHoaDon(string? maHoaDon, int TrangThaiGiaoHang = 0, int page = 1, int pageSize = 5)
+        {
+            var result = _iHoaDonService.TraCuuHoaDon(maHoaDon, TrangThaiGiaoHang, page, pageSize);
+            return Ok(result);
+        }
         //[HttpGet("PhuongThucThanhToan")]
         //public List<PhuongThucThanhToan> GetAllPTTT()
         //{

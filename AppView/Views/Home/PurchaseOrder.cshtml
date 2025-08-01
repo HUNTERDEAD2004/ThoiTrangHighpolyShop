@@ -1,41 +1,34 @@
-﻿@using AppData.ViewModels;
+﻿@using AppData.ViewModels
 @model List<DonMuaViewModel>
+
 @{
     Layout = "_Layout";
 }
+
 <style>
     #navbar {
-        display:flex;
-        justify-content: space-evenly;
-        align-items:center;
-        padding: 10px 0px 10px 0px;
-        background-color:white;
-        /*margin-bottom:24px;*/
-    }
-
-    #AllHoaDon{
         display: flex;
         justify-content: space-evenly;
         align-items: center;
+        padding: 10px 0;
         background-color: white;
     }
-    #navbar div label {
-        margin:0px;
+
+    #AllHoaDon {
+        background-color: white;
     }
 
-    #navbar div label span{
+    #navbar div label span {
         cursor: pointer;
-        padding:10px;
-    }
-    #navbar input[type="radio"]{
-        display:none;
+        padding: 10px;
     }
 
-    #navbar label input[type="radio"]:checked ~ span{
-        border-bottom: 1px solid black;
+    #navbar input[type="radio"] {
+        display: none;
     }
-    .adon a:hover {
-        color:black;
+
+    #navbar label input[type="radio"]:checked ~ span {
+        border-bottom: 1px solid black;
     }
 
     .VrgkXA {
@@ -43,235 +36,213 @@
         margin: 12px 0;
         display: flex;
         align-items: center;
-        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
-        color: #212121;
         background: white;
         border-radius: 2px;
+        box-shadow: 0 1px 1px 0 rgba(0, 0, 0, .05);
     }
 
-    .VrgkXA > input {
-        flex: 1;
-        font-size: 14px;
-        line-height: 16px;
-        border: 0;
-        outline: none;
-        background-color: inherit;
-    }
+        .VrgkXA > input {
+            flex: 1;
+            font-size: 14px;
+            line-height: 16px;
+            border: 0;
+            outline: none;
+            background-color: inherit;
+        }
 </style>
+
 <section style="background-color: #eee;">
     <div class="container py-5">
-        <div class="row">
+        <div class="row mb-4">
             <div class="col">
-                <nav aria-label="breadcrumb" class="bg-light rounded-3 p-3 mb-4">
+                <nav aria-label="breadcrumb" class="bg-light rounded-3 p-3">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="https://localhost:5001/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Đơn mua</li>
                     </ol>
                 </nav>
             </div>
         </div>
+
+        <!-- FILTER -->
         <div class="row">
             <div class="col">
                 <div onchange="LocHoaDon()" id="navbar">
-                    <div >
-                        <label>
-                            <input type="radio" name="menu" value="0" checked/>
-                            <span>Tất cả</span>
-                        </label>
-                    </div>
-                    <div >
-                        <label>
-                            <input type="radio" name="menu" value="2" />
-                            <span>Chờ xác nhận</span>
-                        </label>
-                    </div>
-                    <div>
-                        <label>
-                            <input type="radio" name="menu" value="10" />
-                            <span>Chờ đóng hàng</span>
-                        </label>
-                    </div>
-                    <div >
-                        <label>
-                            <input type="radio" name="menu" value="3" />
-                            <span>Đang giao</span>
-                        </label>
-                    </div>
-                    <div >
-                        <label>
-                            <input type="radio" name="menu" value="6" />
-                            <span>Hoàn thành</span>
-                        </label>
-                    </div>
-                    <div >
-                        <label>
-                            <input type="radio" name="menu" value="7"/>
-                            <span>Đã hủy</span>
-                        </label>
-                    </div>
-                    <div >
-                        <label>
-                            <input type="radio" name="menu" value="5"/>
-                            <span>Hoàn hàng</span>
-                        </label>
-                    </div>
+                    @foreach (var option in new[] {
+                    new { Value = "0", Label = "Tất cả" },
+                    new { Value = "2", Label = "Chờ xác nhận" },
+                    new { Value = "11", Label = "Đã xác nhận" },
+                    new { Value = "10", Label = "Chờ đóng hàng" },
+                    new { Value = "3", Label = "Đang giao" },
+                    new { Value = "6", Label = "Hoàn thành" },
+                    new { Value = "7", Label = "Đã hủy" },
+                    new { Value = "5", Label = "Hoàn hàng" }
+                    })
+                    {
+                        <div>
+                            <label>
+                                <input type="radio" name="menu" value="@option.Value" @(option.Value == "0" ? "checked" : "") />
+                                <span>@option.Label</span>
+                            </label>
+                        </div>
+                    }
                 </div>
-                
             </div>
         </div>
+
+        <!-- SEARCH -->
         <div class="VrgkXA">
             <svg width="19px" height="19px" viewBox="0 0 19 19">
-                <g id="Search-New" stroke-width="1" fill="none" fill-rule="evenodd">
-                    <g id="my-purchase-copy-27" transform="translate(-399.000000, -221.000000)" stroke-width="2">
-                        <g id="Group-32" transform="translate(400.000000, 222.000000)"><circle id="Oval-27" cx="7" cy="7" r="7"></circle>
-                            <path d="M12,12 L16.9799555,16.919354" id="Path-184" stroke-linecap="round" stroke-linejoin="round">
-
-                            </path>
+                <g stroke-width="1" fill="none">
+                    <g transform="translate(-399, -221)" stroke-width="2">
+                        <g transform="translate(400, 222)">
+                            <circle cx="7" cy="7" r="7"></circle>
+                            <path d="M12,12 L16.98,16.92" stroke-linecap="round" stroke-linejoin="round"></path>
                         </g>
                     </g>
                 </g>
-            </svg><input id="search" oninput="LocHoaDon()" aria-label="" role="search" autocomplete="off" placeholder="Bạn có thể tìm kiếm mã hóa đơn" value="">
+            </svg>
+            <input id="search" oninput="LocHoaDon()" placeholder="Bạn có thể tìm kiếm mã hóa đơn" />
         </div>
-        <div id="AllHoaDon" style="display:inherit;">
-            <table class="table">
-                <thead>
+
+        <!-- TABLE -->
+        <div id="AllHoaDon">
+            <table class="table table-bordered bg-white">
+                <thead class="thead-light">
                     <tr>
-                        <th scope="col">Mã đơn hàng</th>
-                        <th scope="col">Ngày đặt</th>
-                        <th scope="col">Ngày thanh toán</th>
-                        <th scope="col">Ngày nhận hàng</th>
-                        <th scope="col">Thành tiền</th>
-                        <th scope="col">Trạng thái</th>
-                        <th scope="col">Loại hóa đơn</th>
+                        <th>Mã đơn hàng</th>
+                        <th>Ngày đặt</th>
+                        <th>Ngày thanh toán</th>
+                        <th>Ngày nhận hàng</th>
+                        <th>Thành tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Loại hóa đơn</th>
                     </tr>
                 </thead>
-                <tbody id="DShoaDon">
-                    @*@foreach (var item in Model)
-                    {
-                        <tr>
-                            <th scope="row"><a href="PurchaseOrderDetail?idHoaDon=@item.IDHoaDon">@item.MaHD</a></th>
-                            <td>@item.NgayTao</td>
-                            <td>@Convert.ToInt32(item.TongTien).ToString("n0") VNĐ</td>
-                            @if (item.TrangThaiGiaoHang == 2)
-                            {
-                                <td>Chờ xác nhận</td>
-                            }
-                            else if (item.TrangThaiGiaoHang == 3)
-                            {
-                                <td>Đang giao</td>
-                            }
-                            else if (item.TrangThaiGiaoHang == 6)
-                            {
-                                <td>Giao hàng thành công</td>
-                            }
-                            else if (item.TrangThaiGiaoHang == 7)
-                            {
-                                <td>Đơn hủy</td>
-                            }
-                            else if (item.TrangThaiGiaoHang == 8)
-                            {
-                                <td>Chờ xác nhận - Hủy</td>
-                            }
-                            else if (item.TrangThaiGiaoHang == 9)
-                            {
-                                <td>Chờ xác nhận - Đổi trả</td>
-                            }
-                            else
-                            {
-                                <td>Chờ xác nhận</td>
-                            }
-                            @if (item.TrangThaiLSTD == 1)
-                            {
-                                <td>@item.Diem</td>
-                            }else{
-                                <td>Người dùng sử dụng điểm</td>
-                            }
-                            
-                        </tr>
-                    }*@
-                </tbody>
-                
+                <tbody id="DShoaDon"></tbody>
             </table>
         </div>
+
+        <!-- PAGINATION -->
         <div class="row">
-            <div class="col-lg-12">
-                
-                    <ul id="pagination-demo" class="pagination"></ul>
-                
+            <div class="col-lg-12 text-center">
+                <ul id="pagination-demo" class="pagination justify-content-center" style="display: none;"></ul>
             </div>
         </div>
     </div>
 </section>
-<script src="/js/jquery-3.3.1.min.js"></script>
-<script>
-    var pageIndex = 1;
-    var pagesize = 5;
 
-    $(document).ready(function () {
-        FilterHoaDon();
-    });
-    function LocHoaDon(){
-        $("#pagination-demo").twbsPagination('destroy');
-        FilterHoaDon();
-    }
-    function FilterHoaDon(){
-        var x = document.querySelector('input[name="menu"]:checked').value;
-        var y = document.getElementById("search").value;
-        var data = { TrangThaiGiaoHang: x, page: pageIndex, pageSize: pagesize, Search :y}
-        $.ajax({
-            url: "/Home/GetHoaDonByTrangThai",
-            type: "GET",
-            data: data,
-            success: function (response) {
-                $("#DShoaDon").empty();
-                console.log(response.data);
-                for (let i = 0; i < response.data.length; i++) {
-                    $("#DShoaDon").append(`<tr>
-                            <th class="adon" scope="row"><a href="PurchaseOrderDetail?idHoaDon=${response.data[i].idHoaDon}">${response.data[i].maHD}</a></th>
-                                <td>${response.data[i].ngaytao1}</td>
-                                <td>${response.data[i].ngaythanhtoan1 === null ? 'Chờ xử lý' : response.data[i].ngaythanhtoan1}</td>
-                                <td>${response.data[i].ngaynhanhang1 === null ? 'Chờ xử lý' : response.data[i].ngaynhanhang1}</td>
-                                <td>${Intl.NumberFormat().format(response.data[i].tongTien)} VNĐ</td>
-                            <td>
-                                ${response.data[i].trangThaiGiaoHang === 2 ? '<label>Chờ xác nhận</label>' :
-                                    response.data[i].trangThaiGiaoHang === 3 ? '<label>Đang giao hàng</label>' :
-                                    response.data[i].trangThaiGiaoHang === 4 ? '<label>Đang hoàn hàng</label>' :
-                                    response.data[i].trangThaiGiaoHang === 5 ? '<label>Hoàn hàng thành công</label>' :
-                                    response.data[i].trangThaiGiaoHang === 6 ? '<label>Hoàn thành</label>' :
-                                    response.data[i].trangThaiGiaoHang === 7 ? '<label>Đơn hủy</label>' :
-                                    response.data[i].trangThaiGiaoHang === 8 ? '<label>Chờ xác nhận hủy</label>' :
-                                    response.data[i].trangThaiGiaoHang === 9 ? '<label>Chờ xác nhận hoàn hàng</label>' :
-                                    response.data[i].trangThaiGiaoHang === 10 ? '<label>Chờ đóng hàng</label>' :
-                                    '<label>Chờ xác nhận hoàn hàng</label>'}
-                            </td>
-                            <td>${response.data[i].loaiHoaDon === 0 ? '<label>Mua hàng online</label>' : '<label>Mua hàng tại quầy</label>'}</td>
-                        </tr>`);
+@section Scripts {
+    <script src="/js/jquery-3.3.1.min.js"></script>
+    <script src="~/Admin/js/jquery.twbsPagination.min.js"></script>
+
+    <script>
+        var pageIndex = 1;
+        var pagesize = 5;
+
+        $(document).ready(function () {
+            FilterHoaDon();
+        });
+
+        function LocHoaDon() {
+            $('#pagination-demo').twbsPagination('destroy');
+            FilterHoaDon();
+        }
+
+              function FilterHoaDon() {
+            pageIndex = 1;
+
+            var status = $('input[name="menu"]:checked').val();
+            var keyword = $('#search').val();
+
+            var data = {
+                TrangThaiGiaoHang: status,
+                page: pageIndex,
+                pageSize: pagesize,
+                maHoaDon: keyword // CHỈ sửa dòng này
+            };
+
+            $.ajax({
+                url: "https://localhost:7095/api/HoaDon/tra-cuu",
+                type: "GET",
+                data: data,
+                success: function (response) {
+                    $('#DShoaDon').empty();
+
+                    if (response.data.length === 0) {
+                        $('#DShoaDon').append('<tr><td colspan="7" class="text-center">Không tìm thấy hóa đơn nào.</td></tr>');
+                        paginghd(0);
+                        return;
+                    }
+
+                    for (let i = 0; i < response.data.length; i++) {
+                        let row = `
+                        <tr>
+                            <th><a href="PurchaseOrderDetail?idHoaDon=${response.data[i].idHoaDon}">${response.data[i].maHD}</a></th>
+                            <td>${response.data[i].ngaytao1}</td>
+                            <td>${response.data[i].ngaythanhtoan1 || 'Chờ xử lý'}</td>
+                            <td>${response.data[i].ngaynhanhang1 || 'Chờ xử lý'}</td>
+                            <td>${Intl.NumberFormat().format(response.data[i].tongTien)} VNĐ</td>
+                            <td>${getTrangThaiLabel(response.data[i].trangThaiGiaoHang)}</td>
+                            <td>${response.data[i].loaiHoaDon === 0 ? 'Mua hàng online' : 'Mua hàng tại quầy'}</td>
+                        </tr>`;
+                        $('#DShoaDon').append(row);
+                    }
+
+                    paginghd(response.total, function () {
+                        FilterHoaDon();
+                    });
+                },
+                error: function (err) {
+                    console.log("Lỗi:", err);
                 }
-                paginghd(response.total, function () {
-                    FilterHoaDon()
-                });
-            },
-            error: function (err) {
-                console.log('Error:', err);
+            });
+        }
+
+        function paginghd(totalrow, callback) {
+            var totalpages = Math.ceil(totalrow / pagesize);
+
+            if (totalpages === 0) {
+                $('#pagination-demo').hide();
+                return;
             }
-        });
-    }
-    function paginghd(totalrow, callback) {
-        var totalpages = Math.ceil(totalrow / pagesize);
-        $("#pagination-demo").twbsPagination({
-            totalPages: totalpages,
-            visiblePages: 5,
-            first:'Đầu',
-            last:'Cuối',
-            prev:'Trước',
-            next:'Tiếp',
-            onPageClick: function (event, page) {
-                pageIndex = page;
-                setTimeout(callback, 200);
+
+            if (pageIndex < 1) pageIndex = 1;
+            if (pageIndex > totalpages) pageIndex = totalpages;
+
+            $('#pagination-demo').twbsPagination('destroy');
+            $('#pagination-demo').show();
+
+            $('#pagination-demo').twbsPagination({
+                totalPages: totalpages,
+                startPage: pageIndex,
+                visiblePages: 5,
+                first: 'Đầu',
+                last: 'Cuối',
+                prev: 'Trước',
+                next: 'Tiếp',
+                onPageClick: function (event, page) {
+                    pageIndex = page;
+                    setTimeout(callback, 200);
+                }
+            });
+        }
+
+            function getTrangThaiLabel(status) {
+            switch (status) {
+                case 2: return 'Chờ xác nhận';
+                case 11: return 'Đã xác nhận'; 
+                case 10: return 'Chờ đóng hàng';
+                case 3: return 'Đang giao hàng';
+                case 6: return 'Hoàn thành';
+                case 7: return 'Đã hủy';
+                case 5: return 'Hoàn hàng';
+                case 9: return 'Chờ xác nhận hoàn hàng';
+                case 8: return 'Chờ xác nhận hủy';
+                case 4: return 'Đang hoàn hàng';
+                default: return 'Không xác định';
             }
-        });
-    }
-    function billDetail(id){
-        window.location = 'https://localhost:5001/Home/PurchaseOrderDetail?idHoaDon=';
-    }
-</script>
+        }
+
+    </script>
+}

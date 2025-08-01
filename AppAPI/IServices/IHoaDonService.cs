@@ -2,6 +2,7 @@
 using AppData.ViewModels;
 using AppData.ViewModels.BanOffline;
 using AppData.ViewModels.SanPham;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AppAPI.IServices
 {
@@ -32,5 +33,10 @@ namespace AppAPI.IServices
         public List<HoaDonQL> GetAllHDQly();
         public ChiTietHoaDonQL GetCTHDByID(Guid idhd);
         public bool CheckCusUseVoucher (Guid idkh, Guid idvoucher);
+
+        public TraCuuDonHangViewModel? TraCuuDonHang(string maHoaDon);
+
+        object TraCuuHoaDon(string? maHoaDon, int trangThai, int page, int pageSize);
+
     }
 }

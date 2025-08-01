@@ -669,7 +669,9 @@
         },
         dataType: "json",
         success: (data) => {
-            tienShip = data.code === 200 && data.data?.total ? Math.round(data.data.total) : 0;
+                tienShip = data.code === 200 && data.data?.total ? Math.floor(data.data.total / 1000) * 1000
+        : 0;
+
             $("#fee").text(tienShip.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }));
             updateTotal();
         },
