@@ -18,21 +18,18 @@ namespace AppAPI.Controllers
             this._sanPhamServices = sanPhamService;
         }
         #region SanPham
-
         [HttpGet("getAll")]
         public async Task<IActionResult> GetAllSanPham()
         {
             var listSP = await _sanPhamServices.GetAllSanPham();
             return Ok(listSP);
         }
-
         [HttpGet("GetAllSanPhamAdmin")]
         public List<SanPhamViewModelAdmin> GetAllSanPhamAdmin()
         {
             var listSP = _sanPhamServices.GetAllSanPhamAdmin();
             return listSP;
         }
-
         [HttpGet("GetSanPhamById")]
         public async Task<IActionResult> GetSanPhamById(Guid id)
         {
@@ -74,7 +71,6 @@ namespace AppAPI.Controllers
             if (result) return Ok(true);  // Thành công
             else return BadRequest(false); // Lỗi logic bên trong service
         }
-
         [HttpDelete("UpdateTrangThaiSanPham")]
         public async Task<IActionResult> UpdateTrangThaiSanPham(Guid id, int trangThai)
         {
@@ -85,21 +81,6 @@ namespace AppAPI.Controllers
         public List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham)
         {
             return _sanPhamServices.GetAllAnhSanPhamChiTiet(idSanPham);
-        }
-        [HttpPost("AddImage")]
-        public async Task<bool> AddImage(List<AnhRequest> requests)
-        {
-            return await _sanPhamServices.AddImage(requests);
-        }
-        [HttpPut("UpdateImage")]
-        public async Task<bool> UpdateImage(Anh anh)
-        {
-            return await _sanPhamServices.UpdateImage(anh);
-        }
-        [HttpDelete("DeleteImage")]
-        public async Task<bool> DeleteImage(string id)
-        {
-            return await _sanPhamServices.DeleteImage(new Guid(id));
         }
         #endregion
 
@@ -133,29 +114,38 @@ namespace AppAPI.Controllers
             return Ok(response);
         }
         [HttpPut("UpdateSoluongChiTietSanPham")]
-        public bool UpdateSoluongChiTietSanPham(ChiTietSanPhamRequest request)
+        public async Task<bool> UpdateSoluongChiTietSanPham(ChiTietSanPhamRequest request)
         {
-            if (request.SoLuong == null) return false;
-            else
-            {
-                var response = _sanPhamServices.UpdateSoluongChiTietSanPham(request.IDChiTietSanPham, request.SoLuong.Value).Result;
-                return response;
-            }
+            var response = await _sanPhamServices.UpdateSoluongChiTietSanPham(request.IDChiTietSanPham, request.SoLuong);
+            return response;
         }
-        [HttpPut("UpdateGiaBanChiTietSanPham")]
-        public int UpdateGiaBanChiTietSanPham(ChiTietSanPhamRequest request)
+        [HttpPut("UpdateMacDinhChiTietSanPham/{id}")]
+        public async Task<IActionResult> UpdateMacDinhChiTietSanPham(Guid id)
         {
-            if (request.GiaBan == null) return -1;
-            else
-            {
-                var response = _sanPhamServices.UpdateGiaBanChiTietSanPham(request.IDChiTietSanPham, request.GiaBan.Value).Result;
-                return (int)response;
-            }
+            if (id == Guid.Empty) return BadRequest("ID không hợp lệ");
+
+            var result = await _sanPhamServices.UpdateMacDinhChiTietSanPham(id);
+            if (!result) return BadRequest("Cập nhật thất bại");
+
+            return Ok("Cập nhật thành công");
+        }
+        [HttpPut("UpdateGiaGocChiTietSanPham")]
+        public async Task<ActionResult<decimal>> UpdateGiaGocChiTietSanPham([FromBody] ChiTietSanPhamRequest request)
+        {
+            if (request.GiaGoc == null || request.IDChiTietSanPham == Guid.Empty)
+                return BadRequest("Thiếu thông tin");
+
+            var result = await _sanPhamServices.UpdateGiaGocChiTietSanPham(request.IDChiTietSanPham, request.GiaGoc);
+
+            if (result < 0)
+                return NotFound(); // hoặc return BadRequest nếu muốn
+
+            return Ok(result); // Trả về decimal trực tiếp
         }
         [HttpGet("UpdateTrangThaiChiTietSanPham")]
-        public bool UpdateTrangThaiChiTietSanPham(string id, int trangthai)
+        public bool UpdateTrangThaiChiTietSanPham(string id)
         {
-            var response = _sanPhamServices.UpdateTrangThaiChiTietSanPham(new Guid(id),trangthai).Result;
+            var response = _sanPhamServices.UpdateTrangThaiChiTietSanPham(new Guid(id)).Result;
             return response;
         }
         [HttpGet("GetAllChiTietSanPham")]
@@ -169,15 +159,25 @@ namespace AppAPI.Controllers
         {
             return _sanPhamServices.GetIDsanPhamByIdCTSP(idctsp);
         }
-        [HttpGet("DeleteChiTietSanPham")]
-        public bool DeleteChiTietSanPham(Guid id)
+        [HttpDelete("DeleteChiTietSanPham")]
+        public async Task<bool> DeleteChiTietSanPham(Guid id)
         {
-            return _sanPhamServices.DeleteChiTietSanPham(id).Result;
+            return await  _sanPhamServices.DeleteChiTietSanPham(id);
         }
         [HttpGet("UndoChiTietSanPham")]
-        public bool UndoChiTietSanPham(Guid id)
+        public async Task<bool> UndoChiTietSanPham(Guid id)
         {
-            return _sanPhamServices.UndoChiTietSanPham(id).Result;
+            return await _sanPhamServices.UndoChiTietSanPham(id);
+        }
+        [HttpPost("AddImage")]
+        public async Task<bool> AddImage(List<AnhRequest> requests)
+        {
+            return await _sanPhamServices.AddImage(requests);
+        }
+        [HttpDelete("DeleteImage")]
+        public async Task<bool> DeleteImage(string id)
+        {
+            return await _sanPhamServices.DeleteImage(new Guid(id));
         }
         #endregion
 

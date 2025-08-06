@@ -15,14 +15,17 @@ namespace AppData.ViewModels.SanPham
         public string Ten { get; set; } = string.Empty;
         [Display(Name = "Mô tả")]
         public string? MoTa { get; set; }
-        public string MaSanPham { get; set; } = string.Empty;
-        public Guid IDChatLieu { get; set; }
         [Display(Name = "Ảnh đại diện")]
         public string? AnhDaiDien { get; set; }
+        public string MaSanPham { get; set; } = string.Empty;
+
+        public Guid IDChatLieu { get; set; }
+        public Guid IDLoaiSPCha { get; set; }
+        public Guid? IDLoaiSPCon{ get; set; }
+
         public List<Guid> IDMauSacs { get; set; } = new();
         public List<Guid> IDKichCos { get; set; } = new();
-        public Guid IDLoaiSPCha { get; set; }
-        public Guid? IDLoaiSPCon { get; set; } // nullable
     }
+
 
 }

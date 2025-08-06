@@ -11,12 +11,12 @@ namespace AppData.ViewModels.SanPham
 {
     public class UploadAnhViewModel
     {
-        public Guid IDAnh { get; set; }  // <- Bắt buộc phải có để xoá ảnh
-        public Guid IDChiTietSanPham { get; set; }
+        public Guid IDMauSac { get; set; } // Màu đại diện
+        public Guid? IDAnh { get; set; }   // Nếu cần xóa ảnh
+        public List<Guid> DanhSachIDChiTietSP { get; set; } = new();
         public string MaMau { get; set; } = string.Empty;
         public string TenMau { get; set; } = string.Empty;
-        [NotMapped]
-        public IFormFile? Image { get; set; }
-        public string DuongDan { get; set; } = string.Empty;
+        public List<string> DuongDanAnh { get; set; } = new(); // Ảnh đã có
+        public List<Guid> DanhSachIDAnh { get; set; } = new(); // ✅ Thêm dòng này
     }
 }

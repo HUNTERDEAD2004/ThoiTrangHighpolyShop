@@ -39,14 +39,14 @@ namespace AppAPI.IServices
         Task<List<ChiTietSanPhamViewModelAdmin>> GetAllChiTietSanPhamAdmin(Guid idSanPham);
         Task<bool> DeleteChiTietSanPham(Guid id);
         Task<bool> UpdateSoluongChiTietSanPham(Guid id, int soLuong);
-        Task<decimal> UpdateGiaBanChiTietSanPham(Guid id, decimal giaBan);
-        Task<bool> UpdateTrangThaiChiTietSanPham(Guid id, int trangThai);
+        Task<decimal> UpdateGiaGocChiTietSanPham(Guid id, decimal giaGoc);
+        Task<bool> UpdateTrangThaiChiTietSanPham(Guid id);
         Task<bool> UpdateChiTietSanPham(ChiTietSanPham chiTietSanPham);
         Task<bool> UndoChiTietSanPham(Guid id);
         List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham);
         Task<bool> AddImage(List<AnhRequest> requests);
-        Task<bool> UpdateImage(Anh anh);
         Task<bool> DeleteImage(Guid id);
+        Task<bool> UpdateMacDinhChiTietSanPham(Guid idChiTietSP);
         #endregion
 
         #region other

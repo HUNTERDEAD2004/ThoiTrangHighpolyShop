@@ -5,94 +5,78 @@
 
 <h1>Chi tiết sản phẩm</h1>
 
-<div class="row d-flex justify-content-end">
-    <div class="col-lg-1" style="padding:0px">
-        <p style="text-align:end;margin-top:5px;margin-right:5px">Sắp xếp: </p>
+<div class="row mb-3 align-items-end">
+    <div class="col-auto">
+        <label class="form-label mb-0">Sắp xếp:</label>
     </div>
-    <div class="col-lg-3" style="padding:0px;margin-right:5px">
+    <div class="col-auto">
         <select class="form-select" id="sort" onchange="ReloadPagination()">
-            <option selected value="1">Sắp xếp theo mã</option>
-            <option value="2">Sắp xếp theo giá tăng dần</option>
-            <option value="3">Sắp xếp theo giá giảm dần</option>
-            <option value="4">Sắp xếp theo số lượng tăng dần</option>
-            <option value="5">Sắp xếp theo số lượng giảm dần</option>
+            <option selected value="1">Theo mã</option>
+            <option value="2">Giá tăng dần</option>
+            <option value="3">Giá giảm dần</option>
+            <option value="4">SL tăng dần</option>
+            <option value="5">SL giảm dần</option>
         </select>
     </div>
-    <div class="col-lg-1" style="padding:0px">
-        <button class="btn" style="border:1px solid black" type="button" data-bs-toggle="collapse" data-bs-target=".filter"><i class="bx bx-filter-alt"></i></button>
-    </div>
-</div>
-<div class="row filter collapse" style="margin-bottom:10px">
-    <div class="col-lg-3" style="padding-left:0px;padding-right:2px">
-        <p style="margin:0px;">Mã sản phẩm:</p>
-        <input type="text" class="form-control" placeholder="Tìm kiếm theo mã sản phẩm" style="width:100%" id="searchName">
-    </div>
-    <div class="col-lg-2" style="padding-left:2px;padding-right:2px">
-        <p style="margin:0px">Giá bán:</p>
-        <input type="number" class="form-control" placeholder="Min" style="width:100%" id="priceMin">
-    </div>
-    <div class="col-lg-2" style="padding-left:2px;padding-right:2px">
-        <p style="margin:0px">&ensp;</p>
-        <input type="number" class="form-control" placeholder="Max" style="width:100%" id="priceMax">
-    </div>
-    <div class="col-lg-2" style="padding-left:2px;padding-right:2px">
-        <p style="margin:0px">Số lượng:</p>
-        <input type="number" class="form-control" placeholder="Min" style="width:100%" id="quantityMin">
-    </div>
-    <div class="col-lg-2" style="padding-left:2px;padding-right:2px">
-        <p style="margin:0px">&ensp;</p>
-        <input type="number" class="form-control" placeholder="Max" style="width:100%" id="quantityMax">
-    </div>
-    <div class="col-lg-1" style="padding-left:2px;padding-right:2px">
-        <p style="margin:0px">&ensp;</p>
-        <button class="btn btn-primary" type="button" onclick="ReloadPagination()">Lọc</button>
+    <div class="col-auto">
+        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target=".filter">
+            <i class="bx bx-filter-alt"></i>
+        </button>
     </div>
 </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Mã
-            </th>
-            <th>
-                Tên màu
-            </th>
-            <th>
-                Mã màu
-            </th>
-            <th>
-                Size
-            </th>
-            <th>
-                Số lượng
-            </th>
-            <th>
-                Giá gốc
-            </th>
-            <th>
-                Giá bán
-            </th>
-            <th style="width:110px;text-align:center">
-                Giá trị khuyến mãi
-            </th>
-            <th>
-                Mặc định
-            </th>
-            <th>
-                Trạng thái
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody id="list_productdetails">
-    </tbody>
-</table>
-
-<div class="d-flex justify-content-end">
-    <a asp-action="QuanLyAnhChiTiet" asp-route-idSanPham="@idSanPham" class="btn btn-success" style="margin-left:5px">Quản lý ảnh</a>
-    <a asp-action="AddChiTietSanPham" asp-route-idSanPham="@idSanPham" class="btn btn-primary" style="margin-left:5px">Thêm chi tiết sản phẩm</a>
+<div class="row filter collapse mb-3">
+    <div class="col-md-3">
+        <label class="form-label">Mã sản phẩm</label>
+        <input type="text" class="form-control" placeholder="Tìm theo mã" id="searchName">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Giá bán Min</label>
+        <input type="number" class="form-control" id="priceMin">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Giá bán Max</label>
+        <input type="number" class="form-control" id="priceMax">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">SL Min</label>
+        <input type="number" class="form-control" id="quantityMin">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">SL Max</label>
+        <input type="number" class="form-control" id="quantityMax">
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+        <button class="btn btn-primary w-100" type="button" onclick="ReloadPagination()">Lọc</button>
+    </div>
 </div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover">
+        <thead class="table-light text-center">
+            <tr>
+                <th>STT</th> <!-- thêm dòng này -->
+                <th>Mã</th>
+                <th>Tên màu</th>
+                <th>Mã màu</th>
+                <th>Size</th>
+                <th>SL</th>
+                <th>Giá gốc</th>
+                <th>Giá bán</th>
+                <th>Mặc định</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody id="list_productdetails"></tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-end mb-3">
+    <a asp-action="QuanLyAnhChiTiet" asp-route-idSanPham="@idSanPham" class="btn btn-outline-success me-2">Quản lý ảnh</a>
+    <a asp-action="AddChiTietSanPham" asp-route-idSanPham="@idSanPham" class="btn btn-primary">Thêm chi tiết</a>
+</div>
+
 <div class="row">
     <div class="col-lg-12 d-flex justify-content-center">
         <ul id="pagination-demo" class="pagination"></ul>
@@ -102,19 +86,28 @@
 <script src="~/js/jquery-3.3.1.min.js"></script>
 <script>
     var pageIndex = 1;
-    var pagesize = 10;
+    var pageSize = 10;
     var idSanPham = '@idSanPham';
+
     $(document).ready(function () {
-        loadsp();
+        loadProductDetails(true);
     });
-    function loadsp() {
-        var maSP = $("#searchName").val();
-        var minGia = $("#priceMin").val();
-        var maxGia = $("#priceMax").val();
-        var minSL = $("#quantityMin").val();
-        var maxSL = $("#quantityMax").val();
-        var sx = $("#sort").val();
-        var request = { page: pageIndex, pageSize: pagesize, id: idSanPham, ma: maSP, minPrice: minGia, maxPrice: maxGia, minQuantity: minSL, maxQuantity: maxSL, sort: sx };
+
+    function loadProductDetails(resetPagination = false) {
+        showLoading(true);
+
+        var request = {
+            page: pageIndex,
+            pageSize: pageSize,
+            id: idSanPham,
+            ma: $("#searchName").val(),
+            minPrice: $("#priceMin").val(),
+            maxPrice: $("#priceMax").val(),
+            minQuantity: $("#quantityMin").val(),
+            maxQuantity: $("#quantityMax").val(),
+            sort: $("#sort").val()
+        };
+
         $.ajax({
             url: "/Admin/ShowProductDetail",
             type: "GET",
@@ -122,147 +115,178 @@
             success: function (response) {
                 $("#list_productdetails").empty();
                 $.each(response.data, function (i, item) {
-                    if (item.trangThai == 1) {
-                        $("#list_productdetails").append(`<tr><td>${item.ma}</td><td>${item.tenMauSac}</td><td><input type="color" value="${item.maMauSac}" style="border:none;width:27px;height:25px" disabled></td><td>${item.tenKichCo}</td><td style="width:100px"><input type="number" value="${item.soLuong}" style="border:none;width:100%" id="soLuong_${item.id}" onchange="changeSoLuong('${item.id}')"></td><td style="width:100px"><input type="number" value="${item.giaGoc}" style="border:none;width:100%" id="giaGoc_${item.id}" onchange="changeGiaBan('${item.id}')"></td><td id="giaBan_${item.id}">${item.giaBan}</td><td style="text-align:center">${item.giaTriKhuyenMai == null ? "0" : item.giaTriKhuyenMai}</td><td><input type="radio" name="macDinh" checked id="trangThai_${item.id}" onclick="changeTrangThai('${item.id}')" /></td><td id="hoatDong_${item.id}" style="width:150px"><span style="color:green">Hoạt động</span></td><td id="xoa_${item.id}" style="width:150px"><a href="/Admin/GenerateQRCode?id=${item.id}&ma=${item.ma}" class="btn btn-secondary">Tạo mã QR</a><button type="button" class="btn btn-danger" onclick="xoa('${item.id}')">Xóa</button></td></tr>`);
-                    }
-                    else if (item.trangThai == 2) {
-                        $("#list_productdetails").append(`<tr><td>${item.ma}</td><td>${item.tenMauSac}</td><td><input type="color" value="${item.maMauSac}" style="border:none;width:27px;height:25px" disabled></td><td>${item.tenKichCo}</td><td style="width:100px"><input type="number" value="${item.soLuong}" style="border:none;width:100%" id="soLuong_${item.id}" onchange="changeSoLuong('${item.id}')"></td><td style="width:100px"><input type="number" value="${item.giaGoc}" style="border:none;width:100%" id="giaGoc_${item.id}" onchange="changeGiaBan('${item.id}')"></td><td id="giaBan_${item.id}">${item.giaBan}</td><td style="text-align:center">${item.giaTriKhuyenMai == null ? "0" : item.giaTriKhuyenMai}</td><td><input type="radio" name="macDinh" id="trangThai_${item.id}" onclick="changeTrangThai('${item.id}')" /></td><td id="hoatDong_${item.id}" style="width:150px"><span style="color:green">Hoạt động</span></td><td id="xoa_${item.id}" style="width:150px"><a href="/Admin/GenerateQRCode?id=${item.id}&ma=${item.ma}" class="btn btn-secondary">Tạo mã QR</a><button type="button" class="btn btn-danger" onclick="xoa('${item.id}')">Xóa</button></td></tr>`);
+                    let stt = (pageIndex - 1) * pageSize + i + 1;
+                    let radioBtn = item.trangThai == 1
+                        ? `<input type="radio" name="macDinh" ${item.macDinh ? "checked" : ""} onclick="capNhatMacDinh('${item.id}')" />`
+                        : `<input type="radio" name="macDinh" ${item.macDinh ? "checked" : ""} disabled />`;
+
+                    let hoatDongText = item.trangThai == 1
+                        ? `<span style="color:green">Hoạt động</span>`
+                        : `<span style="color:red">Không hoạt động</span>`;
+
+                    let actionButtons = `<a href="/Admin/GenerateQRCode?id=${item.id}&ma=${item.ma}" class="btn btn-secondary">Tạo mã QR</a>`;
+                    if (item.trangThai == 0) {
+                            const canUndo = item.giaGoc > 0 && item.soLuong > 0;
+                            const titleUndo = !canUndo
+                                ? `title="Không thể hoàn tác: ${(item.giaGoc <= 0 ? 'Giá bán không hợp lệ. ' : '')}${(item.soLuong <= 0 ? 'Số lượng không hợp lệ.' : '')}"`
+                                : '';
+                            actionButtons += `<button type="button" class="btn btn-success" ${canUndo ? `onclick="undo('${item.id}')"` : "disabled"} ${titleUndo}>Hoàn tác</button>`;
                     }
                     else {
-                        $("#list_productdetails").append(`<tr><td>${item.ma}</td><td>${item.tenMauSac}</td><td><input type="color" value="${item.maMauSac}" style="border:none;width:27px;height:25px" disabled></td><td>${item.tenKichCo}</td><td style="width:100px"><input type="number" value="${item.soLuong}" style="border:none;width:100%" id="soLuong_${item.id}" onchange="changeSoLuong('${item.id}')"></td><td style="width:100px"><input type="number" value="${item.giaGoc}" style="border:none;width:100%" id="giaGoc_${item.id}" onchange="changeGiaBan('${item.id}')"></td><td id="giaBan_${item.id}">${item.giaBan}</td><td style="text-align:center">${item.giaTriKhuyenMai == null ? "0" : item.giaTriKhuyenMai}</td><td><input type="radio" name="macDinh" id="trangThai_${item.id}" onclick="changeTrangThai('${item.id}')" /></td><td id="hoatDong_${item.id}" style="width:150px"><span style="color:red">Không hoạt động</span></td><td id="xoa_${item.id}" style="width:150px"><a href="/Admin/GenerateQRCode?id=${item.id}&ma=${item.ma}" class="btn btn-secondary">Tạo mã QR</a><button type="button" class="btn btn-success" onclick="undo('${item.id}')">Hoàn tác</button></td></tr>`);
+                        actionButtons += `<button type="button" class="btn btn-danger" onclick="xoa('${item.id}')">Xóa</button>`;
                     }
+
+                    $("#list_productdetails").append(`
+                        <tr>
+                            <td>${stt}</td>
+                            <td>${item.ma}</td>
+                            <td>${item.tenMauSac}</td>
+                            <td><input type="color" value="${item.maMauSac}" style="border:none;width:27px;height:25px" disabled></td>
+                            <td>${item.tenKichCo}</td>
+                            <td style="width:100px">
+                                <input type="number" value="${item.soLuong}" id="soLuong_${item.id}" onchange="changeSoLuong('${item.id}')" min="0" class="form-control form-control-sm">
+                            </td>
+                            <td style="width:100px">
+                                <input type="number" value="${item.giaGoc}" id="giaGoc_${item.id}" onchange="changeGiaBan('${item.id}')" min="0" class="form-control form-control-sm">
+                            </td>
+                            <td id="giaBan_${item.id}">${item.giaBan}</td>
+                            <td>${radioBtn}</td>
+                            <td id="hoatDong_${item.id}">${hoatDongText}</td>
+                            <td id="xoa_${item.id}">${actionButtons}</td>
+                        </tr>
+                    `);
                 });
-                pagingsp(response.total, function () {
-                    loadsp();
-                });
+
+                if (resetPagination) {
+                    setupPagination(response.total);
+                }
+
+                showLoading(false);
             },
             error: function (err) {
-                console.log('Error:', err);
+                alert("Lỗi khi tải chi tiết sản phẩm.");
+                console.log(err);
+                showLoading(false);
             }
         });
     }
-    function pagingsp(totalrow, callback) {
-        var totalgages = Math.ceil(totalrow / pagesize);
+
+    function setupPagination(totalRows) {
+        $("#pagination-demo").twbsPagination('destroy');
         $("#pagination-demo").twbsPagination({
-            totalPages: totalgages,
+            totalPages: Math.ceil(totalRows / pageSize),
             visiblePages: 7,
             onPageClick: function (event, page) {
                 pageIndex = page;
-                setTimeout(callback, 200);
+                loadProductDetails(false);
             }
         });
     }
+
     function ReloadPagination() {
-        $("#pagination-demo").twbsPagination('destroy');
-        loadsp();
+        pageIndex = 1;
+        loadProductDetails(true);
     }
 
     function changeSoLuong(idSP) {
-        var ip = document.getElementById("soLuong_" + idSP);
-        if (ip.value < 0) {
+        let ip = document.getElementById("soLuong_" + idSP);
+        let value = parseInt(ip.value);
+        if (value < 0) {
             alert("Số lượng không được âm");
-            ip.value = -999;
+            ip.value = 0;
+            return;
         }
-        else {
-            $.ajax({
-                async: true,
-                type: 'POST',
-                dataType: "json",
-                data: { id: idSP, soLuong: ip.value },
-                url: '/Admin/UpdateSoluongChiTietSanPham',
-                success: function (response) {
-                    ip.innerHTML = response.message;
-                },
-                error: function (response) {
-                    ip.innerHTML = 'Error';
-                }
-            });
+        $.post('/Admin/UpdateSoluongChiTietSanPham', { id: idSP, soLuong: value }, function (res) {
+        if (!res.success) {
+            alert("Cập nhật số lượng thất bại.");
         }
-        
+        }).fail(function () {
+            alert("Có lỗi xảy ra khi cập nhật số lượng.");
+        });
     }
+
     function changeGiaBan(idSP) {
-        var ip = document.getElementById("giaGoc_" + idSP);
-        if (ip.value < 0) {
-            alert("Giá gốc không được âm");
-            ip.value = -999;
+        let ip = document.getElementById("giaGoc_" + idSP);
+        let value = parseInt(ip.value);
+        if (value < 0) {
+            alert("Giá không được âm");
+            ip.value = 0;
+            return;
         }
-        else {
-            $.ajax({
-                async: true,
-                type: 'POST',
-                dataType: "json",
-                data: { id: idSP, giaBan: ip.value },
-                url: '/Admin/UpdateGiaBanChiTietSanPham',
-                success: function (response) {
-                    document.getElementById("giaBan_"+idSP).innerHTML = response.message;
-                },
-                error: function (response) {
-                    ip.innerHTML = 'Error';
-                }
-            });
-        }       
+        $.post('/Admin/UpdateGiaGocChiTietSanPham', { id: idSP, giaGoc: value }, function (res) {
+        if (res.success) {
+            // Cập nhật lại giá bán hiển thị
+            $("#giaBan_" + idSP).text(res.giaBan);
+        } else {
+            alert("Cập nhật giá thất bại.");
+        }
+    });
+
     }
-        function changeTrangThai(idSP) {
-        $.ajax({
-            async: true,
-            type: 'POST',
-            dataType: "json",
-            data: { id: idSP },
-            url: '/Admin/UpdateTrangThaiChiTietSanPham',
-            success: function (response) {
-                if (response) {
-                    document.getElementById("hoatDong_" + idSP).innerHTML = '<span style="color:green">Hoạt động</span>';
-                    var ip = document.getElementById("xoa_" + idSP);
-                    ip.removeChild(ip.children[1]);
-                    $("#xoa_" + idSP).append("<button type='button' class='btn btn-danger' onclick = \"xoa('" + idSP + "')\">Xoá</button>");
-                } else {
-                    // ❌ Hiện tại bạn đang bỏ qua trường hợp backend trả false
-                    alert("Không thể cập nhật trạng thái. Có thể do: sản phẩm ngừng hoạt động hoặc chi tiết đang là mặc định.");
-                }
-            },
-            error: function () {
-                alert("Có lỗi xảy ra khi cập nhật trạng thái.");
+
+    function changeTrangThai(idSP, trangThai) {
+        $.post('/Admin/UpdateTrangThaiChiTietSanPham', { id: idSP, trangThai: trangThai }, function (response) {
+            if (response) {
+                alert("Cập nhật thành công.");
+                ReloadPagination();
+            } else {
+                alert("Không thể cập nhật trạng thái. Kiểm tra điều kiện sản phẩm cha, số lượng, giá bán hoặc mặc định.");
             }
+        }).fail(function () {
+            alert("Có lỗi xảy ra khi cập nhật trạng thái.");
         });
     }
 
     function xoa(idSP) {
+        $("#xoa_" + idSP).html("Đang xử lý...");
+
         $.ajax({
-            async: true,
-            type: 'GET',
-            dataType: "json",
-            data: { id: idSP },
-            url: '/Admin/DeleteProductDetail',
-            success: function (response) {
-                if (response.trangThai) {
-                    document.getElementById("hoatDong_" + idSP).innerHTML = '<span style="color:red">Không hoạt động</span>';
-                    var ip = document.getElementById("xoa_" + idSP);
-                    ip.removeChild(ip.children[1]);
-                    $("#xoa_" + idSP).append("<button type='button' class='btn btn-success' onclick = \"undo('" + idSP + "')\">Hoàn tác</button>");
+            url: '/Admin/DeleteProductDetail?id=' + idSP,
+            type: 'DELETE',
+            success: function (res) {
+                if (res.trangThai) {
+                    ReloadPagination();
+                } else {
+                    alert(res.loi);
                 }
-                else {
-                    alert(response.loi);
-                }
+            },
+            error: function () {
+                alert("Lỗi khi gửi yêu cầu xoá.");
             }
         });
     }
+
     function undo(idSP) {
-        $.ajax({
-            async: true,
-            type: 'GET',
-            dataType: "json",
-            data: { id: idSP },
-            url: '/Admin/UndoProductDetail',
-            success: function (response) {
-                if (response) {
-                    document.getElementById("hoatDong_" + idSP).innerHTML = '<span style="color:green">Hoạt động</span>';
-                    var ip = document.getElementById("xoa_" + idSP);
-                    ip.removeChild(ip.children[1]);
-                    $("#xoa_" + idSP).append("<button type='button' class='btn btn-danger' onclick = \"xoa('" + idSP + "')\">Xoá</button>");
-                }
+        $.get('/Admin/UndoProductDetail', { id: idSP }, function (res) {
+            if (res.trangThai) {
+                ReloadPagination();
+            } else {
+                alert(res.loi || "Không thể hoàn tác.");
             }
+        }).fail(function () {
+            alert("Có lỗi xảy ra khi gọi API hoàn tác.");
         });
+    }
+
+    function capNhatMacDinh(idChiTiet) {
+        $.post('/Admin/UpdateMacDinhChiTietSanPham', { id: idChiTiet }, function (res) {
+            if (res.trangThai === true) {
+                alert("Đã cập nhật mặc định thành công.");
+                ReloadPagination();
+            } else {
+                alert("Cập nhật mặc định thất bại.\n" + (res.message || ""));
+            }
+        }).fail(function () {
+            alert("Có lỗi xảy ra khi gọi API.");
+        });
+    }
+
+    function showLoading(show) {
+        if (show) {
+            $("#list_productdetails").html(`<tr><td colspan="11" class="text-center">Đang tải...</td></tr>`);
+        }
     }
 </script>
+
 
 

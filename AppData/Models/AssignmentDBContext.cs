@@ -43,7 +43,7 @@ namespace AppData.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Server=DESKTOP-3K22IAU;Database=AppBanQuanAoThoiTrangNam;Trusted_Connection=True;TrustServerCertificate=True");
+                optionsBuilder.UseSqlServer("Server=DESKTOP-NQ6KMAG\\SQLEXPRESS;Database=AppBanQuanAoThoiTrangNam;Trusted_Connection=True;TrustServerCertificate=True");
             }
         }
         //"Server=DESKTOP-NQ6KMAG\SQLEXPRESS;Database=AppBanQuanAoThoiTrangNam;Trusted_Connection=True;TrustServerCertificate=True"
@@ -131,11 +131,11 @@ namespace AppData.Models
             // 👉 Seeding MauSac
             modelBuilder.Entity<MauSac>().HasData(
                 new MauSac { ID = Guid.Parse("5984fce1-b2f4-4b43-a2f0-30cb3ebefaec"), Ma = "#480cd4", Ten = "Tím", TrangThai = 1 },
-                new MauSac { ID = Guid.Parse("4552f6dc-53f3-4966-a4bb-5a9328e972b8"), Ma = "#8d9b27", Ten = "Xanh la", TrangThai = 1 },
-                new MauSac { ID = Guid.Parse("a5919aa2-b789-423a-b962-6d0f51673a44"), Ma = "#480cd4", Ten = "Xanh", TrangThai = 1 },
-                new MauSac { ID = Guid.Parse("754c5d9d-f44b-453f-9134-a951621f6aa9"), Ma = "#8d9b27", Ten = "Đen", TrangThai = 1 },
-                new MauSac { ID = Guid.Parse("ee6bc3a6-a09c-4c1c-ae32-c22578304978"), Ma = "#480cd4", Ten = "Nâu", TrangThai = 1 },
-                new MauSac { ID = Guid.Parse("2e31b635-3164-4391-8007-cdee9e3b7d1a"), Ma = "#8d9b27", Ten = "Vàng", TrangThai = 1 },
+                new MauSac { ID = Guid.Parse("4552f6dc-53f3-4966-a4bb-5a9328e972b8"), Ma = "#8d9b27", Ten = "Xanh lá", TrangThai = 1 },
+                new MauSac { ID = Guid.Parse("a5919aa2-b789-423a-b962-6d0f51673a44"), Ma = "#3cb371", Ten = "Xanh", TrangThai = 1 }, 
+                new MauSac { ID = Guid.Parse("754c5d9d-f44b-453f-9134-a951621f6aa9"), Ma = "#000000", Ten = "Đen", TrangThai = 1 }, 
+                new MauSac { ID = Guid.Parse("ee6bc3a6-a09c-4c1c-ae32-c22578304978"), Ma = "#8B4513", Ten = "Nâu", TrangThai = 1 }, 
+                new MauSac { ID = Guid.Parse("2e31b635-3164-4391-8007-cdee9e3b7d1a"), Ma = "#FFFF00", Ten = "Vàng", TrangThai = 1 }, 
                 new MauSac { ID = Guid.Parse("f7ea0204-6a31-4891-b807-cff779915b6d"), Ma = "#f40b0b", Ten = "Đỏ", TrangThai = 1 }
             );
             // 👉 Seeding KichCo
@@ -144,8 +144,8 @@ namespace AppData.Models
                 new KichCo { ID = Guid.Parse("65a264a7-1da7-4937-af45-0683563c98f3"), Ten = "M", TrangThai = 1 },
                 new KichCo { ID = Guid.Parse("3c6dbcc1-78d9-4afe-b7bd-6ca99e321119"), Ten = "L", TrangThai = 1 },
                 new KichCo { ID = Guid.Parse("add670bd-a69a-4200-9267-d54cf2171795"), Ten = "XL", TrangThai = 1 },
-                new KichCo { ID = Guid.Parse("5e863e9f-8c80-4ea6-9903-01633155e470"), Ten = "XXL", TrangThai = 1 },
-                new KichCo { ID = Guid.Parse("ca656d78-80a1-4409-933e-cc3ee5faf0d8"), Ten = "XXXL", TrangThai = 1 }
+                new KichCo { ID = Guid.Parse("5e863e9f-8c80-4ea6-9903-01633155e470"), Ten = "2XL", TrangThai = 1 },
+                new KichCo { ID = Guid.Parse("ca656d78-80a1-4409-933e-cc3ee5faf0d8"), Ten = "3XL", TrangThai = 1 }
             );
             // 👉 Seeding LoaiSP
             modelBuilder.Entity<LoaiSP>().HasData(

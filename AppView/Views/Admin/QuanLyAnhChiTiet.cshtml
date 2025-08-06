@@ -1,60 +1,64 @@
 ﻿@model IEnumerable<AppData.ViewModels.SanPham.UploadAnhViewModel>
 @{
-    ViewData["Title"] = "Quản lý ảnh theo biến thể";
+    ViewData["Title"] = "Quản lý ảnh theo màu sắc sản phẩm";
     string? id = ViewData["IDSanPham"] as string;
 }
-<h2>Quản lý ảnh theo màu sản phẩm</h2>
 
-<table class="table" style="width:500px">
+<h2>Quản lý ảnh theo màu sắc sản phẩm</h2>
+
+<table class="table table-bordered">
     <thead>
         <tr>
+            <th>Màu</th>
             <th>Ảnh</th>
-            <th>Tên màu</th>
-            <th>Mã màu</th>
-            <th>Thêm</th>       <!-- Thêm -->
-            <th>Cập nhật</th>   <!-- Sửa -->
-            <th>Xoá</th>
+            <th>Thêm ảnh</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
+            var jsonListID = System.Text.Json.JsonSerializer.Serialize(item.DanhSachIDChiTietSP);
+            var jsonIDMauSac = item.IDMauSac.ToString();
+
             <tr>
-                <td>
-                    @if (!string.IsNullOrEmpty(item.DuongDan))
+                <td style="vertical-align: top;">
+                    <div>@item.TenMau</div>
+                    <input type="color" value="@item.MaMau" disabled style="border:none;width:40px;height:30px" />
+                </td>
+
+                <td style="vertical-align: top;">
+                    @if (item.DuongDanAnh != null && item.DuongDanAnh.Any())
                     {
-                        <img src="@item.DuongDan" style="width:70px;height:80px" />
+                        <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                            @for (int i = 0; i < item.DuongDanAnh.Count; i++)
+                            {
+                                string duongDan = item.DuongDanAnh[i];
+                                string? idAnh = item.DanhSachIDAnh != null && i < item.DanhSachIDAnh.Count ? item.DanhSachIDAnh[i].ToString() : "";
+
+                                <div style="position:relative;">
+                                    <img src="@duongDan" style="width:70px; height:80px; object-fit:cover; border:1px solid #ccc;" />
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger"
+                                            style="position:absolute; top:-10px; right:-10px; border-radius:50%;"
+                                            onclick="DeleteImage('@duongDan', '@idAnh')">
+                                        x
+                                    </button>
+                                </div>
+                            }
+                        </div>
                     }
                     else
                     {
                         <span style="color:red;">Chưa có ảnh</span>
                     }
+                </td>
 
-
-                </td>
-                <td>@item.TenMau</td>
-                <td>
-                    <input type="color" value="@item.MaMau" style="border:none;width:27px;height:25px" disabled />
-                </td>
-                <!-- ✅ Nút thêm -->
-                <td>
-                    <label for="add_@item.IDChiTietSanPham" class="btn btn-primary">Thêm</label><br />
-                    <input id="add_@item.IDChiTietSanPham" type="file" multiple style="display: none;"
-                           onchange="AddImage(event, '@item.IDChiTietSanPham')" />
-                </td>
-                <!-- ✅ Nút sửa -->
-                <td>
-                    <label for="update_@item.IDChiTietSanPham" class="btn btn-success">Sửa</label><br />
-                    <input id="update_@item.IDChiTietSanPham" type="file" style="display: none;"
-                           onchange="UpdateImage(event,'@item.IDChiTietSanPham','@item.DuongDan')" />
-                </td>
-                <!-- ✅ Nút xoá -->
-                <td>
-                    <a class="btn btn-danger"
-                       asp-action="DeleteImage"
-                       asp-route-id="@item.IDAnh"
-                       asp-route-idSanPham="@id"
-                       asp-route-duongDan="@item.DuongDan">Xoá</a>
+                <td style="vertical-align: top;">
+                    <input type="file" id="fileInput_@item.IDMauSac" accept="image/*" multiple />
+                    <button class="btn btn-primary"
+                            onclick='UploadAndSaveImage("@item.MaMau", @Html.Raw(jsonListID), "@item.IDMauSac")'>
+                        Tải lên ảnh
+                    </button>
                 </td>
             </tr>
         }
@@ -62,55 +66,79 @@
 </table>
 
 <script>
-        function AddImage(event, idChiTiet) {
-        const files = event.target.files;
-        const formData = new FormData();
-
-        for (let i = 0; i < files.length; i++) {
-            if (!files[i].type.startsWith("image/")) {
-                alert("Chỉ chấp nhận file ảnh!");
-                return;
-            }
-
-            // Phải đặt tên field theo đúng index của model
-            formData.append(`[${i}].Image`, files[i]);
-            formData.append(`[${i}].IDChiTietSanPham`, idChiTiet);
+    function UploadAndSaveImage(maMau, listIDChiTietSP, idInputSuffix) {
+        const input = document.getElementById(`fileInput_${idInputSuffix}`);
+        const files = input.files;
+        if (!files || files.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 ảnh.");
+            return;
         }
+        
+        // Lấy số ảnh hiện tại trong cột ảnh
+        const row = input.closest("tr");
+        const existingImages = row.querySelectorAll("td:nth-child(2) img").length;
 
-        fetch("/Admin/AddImage", {
-            method: "POST",
-            body: formData
-        }).then(res => {
-            if (res.ok) location.reload();
-            else alert("Thêm ảnh thất bại.");
-        }).catch(err => {
-            alert("Lỗi hệ thống!");
-            console.error(err);
-        });
-    }
-
-    function UpdateImage(event, id, duongdan) {
-        var file = event.target.files[0]; // Sửa lại từ 'value' thành 'file'
-
-        if (!file.type.startsWith("image/")) {
-            alert("Chỉ chấp nhận file ảnh!");
+        // Kiểm tra tổng ảnh sau khi thêm có vượt quá 5 không
+        if (existingImages + files.length > 5) {
+            alert("Mỗi màu chỉ được tối đa 5 ảnh.");
             return;
         }
 
-        var formData = new FormData();
-        formData.append("file", file);
-        formData.append("id", id);
-        formData.append("duongDan", duongdan);
-        formData.append("idSanPham", '@id');
+        const formData = new FormData();
+        for (let file of files) {
+            formData.append("images", file);
+        }
 
-        fetch("/Admin/UpdateImage", {
-            method: 'POST',
+        fetch("/Admin/UploadImages", {
+            method: "POST",
             body: formData
-        }).then(res => {
-            if (res.ok) location.reload();
-            else alert("Cập nhật ảnh thất bại.");
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !data.length) {
+                alert("Tải ảnh lên thất bại.");
+                return;
+            }
+
+            const payload = [{
+                maMau: maMau,
+                danhSachIDChiTietSP: listIDChiTietSP,
+                duongDanAnh: data
+            }];
+
+            return fetch("/Admin/AddImage", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+        })
+        .then(res => {
+            if (res && res.ok) {
+                location.reload();
+            } else {
+                alert("Lưu ảnh vào sản phẩm thất bại.");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Có lỗi xảy ra.");
         });
     }
 
-</script>
+    function DeleteImage(duongDan, idAnh) {
+        if (!confirm("Xác nhận xoá ảnh này?")) return;
 
+        const idSanPham = "@id";
+
+        fetch(`/Admin/DeleteImage?duongDan=${encodeURIComponent(duongDan)}&id=${idAnh}&idSanPham=${idSanPham}`, {
+            method: "DELETE"
+        })
+        .then(res => {
+            if (res.ok) {
+                location.reload();
+            } else {
+                alert("Xóa ảnh thất bại.");
+            }
+        });
+    }
+</script>

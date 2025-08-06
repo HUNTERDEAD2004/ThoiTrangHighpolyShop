@@ -12,5 +12,4 @@ namespace AppData.ViewModels.SanPham
         public string DuongDan { get; set; } = string.Empty;
         public string? MaMau { get; set; }
     }
-
 }

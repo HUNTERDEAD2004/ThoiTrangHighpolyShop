@@ -41,7 +41,6 @@ namespace AppAPI.Services
             await _context.SaveChangesAsync();
             return true;
         }
-
         public Task<List<SanPhamViewModel>> TimKiemSanPham(SanPhamTimKiemNangCao sp)
         {
             throw new NotImplementedException();
@@ -76,17 +75,17 @@ namespace AppAPI.Services
                 return new SanPhamUpdateRequest();
             }
         }
-
         public List<SanPhamViewModelAdmin> GetAllSanPhamAdmin()
         {
             try
             {
+                var now = DateTime.Now;
+
                 // Lấy danh sách khuyến mãi áp dụng tại thời điểm hiện tại
                 var khuyenMais = _context.KhuyenMais
-                    .Where(x => x.NgayKetThuc > DateTime.Now && x.NgayApDung < DateTime.Now)
+                    .Where(x => x.NgayKetThuc > now && x.NgayApDung < now)
                     .ToList();
 
-                // Truy vấn sản phẩm + loại sản phẩm con + cha + chi tiết + chất liệu
                 var lstSanPham = (from sp in _context.SanPhams
                                   join loaiCon in _context.LoaiSPs on sp.IDLoaiSP equals loaiCon.ID
                                   join loaiCha in _context.LoaiSPs on loaiCon.IDLoaiSPCha equals loaiCha.ID into loaiChaJoin
@@ -99,27 +98,30 @@ namespace AppAPI.Services
                                       LoaiSPCon = loaiCon,
                                       LoaiSPCha = loaiCha,
                                       ChatLieu = cl,
-                                      ChiTietSP = _context.ChiTietSanPhams
-                                        .Where(x => x.IDSanPham == sp.ID)
-                                        .OrderByDescending(x => x.NgayTao)
-                                        .FirstOrDefault()
+                                      ChiTietMoiNhat = _context.ChiTietSanPhams
+                                          .Where(x => x.IDSanPham == sp.ID)
+                                          .OrderByDescending(x => x.NgayTao)
+                                          .FirstOrDefault(),
+                                      TongSoLuong = _context.ChiTietSanPhams
+                                          .Where(x => x.IDSanPham == sp.ID)
+                                          .Sum(x => (int?)x.SoLuong) ?? 0
                                   }).ToList()
-                   .Select(x => new SanPhamViewModelAdmin
-                   {
-                       ID = x.SanPham.ID,
-                       Ten = x.SanPham.Ten,
-                       Ma = x.SanPham.Ma,
-                       TrangThai = x.SanPham.TrangThai,
-                       LoaiSPCon = x.LoaiSPCon.Ten,
-                       LoaiSPCha = x.LoaiSPCha != null ? x.LoaiSPCha.Ten : "Không có",
-                       ChatLieu = x.ChatLieu != null ? x.ChatLieu.Ten : "Không xác định",
-                       Anh = x.SanPham.AnhDaiDien,
-                       GiaGoc = x.ChiTietSP != null ? x.ChiTietSP.GiaBan : 0,
-                       SoLuong = x.ChiTietSP != null ? x.ChiTietSP.SoLuong : 0,
-                       IDKhuyenMai = x.ChiTietSP?.IDKhuyenMai
-                   }).ToList();
+                    .Select(x => new SanPhamViewModelAdmin
+                    {
+                        ID = x.SanPham.ID,
+                        Ten = x.SanPham.Ten,
+                        Ma = x.SanPham.Ma,
+                        TrangThai = x.SanPham.TrangThai,
+                        LoaiSPCon = x.LoaiSPCon.Ten,
+                        LoaiSPCha = x.LoaiSPCha != null ? x.LoaiSPCha.Ten : "Không có",
+                        ChatLieu = x.ChatLieu != null ? x.ChatLieu.Ten : "Không xác định",
+                        Anh = x.SanPham.AnhDaiDien,
+                        GiaGoc = x.ChiTietMoiNhat?.GiaBan ?? 0,
+                        SoLuong = x.TongSoLuong,
+                        IDKhuyenMai = x.ChiTietMoiNhat?.IDKhuyenMai
+                    }).ToList();
 
-                // Tính giá bán sau khuyến mãi
+                // Áp dụng khuyến mãi nếu có
                 foreach (var item in lstSanPham)
                 {
                     var khuyenMai = khuyenMais.FirstOrDefault(x => x.ID == item.IDKhuyenMai);
@@ -222,18 +224,27 @@ namespace AppAPI.Services
 
                 sanPham.TrangThai = trangThai;
 
-                // Lấy tất cả biến thể của sản phẩm
                 var chiTietList = await _context.ChiTietSanPhams
                     .Where(x => x.IDSanPham == id)
                     .ToListAsync();
 
                 foreach (var chiTiet in chiTietList)
                 {
-                    // Nếu sản phẩm bị tắt → tắt toàn bộ chi tiết (kể cả mặc định)
-                    // Nếu sản phẩm vẫn hoạt động → chỉ tắt các chi tiết không phải mặc định
-                    if (trangThai != 1 || !chiTiet.IsDefault)
+                    if (trangThai == 0)
                     {
-                        chiTiet.TrangThai = trangThai;
+                        chiTiet.TrangThai = 0;
+                    }
+                    else if (trangThai == 1)
+                    {
+                        // ✅ CHỈ BẬT những biến thể có tồn kho > 0 hoặc có giá bán > 0
+                        if (chiTiet.SoLuong > 0 || chiTiet.GiaBan > 0)
+                        {
+                            chiTiet.TrangThai = 1;
+                        }
+                        else
+                        {
+                            chiTiet.TrangThai = 0; // không đủ điều kiện hoạt động
+                        }
                     }
                 }
 
@@ -251,49 +262,64 @@ namespace AppAPI.Services
         {
             try
             {
-                // Kiểm tra loại sản phẩm
-                LoaiSP? loaiSPCon = request.IDLoaiSPCon.HasValue
-                    ? await _context.LoaiSPs.FirstOrDefaultAsync(x => x.ID == request.IDLoaiSPCon)
-                    : await _context.LoaiSPs.FirstOrDefaultAsync(x => x.ID == request.IDLoaiSPCha);
-                if (loaiSPCon == null)
+                Guid? idLoaiSanPham = null;
+
+                if (request.IDLoaiSPCon.HasValue)
                 {
-                    Console.WriteLine("Loại sản phẩm không tồn tại");
-                    return false;
+                    var loaiSPCon = await _context.LoaiSPs.FindAsync(request.IDLoaiSPCon.Value);
+                    if (loaiSPCon == null)
+                    {
+                        Console.WriteLine("Loại sản phẩm con không tồn tại.");
+                        return false;
+                    }
+
+                    idLoaiSanPham = loaiSPCon.ID;
+                }
+                else
+                {
+                    var loaiSPCha = await _context.LoaiSPs.FindAsync(request.IDLoaiSPCha);
+                    if (loaiSPCha == null)
+                    {
+                        Console.WriteLine("Loại sản phẩm cha không tồn tại.");
+                        return false;
+                    }
+
+                    idLoaiSanPham = loaiSPCha.ID;
                 }
 
-                // Kiểm tra chất liệu
                 var chatLieu = await _context.ChatLieus.FirstOrDefaultAsync(x => x.ID == request.IDChatLieu);
                 if (chatLieu == null)
                 {
-                    Console.WriteLine("Chất liệu không tồn tại");
+                    Console.WriteLine("Chất liệu không tồn tại.");
                     return false;
                 }
 
-                // Tạo mã sản phẩm
-                var ma = _context.SanPhams.Any()
+                var maxMa = _context.SanPhams.Any()
                     ? _context.SanPhams.Max(x => Convert.ToInt32(x.Ma.Substring(2)))
                     : 0;
+                var maSanPham = "SP" + (maxMa + 1);
 
                 var sanPham = new SanPham
                 {
                     ID = Guid.NewGuid(),
-                    Ten = request.Ten,
-                    Ma = "SP" + (ma + 1),
-                    MoTa = request.MoTa,
+                    Ten = request.Ten?.Trim(),
+                    Ma = maSanPham,
+                    MoTa = request.MoTa?.Trim(),
                     AnhDaiDien = request.AnhDaiDien,
-                    TrangThai = 0,
-                    IDLoaiSP = loaiSPCon.ID,
+                    TrangThai = 0, // KHÔNG HOẠT ĐỘNG khi tạo
+                    IDLoaiSP = idLoaiSanPham.Value,
                     IDChatLieu = chatLieu.ID
                 };
-
                 await _context.SanPhams.AddAsync(sanPham);
 
-                // Tạo biến thể sản phẩm
-                if (request.IDMauSacs.Count == 0 || request.IDKichCos.Count == 0)
+                if (!request.IDMauSacs.Any() || !request.IDKichCos.Any())
                 {
-                    Console.WriteLine("Không có màu sắc hoặc kích cỡ để tạo biến thể");
+                    Console.WriteLine("Không có màu sắc hoặc kích cỡ.");
                     return false;
                 }
+
+                bool hasDefaultSet = false;
+                bool hasValidChiTiet = false;
 
                 foreach (var idMau in request.IDMauSacs.Distinct())
                 {
@@ -304,9 +330,11 @@ namespace AppAPI.Services
 
                         if (mau == null || size == null)
                         {
-                            Console.WriteLine($"Không tìm thấy màu {idMau} hoặc size {idSize}");
+                            Console.WriteLine($"Không tìm thấy màu {idMau} hoặc size {idSize}.");
                             continue;
                         }
+
+                        var maChiTiet = RemoveUnicode($"{maSanPham}{mau.Ten?.Trim().ToUpper()}{size.Ten?.Trim().ToUpper()}");
 
                         var chiTiet = new ChiTietSanPham
                         {
@@ -317,13 +345,21 @@ namespace AppAPI.Services
                             SoLuong = 0,
                             GiaBan = 0,
                             NgayTao = DateTime.Now,
-                            IsDefault = false,
-                            TrangThai = 0,
-                            MaSPChiTiet = RemoveUnicode($"{sanPham.Ma}{mau.Ten?.Trim().ToUpper()}{size.Ten?.Trim().ToUpper()}")
+                            IsDefault = !hasDefaultSet,
+                            TrangThai = 0, // luôn khởi tạo ở trạng thái không hoạt động
+                            MaSPChiTiet = maChiTiet
                         };
 
                         await _context.ChiTietSanPhams.AddAsync(chiTiet);
+                        hasDefaultSet = true;
+                        hasValidChiTiet = true;
                     }
+                }
+
+                if (!hasValidChiTiet)
+                {
+                    Console.WriteLine("Không có chi tiết sản phẩm hợp lệ nào.");
+                    return false;
                 }
 
                 await _context.SaveChangesAsync();
@@ -604,8 +640,20 @@ namespace AppAPI.Services
         {
             try
             {
-                var chiTietSanPham = _context.ChiTietSanPhams.First(x => x.ID == id);
+                var chiTietSanPham = await _context.ChiTietSanPhams.FirstAsync(x => x.ID == id);
+
                 chiTietSanPham.SoLuong = soLuong;
+
+                // Nếu cả giá bán và số lượng đều bằng 0 thì ngừng hoạt động
+                if (chiTietSanPham.GiaBan == 0 && soLuong == 0)
+                {
+                    chiTietSanPham.TrangThai = 0;
+                }
+                else
+                {
+                    chiTietSanPham.TrangThai = 1;
+                }
+
                 _context.ChiTietSanPhams.Update(chiTietSanPham);
                 await _context.SaveChangesAsync();
                 return true;
@@ -615,59 +663,103 @@ namespace AppAPI.Services
                 return false;
             }
         }
-        public async Task<decimal> UpdateGiaBanChiTietSanPham(Guid id, decimal giaBan)
+        public async Task<decimal> UpdateGiaGocChiTietSanPham(Guid id, decimal giaGoc)
         {
             try
             {
-                var chiTietSanPham = _context.ChiTietSanPhams.First(x => x.ID == id);
-                chiTietSanPham.GiaBan = giaBan;
+                var chiTietSanPham = await _context.ChiTietSanPhams.FirstOrDefaultAsync(x => x.ID == id);
+                if (chiTietSanPham == null) return -1;
+
+                // Cập nhật giá gốc (được lưu vào trường GiaBan)
+                chiTietSanPham.GiaBan = giaGoc;
+
+                // Cập nhật trạng thái: nếu hết hàng và giá = 0 thì tạm ẩn
+                chiTietSanPham.TrangThai = (chiTietSanPham.SoLuong <= 0 && giaGoc <= 0) ? 0 : 1;
+
                 _context.ChiTietSanPhams.Update(chiTietSanPham);
                 await _context.SaveChangesAsync();
-                if (chiTietSanPham.IDKhuyenMai != null)
+
+                // Tính giá thực tế để hiển thị (nếu có khuyến mãi còn hiệu lực)
+                decimal giaThucTe = giaGoc;
+
+                if (chiTietSanPham.IDKhuyenMai.HasValue)
                 {
-                    var khuyenMai = await _context.KhuyenMais.FirstAsync(x => x.ID == chiTietSanPham.IDKhuyenMai);
-                    if (khuyenMai.NgayKetThuc > DateTime.Now && khuyenMai.TrangThai == 1)
+                    var km = await _context.KhuyenMais.FirstOrDefaultAsync(x =>
+                        x.ID == chiTietSanPham.IDKhuyenMai &&
+                        x.TrangThai == 1 &&
+                        x.NgayKetThuc > DateTime.Now);
+
+                    if (km != null)
                     {
-                        giaBan = GetKhuyenMai(khuyenMai.GiaTri, giaBan, khuyenMai.TrangThai);
+                        giaThucTe = GetKhuyenMai(km.GiaTri, giaGoc, km.KieuGiamGia);
                     }
                 }
-                return giaBan;
+
+                return giaThucTe;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine("Lỗi khi cập nhật giá gốc: " + ex.Message);
                 return -1;
             }
         }
-        public async Task<bool> UpdateTrangThaiChiTietSanPham(Guid id, int trangThai)
+        public async Task<bool> UpdateTrangThaiChiTietSanPham(Guid id)
         {
             try
             {
-                var chiTiet = await _context.ChiTietSanPhams
-                    .Include(x => x.SanPham)
-                    .FirstOrDefaultAsync(x => x.ID == id);
-                if (chiTiet == null) return false;
+                var chiTietSanPham = await _context.ChiTietSanPhams.FindAsync(id);
 
-                // ❌ Không được bật nếu sản phẩm đang ngừng hoạt động
-                if (trangThai == 1 && chiTiet.SanPham?.TrangThai != 1)
+                if (chiTietSanPham == null)
                 {
+                    Console.WriteLine("Không tìm thấy chi tiết sản phẩm.");
                     return false;
                 }
 
-                // ❌ Không được tắt nếu đang là biến thể mặc định và đang hoạt động
-                if (trangThai == 0 && chiTiet.IsDefault)
+                bool isHiding = chiTietSanPham.TrangThai == 1;
+                chiTietSanPham.TrangThai = isHiding ? 0 : 1;
+
+                if (isHiding && chiTietSanPham.IsDefault)
                 {
-                    return false;
+                    chiTietSanPham.IsDefault = false;
+
+                    var bienTheKhac = await _context.ChiTietSanPhams
+                        .Where(x => x.IDSanPham == chiTietSanPham.IDSanPham
+                                 && x.ID != chiTietSanPham.ID
+                                 && x.TrangThai == 1
+                                 && x.GiaBan > 0
+                                 && x.SoLuong > 0)
+                        .OrderBy(x => x.GiaBan)
+                        .FirstOrDefaultAsync();
+
+                    if (bienTheKhac != null)
+                    {
+                        bienTheKhac.IsDefault = true;
+                        _context.ChiTietSanPhams.Update(bienTheKhac);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Không còn biến thể hợp lệ để gán mặc định.");
+                    }
                 }
 
-                // Cập nhật trạng thái
-                chiTiet.TrangThai = trangThai;
-                _context.ChiTietSanPhams.Update(chiTiet);
+                if (!isHiding)
+                {
+                    var daCoMacDinh = await _context.ChiTietSanPhams
+                        .AnyAsync(x => x.IDSanPham == chiTietSanPham.IDSanPham && x.IsDefault && x.TrangThai == 1);
 
+                    if (!daCoMacDinh && chiTietSanPham.GiaBan > 0 && chiTietSanPham.SoLuong > 0)
+                    {
+                        chiTietSanPham.IsDefault = true;
+                    }
+                }
+
+                _context.ChiTietSanPhams.Update(chiTietSanPham);
                 await _context.SaveChangesAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine("Lỗi khi cập nhật trạng thái chi tiết sản phẩm: " + ex.Message);
                 return false;
             }
         }
@@ -694,7 +786,8 @@ namespace AppAPI.Services
                                                    SoLuong = a.SoLuong,
                                                    GiaGoc = a.GiaBan,
                                                    IDKhuyenMai = a.IDKhuyenMai,
-                                                   TrangThai = a.TrangThai
+                                                   TrangThai = a.TrangThai,
+                                                   MacDinh = a.IsDefault,
                                                }).ToListAsync();
 
                 // Gom các ID cần xóa khuyến mãi
@@ -762,13 +855,43 @@ namespace AppAPI.Services
             try
             {
                 var chiTietSanPham = await _context.ChiTietSanPhams.FindAsync(id);
-                if (chiTietSanPham.TrangThai != 1)
+                if (chiTietSanPham == null) return false;
+
+                if (chiTietSanPham.TrangThai == 1)
                 {
+                    bool isDefault = chiTietSanPham.IsDefault;
+
+                    // Nếu đang là mặc định, kiểm tra còn biến thể nào khác hợp lệ không
+                    if (isDefault)
+                    {
+                        var bienTheKhac = await _context.ChiTietSanPhams
+                            .Where(x => x.IDSanPham == chiTietSanPham.IDSanPham
+                                     && x.ID != chiTietSanPham.ID
+                                     && x.TrangThai == 1
+                                     && x.GiaBan > 0
+                                     && x.SoLuong > 0)
+                            .ToListAsync();
+
+                        if (bienTheKhac.Count == 0)
+                        {
+                            Console.WriteLine("Không thể xóa vì không còn biến thể hợp lệ để gán mặc định.");
+                            return false;
+                        }
+
+                        // Nếu có biến thể khác → gỡ mặc định & gán mới
+                        chiTietSanPham.IsDefault = false;
+
+                        var newMacDinh = bienTheKhac.OrderBy(x => x.GiaBan).First();
+                        newMacDinh.IsDefault = true;
+                        _context.ChiTietSanPhams.Update(newMacDinh);
+                    }
+
                     chiTietSanPham.TrangThai = 0;
                     _context.ChiTietSanPhams.Update(chiTietSanPham);
                     await _context.SaveChangesAsync();
                     return true;
                 }
+
                 return false;
             }
             catch
@@ -781,7 +904,28 @@ namespace AppAPI.Services
             try
             {
                 var chiTietSanPham = await _context.ChiTietSanPhams.FindAsync(id);
-                chiTietSanPham.TrangThai = 2;
+                if (chiTietSanPham == null) return false;
+
+                // Đã đang hoạt động => không cần undo
+                if (chiTietSanPham.TrangThai == 1) return false;
+
+                // Giá và số lượng phải hợp lệ
+                if (chiTietSanPham.GiaBan <= 0 || chiTietSanPham.SoLuong <= 0)
+                {
+                    Console.WriteLine("Không thể bật lại vì giá hoặc số lượng không hợp lệ.");
+                    return false;
+                }
+
+                // Kiểm tra sản phẩm cha
+                var sanPham = await _context.SanPhams.FindAsync(chiTietSanPham.IDSanPham);
+                if (sanPham == null || sanPham.TrangThai != 1)
+                {
+                    Console.WriteLine("Không thể bật lại vì sản phẩm cha đang bị ẩn hoặc không tồn tại.");
+                    return false;
+                }
+
+                // OK, bật lại
+                chiTietSanPham.TrangThai = 1;
                 _context.ChiTietSanPhams.Update(chiTietSanPham);
                 await _context.SaveChangesAsync();
                 return true;
@@ -796,31 +940,38 @@ namespace AppAPI.Services
             try
             {
                 var chiTietSPs = _context.ChiTietSanPhams
-                    .Where(x => x.IDSanPham == idSanPham)
-                    .Include(x => x.MauSac)
-                    .ToList();
+                            .Where(x => x.IDSanPham == idSanPham)
+                            .Include(x => x.MauSac)
+                            .Include(x => x.Anhs)
+                            .AsEnumerable(); // chuyển sang xử lý in-memory
 
-                var result = (from ctsp in _context.ChiTietSanPhams
-                              join ms in _context.MauSacs on ctsp.IDMauSac equals ms.ID
-                              join a in _context.Anhs on ctsp.ID equals a.IDSanPhamChiTiet into anhGroup
-                              from anh in anhGroup.DefaultIfEmpty() // LEFT JOIN
-                              where ctsp.IDSanPham == idSanPham
-                              select new UploadAnhViewModel
-                              {
-                                  IDChiTietSanPham = ctsp.ID,
-                                  MaMau = ms.Ma,
-                                  TenMau = ms.Ten,
-                                  DuongDan = anh != null ? anh.DuongDan : ""
-                              }).ToList();
+                var result = chiTietSPs
+                            .Where(x => x.MauSac != null) // tránh null
+                            .GroupBy(ctsp => ctsp.IDMauSac)
+                            .Select(group => new UploadAnhViewModel
+                            {
+                                IDMauSac = group.Key,
+                                TenMau = group.First().MauSac?.Ten ?? "Không rõ",
+                                MaMau = group.First().MauSac?.Ma ?? "#000000",
+                                DanhSachIDChiTietSP = group.Select(x => x.ID).ToList(),
+                                DuongDanAnh = group
+                                    .SelectMany(x => x.Anhs ?? new List<Anh>())
+                                    //.OrderBy(a => a.ThuTu) // Nếu sau này có
+                                    .Select(a => a.DuongDan)
+                                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                                    .Distinct()
+                                    .ToList()
+                            })
+                            .ToList();
 
                 return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("LỖI: " + ex.Message); // Hoặc log ra file/log system nếu có
+                Console.WriteLine($"[GetAllAnhSanPhamChiTiet] Lỗi: {ex.Message}\n{ex.StackTrace}");
                 return new List<UploadAnhViewModel>();
             }
-         }
+        }
         public async Task<bool> AddImage(List<AnhRequest> requests)
         {
             try
@@ -844,20 +995,6 @@ namespace AppAPI.Services
                 Console.WriteLine($"[AddImage] Lỗi khi lưu ảnh: {ex.Message}");
                 return false;
             }
-        }
-        public async Task<bool> UpdateImage(Anh anh)
-        {
-            try
-            {
-                var temp = await _context.Anhs.FirstOrDefaultAsync(x => x.ID == anh.ID);
-                if (temp == null) return false;
-                temp.DuongDan = anh.DuongDan;
-                _context.Anhs.Update(temp);
-                await _context.SaveChangesAsync();
-                return true;
-
-            }
-            catch { return false; }
         }
         public async Task<bool> DeleteImage(Guid id)
         {
@@ -883,6 +1020,48 @@ namespace AppAPI.Services
             return true;
 
         }
+        public async Task<bool> UpdateMacDinhChiTietSanPham(Guid idChiTietSP)
+        {
+            // B1: Lấy chi tiết sản phẩm cần cập nhật và đảm bảo đang hoạt động
+            var chiTiet = await _context.ChiTietSanPhams
+                .FirstOrDefaultAsync(x => x.ID == idChiTietSP && x.TrangThai == 1);
+
+            if (chiTiet == null)
+            {
+                Console.WriteLine("Chi tiết sản phẩm không tồn tại hoặc không hoạt động.");
+                return false;
+            }
+
+            var idSanPham = chiTiet.IDSanPham;
+
+            // B2: Lấy tất cả chi tiết sản phẩm đang hoạt động của sản phẩm này
+            var danhSachChiTiet = await _context.ChiTietSanPhams
+                .Where(x => x.IDSanPham == idSanPham && x.TrangThai == 1)
+                .ToListAsync();
+
+            if (!danhSachChiTiet.Any())
+            {
+                Console.WriteLine("Không có chi tiết sản phẩm hoạt động.");
+                return false;
+            }
+
+            // B3: Đặt tất cả về false trước
+            foreach (var item in danhSachChiTiet)
+            {
+                item.IsDefault = false;
+            }
+
+            // B4: Gán mặc định cho ID được chọn
+            var chiTietMoi = danhSachChiTiet.FirstOrDefault(x => x.ID == idChiTietSP);
+            if (chiTietMoi != null)
+            {
+                chiTietMoi.IsDefault = true;
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         #endregion
 
         #region LoaiSP
@@ -1091,45 +1270,49 @@ namespace AppAPI.Services
 
         public async Task<List<HomeProductViewModel>> GetAllSanPhamTrangChu()
         {
-            var result = await (from sp in _context.SanPhams.AsNoTracking().Where(c => c.TrangThai != 0)
-                                join ctsp in _context.ChiTietSanPhams.Where(c => c.TrangThai == 1) on sp.ID equals ctsp.IDSanPham into ctspGroup
-                                from ctsp in ctspGroup.DefaultIfEmpty()
+            var dataRaw = await (from sp in _context.SanPhams.AsNoTracking().Where(c => c.TrangThai != 0)
+                                 join ctsp in _context.ChiTietSanPhams.Where(c => c.TrangThai == 1) on sp.ID equals ctsp.IDSanPham into ctspGroup
+                                 from ctsp in ctspGroup.DefaultIfEmpty()
+                                 join km in _context.KhuyenMais.Where(c => c.NgayKetThuc > DateTime.Now && c.TrangThai != 2) on ctsp.IDKhuyenMai equals km.ID into kmGroup
+                                 from km in kmGroup.DefaultIfEmpty()
+                                 select new
+                                 {
+                                     sp,
+                                     ctsp,
+                                     km
+                                 }).ToListAsync();
 
-                                join km in _context.KhuyenMais.Where(c => c.NgayKetThuc > DateTime.Now && c.TrangThai != 2) on ctsp.IDKhuyenMai equals km.ID into kmGroup
-                                from km in kmGroup.DefaultIfEmpty()
-                                select new HomeProductViewModel()
-                                {
-                                    Id = sp.ID,
-                                    Ten = sp.Ten,
-                                    IdCTSP = ctsp == null ? null : ctsp.ID,
-                                    Anh = sp.AnhDaiDien,
-                                    SLBan = (from hd in _context.HoaDons.AsNoTracking().Where(c => c.TrangThaiGiaoHang == 6 && c.LoaiHoaDon == 0)
-                                             join cthd in _context.ChiTietHoaDons.AsNoTracking()
-                                             on hd.ID equals cthd.IDHoaDon
-                                             join ctsp in _context.ChiTietSanPhams.AsNoTracking()
-                                             on cthd.IDCTSP equals ctsp.ID
-                                             into ctspGroup
-                                             from ctsp in ctspGroup.DefaultIfEmpty()
-                                             where ctsp.IDSanPham == sp.ID
-                                             select cthd).AsEnumerable().ToList().Sum(c => c.SoLuong),
-                                    SoSao = (from cthd in _context.ChiTietHoaDons.AsNoTracking()
-                                             join ctsp in _context.ChiTietSanPhams.AsNoTracking()
-                                             on cthd.IDCTSP equals ctsp.ID
-                                             into ctspGroup
-                                             from ctsp in ctspGroup.DefaultIfEmpty()
-                                             join dg in _context.DanhGias.AsNoTracking()
-                                             on cthd.ID equals dg.ID
-                                             where ctsp.IDSanPham == sp.ID
-                                             select dg).AsEnumerable().ToList().Average(c => c.Sao),
-                                    NgayTao = ctsp == null ? null : ctsp.NgayTao,
-                                    GiaGoc = ctsp == null ? 0 : ctsp.GiaBan,
-                                    GiaBan = km == null ? ctsp.GiaBan :
-                                    (km.TrangThai == 1 ? (int)(ctsp.GiaBan / 100 * (100 - km.GiaTri)) :
-                                    (km.GiaTri < ctsp.GiaBan ? (ctsp.GiaBan - (int)km.GiaTri) : 0)),
-                                    KhuyenMai = (km == null ? null : km.GiaTri),
+            // Sau đó xử lý bằng C#
+            var result = dataRaw.Select(item => {
+                var soSao = _context.ChiTietHoaDons
+                    .Where(c => _context.ChiTietSanPhams.Any(ct => ct.ID == c.IDCTSP && ct.IDSanPham == item.sp.ID))
+                    .Join(_context.DanhGias, cthd => cthd.ID, dg => dg.ID, (cthd, dg) => dg.Sao)
+                    .DefaultIfEmpty(0).Average();
 
-                                    SoLuongSP = ctsp.SoLuong,
-                                }).ToListAsync();
+                var slBan = _context.HoaDons
+                    .Where(h => h.TrangThaiGiaoHang == 6 && h.LoaiHoaDon == 0)
+                    .Join(_context.ChiTietHoaDons, h => h.ID, cthd => cthd.IDHoaDon, (h, cthd) => cthd)
+                    .Join(_context.ChiTietSanPhams, cthd => cthd.IDCTSP, ctsp2 => ctsp2.ID, (cthd, ctsp2) => new { cthd, ctsp2 })
+                    .Where(x => x.ctsp2.IDSanPham == item.sp.ID)
+                    .Sum(x => x.cthd.SoLuong);
+
+                return new HomeProductViewModel
+                {
+                    Id = item.sp.ID,
+                    Ten = item.sp.Ten,
+                    IdCTSP = item.ctsp?.ID,
+                    Anh = item.sp.AnhDaiDien,
+                    SLBan = slBan,
+                    SoSao = soSao,
+                    NgayTao = item.ctsp?.NgayTao,
+                    GiaGoc = item.ctsp?.GiaBan ?? 0,
+                    GiaBan = (item.km == null || item.ctsp == null) ? 0 :
+                             (item.km.TrangThai == 1 ? (int)(item.ctsp.GiaBan / 100 * (100 - item.km.GiaTri)) :
+                             (item.km.GiaTri < item.ctsp.GiaBan ? (item.ctsp.GiaBan - (int)item.km.GiaTri) : 0)),
+                    KhuyenMai = item.km?.GiaTri,
+                    SoLuongSP = item.ctsp?.SoLuong ?? 0
+                };
+            }).ToList();
             return result;
         }
         #endregion

@@ -407,118 +407,113 @@ namespace AppView.Controllers
                 return Json(new { status = false });
             }
         }
-
         [HttpGet]
-        public IActionResult QuanLyAnhChiTiet(Guid idSanPham)
+        public async Task<IActionResult> QuanLyAnhChiTiet(Guid idSanPham)
         {
             try
             {
-                var response = _httpClient.GetAsync(_httpClient.BaseAddress + "SanPham/GetAllAnhSanPhamChiTiet?idSanPham=" + idSanPham).Result;
+                var response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}SanPham/GetAllAnhSanPhamChiTiet?idSanPham={idSanPham}");
+
+                List<UploadAnhViewModel> lstAnh = new();
                 if (response.IsSuccessStatusCode)
                 {
-                    var lstAnh = JsonConvert.DeserializeObject<List<UploadAnhViewModel>>(response.Content.ReadAsStringAsync().Result);
-                    ViewData["IDSanPham"] = idSanPham.ToString();
-                    return View("QuanLyAnhChiTiet", lstAnh.OrderBy(x => x.TenMau).ToList()); // ✅ Trả về View
+                    var jsonData = await response.Content.ReadAsStringAsync();
+                    lstAnh = JsonConvert.DeserializeObject<List<UploadAnhViewModel>>(jsonData) ?? new();
                 }
+                else
+                {
+                    var err = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("API trả lỗi: {StatusCode} - {Error}", response.StatusCode, err);
+                }
+
+                ViewData["IDSanPham"] = idSanPham.ToString();
+                return View("QuanLyAnhChiTiet", lstAnh.OrderBy(x => x.TenMau).ToList());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi gọi API GetAllAnhSanPhamChiTiet");
-                return RedirectToAction("ProductDetail");
+                TempData["ErrorMessage"] = "Không thể tải dữ liệu ảnh.";
+                return RedirectToAction("ProductDetail", new { idSanPham });
             }
-
-            return View("QuanLyAnhChiTiet", new List<UploadAnhViewModel>()); // Trả về view rỗng nếu lỗi
         }
-
         [HttpPost]
-        public async Task<IActionResult> AddImage(List<UploadAnhViewModel> model)
+        public async Task<IActionResult> AddImage([FromBody] List<UploadAnhViewModel> model)
         {
             try
             {
-                string wwwrootPath = _hostEnvironment.WebRootPath;
+                if (model == null || !model.Any())
+                    return BadRequest("Không có dữ liệu.");
+
                 var lstAnhRequest = new List<AnhRequest>();
 
                 foreach (var item in model)
                 {
-                    if (item.Image == null || item.Image.Length == 0) continue;
+                    if (item.DuongDanAnh == null || !item.DuongDanAnh.Any())
+                        continue;
 
-                    string imagePath = await _iFileService.AddFile(item.Image, wwwrootPath);
-
-                    lstAnhRequest.Add(new AnhRequest
+                    foreach (var duongDan in item.DuongDanAnh)
                     {
-                        IDSanPhamChiTiet = item.IDChiTietSanPham,
-                        DuongDan = imagePath,
-                        MaMau = item.MaMau
-                    });
+                        if (string.IsNullOrWhiteSpace(duongDan))
+                            continue;
+
+                        foreach (var idChiTiet in item.DanhSachIDChiTietSP)
+                        {
+                            lstAnhRequest.Add(new AnhRequest
+                            {
+                                IDSanPhamChiTiet = idChiTiet,
+                                DuongDan = duongDan,
+                                MaMau = item.MaMau
+                            });
+                        }
+                    }
                 }
+
+                if (!lstAnhRequest.Any())
+                    return BadRequest("Không có ảnh hợp lệ để lưu.");
 
                 var response = await _httpClient.PostAsJsonAsync("SanPham/AddImage", lstAnhRequest);
                 if (response.IsSuccessStatusCode)
                 {
-                    return RedirectToAction("ProductDetail", new { idSanPham = TempData.Peek("IDSanPham") });
+                    return Ok(); // hoặc Redirect nếu gọi từ View truyền thống
                 }
 
-                return BadRequest("Lỗi khi gọi API.");
+                return BadRequest("Lỗi khi gọi API nội bộ.");
             }
             catch (Exception ex)
             {
                 return BadRequest("Lỗi hệ thống: " + ex.Message);
             }
         }
-        [HttpPost]
-        public async Task<IActionResult> UpdateImage(IFormFile file, string id, string duongDan, Guid idSanPham)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteImage(string duongDan, string id, string idSanPham)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(duongDan) || string.IsNullOrWhiteSpace(id))
+                    return BadRequest("Thiếu dữ liệu.");
+
+                // Gọi API nội bộ để xóa trong DB
+                var response = await _httpClient.DeleteAsync($"SanPham/DeleteImage?id={id}");
+
+                if (!response.IsSuccessStatusCode)
+                    return BadRequest("Xóa DB thất bại");
+
+                // Nếu DB xóa thành công, tiếp tục xóa file vật lý
                 string wwwrootPath = _hostEnvironment.WebRootPath;
+                bool xoaFile = _iFileService.DeleteFile(duongDan, wwwrootPath);
 
-                // Lưu ảnh mới
-                var duongDanMoi = await _iFileService.AddFile(file, wwwrootPath);
-                if (string.IsNullOrEmpty(duongDanMoi)) return BadRequest("Upload ảnh thất bại");
+                if (!xoaFile)
+                    Console.WriteLine($"Không thể xóa file vật lý: {duongDan}");
 
-                // Gửi yêu cầu cập nhật ảnh
-                var anh = new Anh
-                {
-                    ID = new Guid(id), // Đây phải là ID của ảnh cần sửa
-                    DuongDan = duongDanMoi,
-                    TrangThai = 1
-                };
-
-                var response = await _httpClient.PutAsJsonAsync("SanPham/UpdateImage", anh);
-                if (response.IsSuccessStatusCode)
-                {
-                    // Xoá ảnh cũ
-                    _iFileService.DeleteFile(duongDan, wwwrootPath);
-                    return RedirectToAction("QuanLyAnhChiTiet", new { idSanPham });
-                }
-
-                return BadRequest("Cập nhật ảnh thất bại");
+                return RedirectToAction("QuanLyAnhChiTiet", new { idSanPham });
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Lỗi: " + ex.Message);
-                return BadRequest("Lỗi hệ thống");
+                Console.WriteLine("Lỗi server khi xóa ảnh: " + ex.Message);
+                return BadRequest("Lỗi server");
             }
         }
-        [HttpGet]
-        public IActionResult DeleteImage(string duongDan, string id, string idSanPham)
-        {
-            try
-            {
-                string wwwrootPath = _hostEnvironment.WebRootPath;
-                var response = _httpClient.DeleteAsync($"SanPham/DeleteImage?id={id}").Result;
-                if (response.IsSuccessStatusCode)
-                {
-                    _iFileService.DeleteFile(duongDan, wwwrootPath);
-                    return RedirectToAction("QuanLyAnhChiTiet", new { idSanPham });
-                }
-                return BadRequest();
-            }
-            catch
-            {
-                return BadRequest();
-            }
-        }
+
         [HttpGet]
         public IActionResult AddChiTietSanPham(string idSanPham)
         {
@@ -587,44 +582,68 @@ namespace AppView.Controllers
             }
         }
         [HttpPost]
-        public JsonResult UpdateGiaBanChiTietSanPham(string id, int giaBan)
+        public async Task<JsonResult> UpdateGiaGocChiTietSanPham(string id, decimal GiaGoc)
         {
             try
             {
-                ChiTietSanPhamRequest request = new ChiTietSanPhamRequest() { IDChiTietSanPham = new Guid(id), GiaBan = giaBan };
-                var response = _httpClient.PutAsJsonAsync(_httpClient.BaseAddress + "SanPham/UpdateGiaBanChiTietSanPham", request).Result;
+                var request = new ChiTietSanPhamRequest()
+                {
+                    IDChiTietSanPham = Guid.Parse(id),
+                    GiaGoc = GiaGoc
+                };
+                    
+                var response = await _httpClient.PutAsJsonAsync(_httpClient.BaseAddress + "SanPham/UpdateGiaGocChiTietSanPham", request);
+
                 if (response.IsSuccessStatusCode)
                 {
-                    return Json(new { Message = response.Content.ReadAsStringAsync().Result, TrangThai = true });
+                    // Server trả kiểu gì thì dùng đúng kiểu đó
+                    var result = await response.Content.ReadFromJsonAsync<decimal>(); // hoặc decimal nếu API return decimal
+                    return Json(new { GiaGoc = result, success = true });
                 }
                 else
                 {
-                    return Json(new { Message = "Error", TrangThai = false });
+                    return Json(new { success = false });
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return Json(new { Message = "Error", TrangThai = false });
+                Console.WriteLine(ex.Message);
+                return Json(new { success = false });
             }
         }
         [HttpPost]
-        public JsonResult UpdateTrangThaiChiTietSanPham(string id)
+        public async Task<JsonResult> UpdateTrangThaiChiTietSanPham(Guid id)
         {
             try
             {
-                var response = _httpClient.GetAsync(_httpClient.BaseAddress + "SanPham/UpdateTrangThaiChiTietSanPham?id=" + id).Result;
-                if (response.IsSuccessStatusCode)
-                {
-                    return Json(new { TrangThai = true });
-                }
-                else
-                {
-                    return Json(new { TrangThai = false });
-                }
+                var response = await _httpClient.PutAsync(
+                    $"SanPham/UpdateTrangThaiChiTietSanPham?id={id}", null);
+
+                return Json(new { TrangThai = response.IsSuccessStatusCode });
             }
             catch
             {
                 return Json(new { TrangThai = false });
+            }
+        }
+        [HttpPost]
+        public async Task<JsonResult> UpdateMacDinhChiTietSanPham(string id)
+        {
+            try
+            {
+                // Sửa từ POST thành PUT và sửa URL
+                var response = await _httpClient.PutAsync($"SanPham/UpdateMacDinhChiTietSanPham/{id}", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Json(new { TrangThai = true });
+                }
+
+                return Json(new { TrangThai = false, Message = "API xử lý thất bại." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { TrangThai = false, Message = "Lỗi: " + ex.Message });
             }
         }
         public FileResult GenerateQRCode(string id, string ma)
@@ -641,29 +660,34 @@ namespace AppView.Controllers
                 }
             }
         }
-        [HttpGet]
+        [HttpDelete]
         public async Task<JsonResult> DeleteProductDetail(string id)
         {
             try
             {
-                var response = await _httpClient.GetAsync("SanPham/DeleteChiTietSanPham?id=" + id);
+                var response = await _httpClient.DeleteAsync("SanPham/DeleteChiTietSanPham?id=" + id);
                 if (response.IsSuccessStatusCode)
                 {
-                    var ketQua = Convert.ToBoolean(await response.Content.ReadAsStringAsync());
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var ketQua = JsonConvert.DeserializeObject<bool>(jsonString);
+
                     if (ketQua)
                     {
                         return Json(new { TrangThai = true });
                     }
-                    else return Json(new { TrangThai = false, Loi = "Không thể xóa sản phẩm mặc định" });
+                    else
+                    {
+                        return Json(new { TrangThai = false, Loi = "Không phù hợp để xóa sản phẩm mặc định" });
+                    }
                 }
                 else
                 {
-                    return Json(new { TrangThai = false, Loi = "Error" });
+                    return Json(new { TrangThai = false, Loi = "Lỗi kết nối API" });
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return Json(new { TrangThai = false, Loi = "Error" });
+                return Json(new { TrangThai = false, Loi = "Exception: " + ex.Message });
             }
         }
         [HttpGet]
@@ -671,58 +695,70 @@ namespace AppView.Controllers
         {
             try
             {
-                var response = await _httpClient.GetAsync("SanPham/UndoChiTietSanPham?id=" + id);
-                if (response.IsSuccessStatusCode)
+                // Validate ID là Guid
+                if (!Guid.TryParse(id, out var guid))
                 {
-                    return Json(true);
+                    return Json(new { TrangThai = false, Loi = "ID không hợp lệ." });
                 }
-                else
+
+                var response = await _httpClient.GetAsync($"SanPham/UndoChiTietSanPham?id={id}");
+                if (!response.IsSuccessStatusCode)
                 {
-                    return Json(false);
+                    return Json(new { TrangThai = false, Loi = "Lỗi gọi API." });
                 }
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (bool.TryParse(content, out var ketQua))
+                {
+                    return ketQua
+                        ? Json(new { TrangThai = true })
+                        : Json(new { TrangThai = false, Loi = "Không thể bật lại. Kiểm tra giá, số lượng hoặc trạng thái sản phẩm cha." });
+                }
+
+                return Json(new { TrangThai = false, Loi = "Phản hồi API không hợp lệ." });
             }
             catch
             {
-                return Json(false);
+                return Json(new { TrangThai = false, Loi = "Lỗi hệ thống." });
             }
         }
         [HttpGet]
-public async Task<IActionResult> UpdateSanPham(Guid id)
-{
-    try
-    {
-        // Lấy thông tin sản phẩm
-        var response = await _httpClient.GetFromJsonAsync<SanPhamUpdateRequest>($"SanPham/GetSanPhamById?id={id}");
-
-        // Load danh sách chất liệu
-        var chatLieus = await _httpClient.GetFromJsonAsync<List<ChatLieu>>("SanPham/GetAllChatLieu");
-        ViewBag.ChatLieus = new SelectList(chatLieus, "ID", "Ten", response.IDChatLieu);
-
-        // Load danh sách loại sản phẩm cha
-        var loaiSPChas = await _httpClient.GetFromJsonAsync<List<LoaiSP>>("SanPham/GetAllLoaiSPCha");
-        ViewBag.LoaiSPChas = new SelectList(loaiSPChas, "ID", "Ten", response.IDLoaiSPCha);
-
-        // Load danh sách loại sản phẩm con theo cha
-        if (response.IDLoaiSPCha != Guid.Empty)
+        public async Task<IActionResult> UpdateSanPham(Guid id)
         {
-            var loaiSPCons = await _httpClient.GetFromJsonAsync<List<LoaiSP>>(
-                $"SanPham/GetAllLoaiSPCon?idLoaiSPCha={response.IDLoaiSPCha}");
+            try
+            {
+                // Lấy thông tin sản phẩm
+                var response = await _httpClient.GetFromJsonAsync<SanPhamUpdateRequest>($"SanPham/GetSanPhamById?id={id}");
 
-            ViewBag.LoaiSPCons = new SelectList(loaiSPCons, "ID", "Ten", response.IDLoaiSPCon);
+                // Load danh sách chất liệu
+                var chatLieus = await _httpClient.GetFromJsonAsync<List<ChatLieu>>("SanPham/GetAllChatLieu");
+                ViewBag.ChatLieus = new SelectList(chatLieus, "ID", "Ten", response.IDChatLieu);
+
+                // Load danh sách loại sản phẩm cha
+                var loaiSPChas = await _httpClient.GetFromJsonAsync<List<LoaiSP>>("SanPham/GetAllLoaiSPCha");
+                ViewBag.LoaiSPChas = new SelectList(loaiSPChas, "ID", "Ten", response.IDLoaiSPCha);
+
+                // Load danh sách loại sản phẩm con theo cha
+                if (response.IDLoaiSPCha != Guid.Empty)
+                {
+                    var loaiSPCons = await _httpClient.GetFromJsonAsync<List<LoaiSP>>(
+                        $"SanPham/GetAllLoaiSPCon?idLoaiSPCha={response.IDLoaiSPCha}");
+
+                    ViewBag.LoaiSPCons = new SelectList(loaiSPCons, "ID", "Ten", response.IDLoaiSPCon);
+                }
+                else
+                {
+                    ViewBag.LoaiSPCons = new SelectList(new List<LoaiSP>(), "ID", "Ten");
+                }
+
+                return View(response);
+            }
+            catch
+            {
+                return View(new SanPhamUpdateRequest());
+            }
         }
-        else
-        {
-            ViewBag.LoaiSPCons = new SelectList(new List<LoaiSP>(), "ID", "Ten");
-        }
-
-        return View(response);
-    }
-    catch
-    {
-        return View(new SanPhamUpdateRequest());
-    }
-}
-
         [HttpPost]
         public IActionResult UpdateSanPham(SanPhamUpdateRequest request)
         {
@@ -739,6 +775,33 @@ public async Task<IActionResult> UpdateSanPham(Guid id)
             {
                 return BadRequest();
             }
+        }
+        [HttpPost]
+        public async Task<IActionResult> UploadImages(List<IFormFile> images)
+        {
+            if (images == null || !images.Any())
+                return BadRequest("Không có ảnh nào được chọn.");
+
+            string wwwrootPath = _hostEnvironment.WebRootPath;
+            var duongDanList = new List<string>();
+
+            foreach (var image in images)
+            {
+                if (image.Length > 0)
+                {
+                    string fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
+                    string filePath = Path.Combine(wwwrootPath, "uploads", fileName);
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+
+                    using var stream = new FileStream(filePath, FileMode.Create);
+                    await image.CopyToAsync(stream);
+
+                    duongDanList.Add("/uploads/" + fileName);
+                }
+            }
+
+            return Json(duongDanList); // Trả thẳng list đường dẫn
         }
     }
 }

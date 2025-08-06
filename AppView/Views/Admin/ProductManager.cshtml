@@ -62,6 +62,9 @@
         <thead>
             <tr>
                 <th>
+                    STT
+                </th> <!-- THÊM DÒNG NÀY -->
+                <th>
                     Tên
                 </th>
                 <th>
@@ -147,9 +150,11 @@
             success: function (response) {
                 $("#list_products").empty();
                 $.each(response.data, function (i, item) {
+                    let stt = (pageIndex - 1) * pagesize + i + 1;
                     if (item.trangThai == 1) {
                         $("#list_products").append(`
                                 <tr>
+								    <td>${stt}</td>
                                     <td>${item.ten}</td>
                                     <td>${item.ma}</td>
                                     <td><img src="${item.anh}" style="width:70px;height:80px" /></td>
@@ -201,12 +206,14 @@
         $("#pagination-demo").twbsPagination({
             totalPages: totalgages,
             visiblePages: 7,
+            initiateStartPageClick: false,
             onPageClick: function (event, page) {
                 pageIndex = page;
                 setTimeout(callback, 200);
             }
         });
     }
+
 
     function ReloadPagination() {
         $("#pagination-demo").twbsPagination('destroy');
@@ -219,22 +226,20 @@
             $.ajax({
                 type: "GET",
                 dataType: "json",
-                data: { tenLoaiSPCha: value },
+                data: { idLoaiSPCha: value },
                 url: "/Admin/GetLoaiSPCon",
                 success: function (response) {
                     $("#categoryson").empty();
-                    var rows = `<option selected value="all">Tất cả</option>`;
+                    var rows = "<option value='all'>Tất cả</option>";
                     for (var i = 0; i < response.ketQua.length; i++) {
-                        rows += "<option value='" + response.ketQua[i].ten + "'>" + response.ketQua[i].ten + "</option>";
+                        rows += "<option value='" + response.ketQua[i].id + "'>" + response.ketQua[i].ten + "</option>";
                     }
                     $('#categoryson').append(rows);
                 }
             });
         } else {
-            document.getElementById("categoryson").value = 'all';
-            $("#categoryson").empty(); 
-            var rows = `<option selected value="all">Tất cả</option>`;
-            $('#categoryson').append(rows);
+            $("#categoryson").empty();
+            $('#categoryson').append("<option value='all'>Tất cả</option>");
         }
     });
 
