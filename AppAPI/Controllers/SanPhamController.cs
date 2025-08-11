@@ -182,16 +182,10 @@ namespace AppAPI.Controllers
         #endregion
 
         #region LoaiSP
-        [HttpGet("GetAllLoaiSPCha")]
-        public async Task<IActionResult> GetAllLoaiSPCha()
+        [HttpGet("GetAllLoaiSP")]
+        public async Task<IActionResult> GetAllLoaiSP()
         {
-            var listLsp = await _sanPhamServices.GetAllLoaiSPCha();
-            return Ok(listLsp);
-        }
-        [HttpGet("GetAllLoaiSPCon")]
-        public async Task<IActionResult> GetAllLoaiSPCon(Guid idLoaiSPCha)
-        {
-            var listLsp = await _sanPhamServices.GetAllLoaiSPCon(idLoaiSPCha);
+            var listLsp = await _sanPhamServices.GetAllLoaiSP();
 
             if (listLsp == null || !listLsp.Any())
                 return NotFound();

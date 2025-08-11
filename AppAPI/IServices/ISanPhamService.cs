@@ -22,8 +22,7 @@ namespace AppAPI.IServices
         #endregion
 
         #region LoaiSanPham
-        Task<List<LoaiSP>> GetAllLoaiSPCha();
-        Task<List<LoaiSP>?> GetAllLoaiSPCon(Guid idLoaiSPCha);
+        Task<List<LoaiSP>> GetAllLoaiSP();
         Task<LoaiSP> GetLoaiSPById(Guid id);
         Task<LoaiSP> SaveLoaiSP(LoaiSPRequest lsp);
         Task<bool> DeleteLoaiSP(Guid id);
@@ -33,7 +32,6 @@ namespace AppAPI.IServices
         #region ChiTietSanPham
         Task<ChiTietSanPhamUpdateRequest> AddChiTietSanPham(ChiTietSanPhamAddRequest request);
         Task<ChiTietSanPhamViewModel?> GetChiTietSanPhamByID(Guid id);
-        Task<List<ChiTietSanPham>> GetAllChiTietSanPham(Guid idSanPham);
         Task<ChiTietSanPhamViewModelHome> GetAllChiTietSanPhamHome(Guid idSanPham);
         Task<List<ChiTietSanPhamViewModel>> GetAllChiTietSanPham();
         Task<List<ChiTietSanPhamViewModelAdmin>> GetAllChiTietSanPhamAdmin(Guid idSanPham);

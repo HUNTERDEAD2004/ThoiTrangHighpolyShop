@@ -153,63 +153,54 @@ namespace AppData.Models
             {
                 ID = Guid.Parse("a4c8590b-72b0-4c81-b210-02a7914dc6fb"),
                 Ten = "Áo",
-                IDLoaiSPCha = null,
                 TrangThai = 1
             },
             new LoaiSP
             {
                 ID = Guid.Parse("c39e8d79-dab2-4ff7-b1c6-c6d70fc9a1f3"),
                 Ten = "Áo thun",
-                IDLoaiSPCha = Guid.Parse("a4c8590b-72b0-4c81-b210-02a7914dc6fb"),
                 TrangThai = 1
             },
             new LoaiSP
             {
                 ID = Guid.Parse("d8738663-caec-4a0b-88ff-211cda1aa5d5"),
                 Ten = "Áo sơ mi",
-                IDLoaiSPCha = Guid.Parse("a4c8590b-72b0-4c81-b210-02a7914dc6fb"),
                 TrangThai = 1
             },
             new LoaiSP
             {
                 ID = Guid.Parse("127a0d4b-136c-4de6-8bb1-2f3d9d1441d0"),
                 Ten = "Áo khoác",
-                IDLoaiSPCha = Guid.Parse("a4c8590b-72b0-4c81-b210-02a7914dc6fb"),
                 TrangThai = 1
             },
             new LoaiSP
             {
                 ID = Guid.Parse("c7f34203-1091-4683-a34c-dde0f456d5dc"),
                 Ten = "Quần",
-                IDLoaiSPCha = null,
                 TrangThai = 1
             },
             new LoaiSP
             {
                 ID = Guid.Parse("08b41916-d2f6-4c25-b13f-74c6e1fd7721"),
                 Ten = "Quần jean",
-                IDLoaiSPCha = Guid.Parse("c7f34203-1091-4683-a34c-dde0f456d5dc"),
                 TrangThai = 1
             },
             new LoaiSP
             {
                 ID = Guid.Parse("126d769b-f14e-472f-94bc-2a7c61ed711e"),
                 Ten = "Quần âu",
-                IDLoaiSPCha = Guid.Parse("c7f34203-1091-4683-a34c-dde0f456d5dc"),
                 TrangThai = 1
             },
             new LoaiSP
             {
                 ID = Guid.Parse("a72099ad-7e50-4c3a-93ad-6740bff4ebc6"),
                 Ten = "Quần short",
-                IDLoaiSPCha = Guid.Parse("c7f34203-1091-4683-a34c-dde0f456d5dc"),
                 TrangThai = 1
             },
             new LoaiSP
             {
                 ID = Guid.Parse("33035929-4303-4ff7-8f4e-1118d4604f6e"),
                 Ten = "Váy",
-                IDLoaiSPCha = null,
                 TrangThai = 1
             }
         );

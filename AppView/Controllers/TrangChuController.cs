@@ -79,6 +79,7 @@ namespace AppView.Controllers
 
             }
         }
+
         [HttpGet("/TrangChu/FilterSPHome/{index}")]
         public async Task<IActionResult> FilterSPHome(string index)
         {

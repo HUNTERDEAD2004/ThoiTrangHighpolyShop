@@ -4,133 +4,187 @@
 
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="UpdateSanPham" method="post" enctype="multipart/form-data" id="formUpdateSanPham" onsubmit="return disableSubmit(this)">
-            
-            <!--ID ẩn để cập nhật đúng sản phẩm -->
-            <input type="hidden" asp-for="ID" />
+	<div class="col-md-4">
+		<form asp-action="UpdateSanPham" method="post" id="formUpdateSanPham" onsubmit="return disableSubmit(this)">
 
-            <!-- Tên -->
-            <div class="form-group">
-                <label asp-for="Ten" class="control-label"></label>
-                <input asp-for="Ten" class="form-control" autocomplete="off" />
-                <span asp-validation-for="Ten" class="text-danger"></span>
-            </div>
+			<!--ID ẩn để cập nhật đúng sản phẩm -->
+			<input type="hidden" asp-for="ID" />
 
-            <!-- Mô tả -->
-            <div class="form-group">
-                <label asp-for="MoTa" class="control-label"></label>
-                <input asp-for="MoTa" class="form-control" autocomplete="off" />
-                <span asp-validation-for="MoTa" class="text-danger"></span>
-            </div>
+			<!-- Tên -->
+			<div class="form-group">
+				<label asp-for="Ten" class="control-label"></label>
+				<input asp-for="Ten" class="form-control" autocomplete="off" />
+				<span asp-validation-for="Ten" class="text-danger"></span>
+			</div>
 
-            <!-- Chất liệu -->
-            <div class="form-group">
-                <label for="ChatLieuID" class="control-label">Chất liệu</label>
-                <select id="ChatLieuID" asp-for="IDChatLieu" asp-items="ViewBag.ChatLieus" class="form-control"></select>
-                <button type="button" class="btn btn-success btn-sm" onclick="taoMoiChatLieu()">➕</button>
-            </div>
+			<!-- Mô tả -->
+			<div class="form-group">
+				<label asp-for="MoTa" class="control-label"></label>
+				<input asp-for="MoTa" class="form-control" autocomplete="off" />
+				<span asp-validation-for="MoTa" class="text-danger"></span>
+			</div>
 
-            <!-- Loại sản phẩm -->
-            <div class="form-group">
-                <label class="control-label">Loại sản phẩm</label>
-                <div class="d-flex gap-2">
-                    <select id="LoaiSPChaID" asp-for="IDLoaiSPCha" asp-items="ViewBag.LoaiSPChas" class="form-control" onchange="loadLoaiSPCon()"></select>
-                    <select id="LoaiSPConID" asp-for="IDLoaiSPCon" asp-items="ViewBag.LoaiSPCons" class="form-control"></select>
-                </div>
-            </div>
+			<!-- Chất liệu -->
+			<div class="form-group">
+				<label for="ChatLieuID" class="control-label">Chất liệu</label>
+				<select id="ChatLieuID" asp-for="IDChatLieu" asp-items="ViewBag.ChatLieus" class="form-control"></select>
+				<button type="button" class="btn btn-success btn-sm" onclick="taoMoiChatLieu()">➕</button>
+			</div>
 
-            <!-- Ảnh đại diện -->
-            <div class="form-group">
-                <label class="control-label">Ảnh đại diện (chọn nếu muốn thay đổi)</label>
-                <input type="file" name="file" class="form-control" accept="image/*" />
-                <span asp-validation-for="AnhDaiDien" class="text-danger"></span>
-            </div>
+			<!-- Loại sản phẩm -->
+			<div class="form-group">
+				<label class="control-label">Loại sản phẩm</label>
+				<div class="d-flex gap-2">
+					<select id="LoaiSPID" asp-for="IDLoaiSP" asp-items="ViewBag.LoaiSPs" class="form-control"></select>
+					<button type="button" class="btn btn-success btn-sm" onclick="taoMoiLoaiSP()">➕</button>
+				</div>
+			</div>
 
-            <div class="form-group">
-                <input type="submit" value="Cập nhật" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
+			<!-- Hiển thị ảnh hiện tại -->
+			<div class="form-group">
+				<label class="control-label">Ảnh đại diện hiện tại</label><br />
+				@if (!string.IsNullOrEmpty(Model.AnhDaiDien))
+				{
+					<img src="@Url.Content(Model.AnhDaiDien)" alt="Ảnh đại diện" style="max-width:200px; margin-bottom:10px;" id="imgPreview" />
+				}
+				else
+				{
+					<p>Chưa có ảnh đại diện</p>
+					<img id="imgPreview" style="max-width:200px; margin-bottom:10px; display:none;" />
+				}
+			</div>
+
+			<!-- Upload ảnh mới -->
+			<div class="form-group">
+				<label class="control-label">Chọn ảnh đại diện mới (nếu muốn thay đổi)</label>
+				<input type="file" id="fileUpload" accept="image/*" />
+				<input type="hidden" name="AnhDaiDien" id="AnhDaiDien" value="@Model.AnhDaiDien" />
+				<span asp-validation-for="AnhDaiDien" class="text-danger"></span>
+			</div>
+
+			<div class="form-group">
+				<input type="submit" value="Cập nhật" class="btn btn-primary" />
+			</div>
+		</form>
+	</div>
 </div>
 
-
 <script>
-    $(document).ready(function () {
-        // Load chất liệu
-        $.get("/Admin/GetAllChatLieu", function (res) {
-            const select = $("#ChatLieuID");
-            select.empty().append('<option value="">-- Chọn chất liệu --</option>');
-            res.forEach(x => {
-                const selected = x.id.toLowerCase() === "@(Model.IDChatLieu.ToString().ToLower())" ? "selected" : "";
-                select.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
-            });
-        });
+	let uploadDone = true; // mặc định true nếu không đổi ảnh
 
-        // Load lại LoạiSP cha và con
-    $.get("/Admin/GetLoaiSPCha", function (res) {
-        const cha = $("#LoaiSPChaID");
-        cha.empty().append('<option value="">-- Chọn loại cha --</option>');
-        res.forEach(x => {
-            const selected = x.id === selectedLoaiCha ? "selected" : "";
-            cha.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
-        });
+	$(document).ready(function () {
+		// Load chất liệu
+		$.get("/Admin/GetAllChatLieu", function (res) {
+			const select = $("#ChatLieuID");
+			select.empty().append('<option value="">-- Chọn chất liệu --</option>');
+			res.forEach(x => {
+				const selected = x.id.toLowerCase() === "@(Model.IDChatLieu.ToString().ToLower())" ? "selected" : "";
+				select.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
+			});
+		});
 
-        if (selectedLoaiCha) {
-            loadLoaiSPCon(selectedLoaiCon);
-        }
-    });
+		// Load loại sản phẩm
+		$.get("/Admin/GetAllLoaiSP", function (res) {
+			const select = $("#LoaiSPID");
+			select.empty().append('<option value="">-- Chọn loại sản phẩm --</option>');
+			res.forEach(x => {
+				const selected = x.id.toLowerCase() === "@(Model.IDLoaiSP.ToString().ToLower())" ? "selected" : "";
+				select.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
+			});
+		});
+	});
 
-    // Load chất liệu nếu bạn muốn gọi lại từ API (nếu không thì ViewBag đủ rồi)
-    // Không cần gọi lại nếu ViewBag.ChatLieus đã có và dùng SelectList đúng
-});
+	$("#fileUpload").on("change", function () {
+		var files = this.files;
+		if (files.length === 0) return;
 
-function loadLoaiSPCon(selectedID = "") {
-    const idCha = $("#LoaiSPChaID").val();
-    const con = $("#LoaiSPConID");
-    con.empty().append('<option value="">-- Chọn loại con --</option>');
+		uploadDone = false; // đang upload
 
-    if (!idCha) return;
+		var formData = new FormData();
+		for (var i = 0; i < files.length; i++) {
+			formData.append("images", files[i]);
+		}
 
-    $.get("/LoaiSP/GetLoaiSPCon", { idLoaiSPCha: idCha }, function (res) {
-        res.forEach(x => {
-            const selected = x.id === selectedID ? "selected" : "";
-            con.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
-        });
-    });
-}
+		$.ajax({
+			url: '/Admin/UploadImages',
+			type: 'POST',
+			data: formData,
+			processData: false,
+			contentType: false,
+			success: function (data) {
+				if (data.length > 0) {
+					$("#AnhDaiDien").val(data[0]);
+					$("#imgPreview").attr("src", data[0]).show();
+					uploadDone = true;
+				}
+			},
+			error: function () {
+				alert("Upload ảnh thất bại.");
+				uploadDone = true;
+			}
+		});
+	});
 
-    function taoMoiChatLieu() {
-        const ten = prompt("Nhập tên chất liệu mới:");
-        if (!ten) return;
+	$("#formUpdateSanPham").on("submit", function (e) {
+		if (!uploadDone) {
+			alert("Vui lòng chờ upload ảnh xong rồi mới cập nhật.");
+			e.preventDefault();
+			return false;
+		}
+	});
 
-        $.post("/Admin/TaoChatLieuMoiTuSanPham", { ten: ten }, function (res) {
-            if (res.success) {
-                alert("Đã thêm!");
-                $.get("/Admin/GetAllChatLieu", function (data) {
-                    const select = $("#ChatLieuID");
-                    select.empty().append('<option value="">-- Chọn chất liệu --</option>');
-                    data.forEach(x => {
-                        const selected = x.ten === ten ? "selected" : "";
-                        select.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
-                    });
-                });
-            }
-        });
-    }
+	function taoMoiLoaiSP() {
+		const ten = prompt("Nhập tên loại sản phẩm mới:");
+		if (!ten) return;
 
-    function disableSubmit(form) {
-        const btn = form.querySelector('input[type="submit"], button[type="submit"]');
-        if (btn) {
-            btn.disabled = true;
-            btn.value = "Đang xử lý...";
-        }
-        return true;
-    }
+		$.post("/Admin/TaoLoaiSPMoiTuSanPham", { ten: ten }, function (res) {
+			if (res.success) {
+				alert("Đã thêm!");
+				$.get("/Admin/GetAllLoaiSP", function (data) {
+					const select = $("#LoaiSPID");
+					select.empty().append('<option value="">-- Chọn loại sản phẩm --</option>');
+					data.forEach(x => {
+						const selected = x.ten === ten ? "selected" : "";
+						select.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
+					});
+				});
+			} else {
+				alert("Thêm thất bại.");
+			}
+		});
+	}
+
+	function taoMoiChatLieu() {
+		const ten = prompt("Nhập tên chất liệu mới:");
+		if (!ten) return;
+
+		$.post("/Admin/TaoChatLieuMoiTuSanPham", { ten: ten }, function (res) {
+			if (res.success) {
+				alert("Đã thêm!");
+				$.get("/Admin/GetAllChatLieu", function (data) {
+					const select = $("#ChatLieuID");
+					select.empty().append('<option value="">-- Chọn chất liệu --</option>');
+					data.forEach(x => {
+						const selected = x.ten === ten ? "selected" : "";
+						select.append(`<option value="${x.id}" ${selected}>${x.ten}</option>`);
+					});
+				});
+			}
+		});
+	}
+
+	function disableSubmit(form) {
+		const btn = form.querySelector('input[type="submit"], button[type="submit"]');
+		if (btn) {
+			btn.disabled = true;
+			btn.value = "Đang xử lý...";
+		}
+		return true;
+	}
 </script>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
 }

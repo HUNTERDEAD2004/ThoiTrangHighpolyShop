@@ -118,7 +118,6 @@ namespace AppAPI.Controllers
 
                                 GiaBan = (int)group.First().ctsp.GiaBan,
                                 IDLoaiSP = group.First().lsp.ID,
-                                IDLoaiSPCha = group.First().lsp.IDLoaiSPCha,
                                 IDChatLieu = group.First().cl.ID,
                                 TrangThai = group.First().sp.TrangThai,
                             }).ToList();
@@ -151,7 +150,6 @@ namespace AppAPI.Controllers
 
                                 GiaBan = (int)group.First().ctsp.GiaBan,
                                 IDLoaiSP = group.First().lsp.ID,
-                                IDLoaiSPCha = group.First().lsp.IDLoaiSPCha,
                                 IDChatLieu = group.First().cl.ID,
                                 TrangThai = group.First().sp.TrangThai,
                             }).Where(x => x.IdKhuyenMai == idkm).ToList();
@@ -195,7 +193,6 @@ namespace AppAPI.Controllers
 
                 GiaBan = (int)c.CTSP.GiaBan,
                 IDLoaiSP = c.SP.IDLoaiSP,
-                IDLoaiSPCha = c.loaisp.IDLoaiSPCha,
                 IDChatLieu = c.chatlieu.ID,
                 TrangThai = c.CTSP.TrangThai
 
@@ -228,7 +225,6 @@ namespace AppAPI.Controllers
 
                                 GiaBan = (int)group.First().ctsp.GiaBan,
                                 IDLoaiSP = group.First().lsp.ID,
-                                IDLoaiSPCha = group.First().lsp.IDLoaiSPCha,
                                 IDChatLieu = group.First().cl.ID,
                                 TrangThai = group.First().sp.TrangThai,
                             }).Where(x => x.IdKhuyenMai != id).Where(x => x.TrangThai == 1).ToList();
@@ -296,7 +292,6 @@ namespace AppAPI.Controllers
 
                                 GiaBan = (int)group.First().ctsp.GiaBan,
                                 IDLoaiSP = group.First().lsp.ID,
-                                IDLoaiSPCha = group.First().lsp.IDLoaiSPCha,
                                 IDChatLieu = group.First().cl.ID,
                                 TrangThai = group.First().sp.TrangThai,
                             }).Where(x => x.IdKhuyenMai != id).ToList();

@@ -40,15 +40,9 @@
         <p style="margin:0px">&ensp;</p>
         <input type="number" class="form-control" placeholder="Max" style="width:100%" id="priceMax">
     </div>
-    <div class="col-lg-2" style="padding-left:2px;padding-right:2px">
-        <p style="margin:0px">Loại sản phẩm cha:</p>
-        <select class="form-select" id="categorydad">
-            <option selected value="all">Tất cả</option>
-        </select>
-    </div>
-    <div class="col-lg-2" style="padding-left:2px;padding-right:2px">
-        <p style="margin:0px">Loại sản phẩm con:</p>
-        <select class="form-select" id="categoryson">
+    <div class="col-lg-4" style="padding-left:2px;padding-right:2px">
+        <p style="margin:0px">Loại sản phẩm:</p>
+        <select class="form-select" id="categoryFilter" multiple>
             <option selected value="all">Tất cả</option>
         </select>
     </div>
@@ -63,12 +57,12 @@
             <tr>
                 <th>
                     STT
-                </th> <!-- THÊM DÒNG NÀY -->
-                <th>
-                    Tên
                 </th>
                 <th>
                     Mã
+                </th>
+                <th>
+                    Tên
                 </th>
                 <th>
                     Ảnh
@@ -111,26 +105,31 @@
 
     $(document).ready(function () {
         loadsp();
-        $.ajax({
+            $.ajax({
             type: "GET",
             dataType: "json",
-            url: "/Admin/GetLoaiSPCha",
+            url: "/Admin/GetLoaiSP",
             success: function (response) {
-                for (var i = 0; i < response.length; i++) {
-                    var rows = "<option value='" + response[i].ten + "'>" + response[i].ten + "</option>";
-                    $('#categorydad').append(rows);
-                }
-            }
-        });
+            $('#categoryFilter').empty(); // clear trước nếu đã có option cũ
+            $('#categoryFilter').append(`<option value="all" selected>Tất cả</option>`);
+            for (var i = 0; i < response.length; i++) {
+                var option = `<option value="${response[i].id}">${response[i].ten}</option>`;
+                $('#categoryFilter').append(option);
+                    }
+                }       
+
+            });
     });
 
     function loadsp() {
         var searchName = $("#searchName").val();
         var min = $("#priceMin").val();
         var max = $("#priceMax").val();
-        var categorydad = $("#categorydad").val();
-        var categoryson = $("#categoryson").val();
         var sort = $("#sort").val();
+        var loaiSP = $("#categoryFilter").val();
+        if (loaiSP === null || loaiSP.includes("all")) {
+            loaiSP = null;
+        }
 
         var request = {
             page: pageIndex,
@@ -138,8 +137,7 @@
             search: searchName,
             minPrice: min,
             maxPrice: max,
-            loaiSPCha: categorydad,
-            loaiSPCon: categoryson,
+            loaiSP: loaiSP,
             sortSP: sort
         };
 
@@ -155,14 +153,14 @@
                         $("#list_products").append(`
                                 <tr>
 								    <td>${stt}</td>
-                                    <td>${item.ten}</td>
                                     <td>${item.ma}</td>
+                                    <td>${item.ten}</td>
                                     <td><img src="${item.anh}" style="width:70px;height:80px" /></td>
                                     <td>${item.giaGoc}</td>
                                     <td>${item.giaBan}</td>
                                     <td>${item.soLuong}</td>
                                     <td>${item.chatLieu}</td>
-                                    <td>${item.loaiSPCha}/${item.loaiSPCon}</td>
+                                    <td>${item.loaiSP}</td>
                                     <td id='hoatDong_${item.id}' style="width:228px"><span style="color:green">Hoạt động</span></td>
                                     <td style="width:250px" id='xoa_${item.id}'>
                                         <a href='/Admin/ProductDetail?idSanPham=${item.id}' class="btn-dark-gray">Chi tiết</a>
@@ -173,14 +171,15 @@
                     } else {
                         $("#list_products").append(`
                                 <tr>
-                                    <td>${item.ten}</td>
+                                    <td>${stt}</td>
                                     <td>${item.ma}</td>
+                                    <td>${item.ten}</td>
                                     <td><img src="${item.anh}" style="width:70px;height:80px" /></td>
                                     <td>${item.giaGoc}</td>
                                     <td>${item.giaBan}</td>
                                     <td>${item.soLuong}</td>
                                     <td>${item.chatLieu}</td>
-                                    <td>${item.loaiSPCha}/${item.loaiSPCon}</td>
+                                    <td>${item.loaiSP}</td>
                                     <td id='hoatDong_${item.id}' style="width:228px"><span style="color:red">Không hoạt động</span></td>
                                     <td style="width:250px" id='xoa_${item.id}'>
                                         <a href='/Admin/ProductDetail?idSanPham=${item.id}' class="btn-dark-gray">Chi tiết</a>
@@ -219,29 +218,6 @@
         $("#pagination-demo").twbsPagination('destroy');
         loadsp();
     }
-
-    $("#categorydad").change(function () {
-        var value = $("#categorydad").val();
-        if (value != "all") {
-            $.ajax({
-                type: "GET",
-                dataType: "json",
-                data: { idLoaiSPCha: value },
-                url: "/Admin/GetLoaiSPCon",
-                success: function (response) {
-                    $("#categoryson").empty();
-                    var rows = "<option value='all'>Tất cả</option>";
-                    for (var i = 0; i < response.ketQua.length; i++) {
-                        rows += "<option value='" + response.ketQua[i].id + "'>" + response.ketQua[i].ten + "</option>";
-                    }
-                    $('#categoryson').append(rows);
-                }
-            });
-        } else {
-            $("#categoryson").empty();
-            $('#categoryson').append("<option value='all'>Tất cả</option>");
-        }
-    });
 
     function xoa(id, status) {
         $.ajax({

@@ -20,8 +20,7 @@ namespace AppData.ViewModels.SanPham
         public string MaSanPham { get; set; } = string.Empty;
 
         public Guid IDChatLieu { get; set; }
-        public Guid IDLoaiSPCha { get; set; }
-        public Guid? IDLoaiSPCon{ get; set; }
+        public Guid IDLoaiSP { get; set; }
 
         public List<Guid> IDMauSacs { get; set; } = new();
         public List<Guid> IDKichCos { get; set; } = new();

@@ -24,7 +24,6 @@ namespace AppData.ViewModels
         public Guid? IdKhuyenMai { get; set; }
         public decimal GiaBan { get; set; }
         public Guid IDLoaiSP { get; set; }
-        public Guid? IDLoaiSPCha { get; set; }  
         public Guid IDChatLieu { get; set; }
     }
 }

@@ -30,16 +30,20 @@ namespace AppAPI.Services
             return sb.ToString().Normalize(NormalizationForm.FormC).ToUpper().Trim();
         }
 
-        #region LoaiSP
+        #region CRUD LoaiSP
 
         public async Task<bool> DeleteLoaiSP(Guid id)
         {
-            var lsp = await _context.LoaiSPs.FindAsync(id);
-            if (lsp == null) throw new Exception($"Không tìm thấy Loại sản phẩm: {id}");
-            // Check LoaiSP đag đc sử dụng k
-            if (_context.SanPhams.Any(c => c.IDLoaiSP == id)) return false;
-            _context.LoaiSPs.Remove(lsp);
+            var loaiSP = await _context.LoaiSPs.FindAsync(id);
+            if (loaiSP == null)
+                throw new Exception($"Không tìm thấy loại sản phẩm với ID: {id}");
+
+            var isUsed = await _context.SanPhams.AnyAsync(sp => sp.IDLoaiSP == id);
+            if (isUsed) return false;
+
+            _context.LoaiSPs.Remove(loaiSP);
             await _context.SaveChangesAsync();
+
             return true;
         }
 
@@ -48,12 +52,12 @@ namespace AppAPI.Services
             return await _context.LoaiSPs.AsNoTracking().OrderByDescending(x => x.TrangThai).ToListAsync();
         }
 
-        public async Task<LoaiSP> GetLoaiSPById(Guid id)
+        public async Task<LoaiSP?> GetLoaiSPById(Guid id)
         {
             return await _context.LoaiSPs.FindAsync(id);
         }
 
-        public async Task<LoaiSP> SaveLoaiSP(LoaiSPRequest lsp)
+        public async Task<LoaiSP?> SaveLoaiSP(LoaiSPRequest lsp)
         {
 
             var tenChuanHoa = ChuanHoaTen(lsp.Ten);
@@ -71,8 +75,7 @@ namespace AppAPI.Services
             if (Lsp != null)
             {
                 Lsp.Ten = lsp.Ten.Trim();
-                Lsp.IDLoaiSPCha = lsp.IDLoaiSPCha;
-                Lsp.TrangThai = 1;
+                Lsp.TrangThai = lsp.TrangThai;
                 _context.LoaiSPs.Update(Lsp);
                 await _context.SaveChangesAsync();
                 return Lsp;
@@ -83,7 +86,6 @@ namespace AppAPI.Services
                 {
                     ID = Guid.NewGuid(),
                     Ten = lsp.Ten.Trim(),
-                    IDLoaiSPCha = lsp.IDLoaiSPCha,
                     TrangThai = 1,
                 };
                 await _context.LoaiSPs.AddAsync(loaiSP);
@@ -99,27 +101,25 @@ namespace AppAPI.Services
             return existing == null;
         }
 
-        public async Task<LoaiSP> AddSpCha(Guid idLoaiSPCha, string ten, int trangthai)
+        public async Task<LoaiSP> AddLoaiSP( string ten, int trangThai)
         {
             var tenChuanHoa = ChuanHoaTen(ten);
-            var check = _context.LoaiSPs.AsEnumerable().FirstOrDefault(x => ChuanHoaTen(x.Ten) == tenChuanHoa && x.IDLoaiSPCha != idLoaiSPCha);
 
-            if (check != null)
-            {
+            // Lấy toàn bộ để xử lý logic normalize
+            var all = await _context.LoaiSPs.ToListAsync();
+            if (all.Any(x => ChuanHoaTen(x.Ten) == tenChuanHoa))
                 return null;
-            }
 
-            LoaiSP kc = new LoaiSP()
+            var loaiSP = new LoaiSP
             {
                 ID = Guid.NewGuid(),
-                IDLoaiSPCha = idLoaiSPCha,
                 Ten = ten.Trim(),
-                TrangThai = trangthai
+                TrangThai = trangThai
             };
 
-            _context.LoaiSPs.Add(kc);
+            _context.LoaiSPs.Add(loaiSP);
             await _context.SaveChangesAsync();
-            return kc;
+            return loaiSP;
         }
 
         #endregion

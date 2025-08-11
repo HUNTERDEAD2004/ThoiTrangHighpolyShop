@@ -45,7 +45,7 @@
 <!-- Hero Section Begin -->
 <section class="hero">
     <div class="hero__slider owl-carousel">
-        <div class="hero__items set-bg" data-setbg="img/hero/thoi-trang-nam.jpg">
+        <div class="hero__items set-bg" data-setbg="/img/hero/thoi-trang-nam.jpg">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-5 col-lg-7 col-md-8">
@@ -58,7 +58,7 @@
                 </div>
             </div>
         </div>
-        <div class="hero__items set-bg" data-setbg="img/hero/thoitrang2.jpg">
+        <div class="hero__items set-bg" data-setbg="/img/hero/thoitrang2.jpg">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-5 col-lg-7 col-md-8">
@@ -82,7 +82,7 @@
             <div class="col-lg-7 offset-lg-4">
                 <div class="banner__item">
                     <div class="banner__item__pic">
-                        <img src="img/banner/banner-1.jpg" alt="">
+                        <img src="/img/banner/banner-1.jpg" alt="">
                     </div>
                     <div class="banner__item__text">
                         <h2>Phân loại đa dạng</h2>
@@ -93,7 +93,7 @@
             <div class="col-lg-5">
                 <div class="banner__item banner__item--middle">
                     <div class="banner__item__pic">
-                        <img src="img/banner/banner4.png" alt="">
+                        <img src="/img/banner/banner4.png" alt="">
                     </div>
                     <div class="banner__item__text">
                         <h2>Thiết kế hiện đại</h2>
@@ -104,7 +104,7 @@
             <div class="col-lg-7">
                 <div class="banner__item banner__item--last">
                     <div class="banner__item__pic">
-                        <img src="img/banner/banner3.png" alt="">
+                        <img src="/img/banner/banner3.png" alt="">
                     </div>
                     <div class="banner__item__text">
                         <h2>Trẻ trung</h2>
@@ -185,49 +185,62 @@
         });
     }
 
-    function FilterSPHome(index) {
+        function FilterSPHome(index) {
         $.ajax({
             type: "GET",
             url: "/TrangChu/FilterSPHome/" + index,
             dataType: 'json',
             success: function (response) {
                 $(".product__filter").empty();
+
+                if (!response || !Array.isArray(response.data)) {
+                    console.error("Dữ liệu trả về không hợp lệ:", response);
+                    toastr.error("Không thể tải sản phẩm", 'Error', { timeOut: 300 });
+                    return;
+                }
+
                 for (let i = 0; i < response.data.length; i++) {
-                    const item = response.data[i];
-                    const id = item.id.substring(0, 8);
-                    const khuyenMaiHTML = item.khuyenMai === null ? '' :
-                        item.khuyenMai <= 100 ?
-                            `<span class="label">-${item.khuyenMai}%</span>` :
-                            `<span class="label">-${Number(item.khuyenMai).toLocaleString()} VND</span>`;
+                    const item = response.data[i] || {};
+                    const id = item.id ? item.id.substring(0, 8) : `prod-${i}`;
+
+                    const giaGoc = typeof item.giaGoc === "number" ? item.giaGoc : 0;
+                    const giaBan = typeof item.giaBan === "number" ? item.giaBan : 0;
+                    const soSao = typeof item.soSao === "number" ? item.soSao : 0;
+                    const khuyenMai = typeof item.khuyenMai === "number" ? item.khuyenMai : null;
+
+                    const khuyenMaiHTML = khuyenMai == null ? '' :
+                        khuyenMai <= 100
+                            ? `<span class="label">-${khuyenMai}%</span>`
+                            : `<span class="label">-${Number(khuyenMai).toLocaleString()} VND</span>`;
 
                     const productHTML = `
                         <div class="col-lg-3 col-md-6 col-sm-6 mix new-arrivals">
                             <div class="product__item sale ${id}">
-                                <a href="/Home/ProductDetail?idSanPham=${item.id}">
-                                    <div class="product__item__pic" style="background-image: url('img/product/${item.anh}');">
+                                <a href="/Home/ProductDetail?idSanPham=${item.id || ''}">
+                                    <div class="product__item__pic" style="background-image: url('${item.anh || '/img/no-image.png'}');">
                                         ${khuyenMaiHTML}
                                         <ul class="product__hover">
-                                            <li><a href="/Home/ProductDetail?idSanPham=${item.id}"><img src="img/icon/search.png" alt=""></a></li>
+                                            <li><a href="/Home/ProductDetail?idSanPham=${item.id || ''}"><img src="img/icon/search.png" alt=""></a></li>
                                         </ul>
                                     </div>
                                 </a>
                                 <div class="product__item__text">
-                                    <h6>${item.ten}</h6>
-                                    <a onclick="addCart('${item.idCTSP}')" class="add-cart">+ Thêm vào giỏ hàng</a>
+                                    <h6>${item.ten || 'Không rõ tên'}</h6>
+                                    <a onclick="addCart('${item.idCTSP || ''}')" class="add-cart">+ Thêm vào giỏ hàng</a>
                                     <div class="stars-outer">
                                         <div class="stars-inner"></div>
-                                        <span class="number-rating"></span>
                                     </div>
                                     ${
-                                        item.giaBan !== item.giaGoc
-                                            ? `<h5>${item.giaBan.toLocaleString()} VND</h5><span style="font-size:14px; color:#3a3b3c;"><del>${item.giaGoc.toLocaleString()} VND</del></span>`
-                                            : `<h5>${item.giaBan.toLocaleString()} VND</h5>`
+                                        giaBan !== giaGoc && giaGoc > 0
+                                            ? `<h5>${giaBan.toLocaleString()} VND</h5><span style="font-size:14px; color:#3a3b3c;"><del>${giaGoc.toLocaleString()} VND</del></span>`
+                                            : `<h5>${giaBan.toLocaleString()} VND</h5>`
                                     }
                                 </div>
                             </div>
                         </div>`;
+
                     $(".product__filter").append(productHTML);
-                    getRatings(id, item.soSao);
+                    getRatings(id, soSao);
                 }
             },
             error: function (response) {

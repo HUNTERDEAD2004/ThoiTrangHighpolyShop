@@ -121,34 +121,27 @@
                             <div class="card">
                                 <div class="card-heading">
                                     <a data-toggle="collapse" data-target="#collapseOne">Danh mục</a>
-                                </div>
+                    </div>
                                 <div id="collapseOne" class="collapse show" data-parent="#accordionExample">
                                     <div class="card-body" style="padding-left:20px">
                                         <div>
                                             @if (listLoaiSP != null)
                                             {
-                                                @foreach (var item in listLoaiSP.Where(p => p.IDLoaiSPCha == null).ToList())
-                                                {
-                                                    <div class="card">
-                                                        <div class="card-heading">
-                                                            <a data-toggle="collapse" data-target="#collapse_@item.ID">@item.Ten</a>
-                                                        </div>
-
-                                                        <div id="collapse_@item.ID" class="collapse">
-                                                            <div class="card-body">
-                                                                <div id="LoaiSpFilter" onchange="LocSort()">
-                                                                    @foreach (var x in listLoaiSP.Where(p => p.IDLoaiSPCha == item.ID).ToList())
-                                                                    {
-                                                                        <label>
-                                                                            <input type="radio" class="btn-check" id="btn-check-outlined_@item.Ten" autocomplete="off" name="loaiSP" val="@x.Ten">
-                                                                            <span class="btn btn-outline-primary" for="btn-check-outlined_@item.Ten">@x.Ten</span>
-                                                                        </label>
-                                                                    }
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                }
+                                                <div id="LoaiSpFilter" onchange="LocSort()">
+                                                    @foreach (var item in listLoaiSP)
+                                                    {
+                                                        <label>
+                                                            <input type="radio"
+                                                                   class="btn-check"
+                                                                   id="btn-check-outlined_@item.ID"
+                                                                   autocomplete="off"
+                                                                   name="loaiSP"
+                                                                   val="@item.ID">
+                                                            <span class="btn btn-outline-primary"
+                                                                  for="btn-check-outlined_@item.ID">@item.Ten</span>
+                                                        </label>
+                                                    }
+                                                </div>
                                             }
                                         </div>
                                     </div>
@@ -218,20 +211,18 @@
                             <div class="shop__product__option__right">
                                 <p>Sắp xếp theo:</p>
                                 <select id="Sort-product" class="form-select" aria-label="Default select example" onchange="LocSort()">
-                                    <option value="1">Sản phẩm nổi bật</option>
-                                    <option value="2">Giá: Tăng dần</option>
-                                    <option value="3">Giá: Giảm dần</option>
-                                    <option value="4">Tên: A-Z</option>
-                                    <option value="5">Tên: Z-A</option>
-                                    <option value="6">Cũ nhất</option>
-                                    <option value="7">Mới nhất</option>
-                                   @* <option value="8">Bán chạy nhất</option>*@
-                                    @*<option value="9">Tồn kho giảm dần</option>*@
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                        <option value="1">Sản phẩm nổi bật</option>
+                        <option value="2">Giá: Tăng dần</option>
+                        <option value="3">Giá: Giảm dần</option>
+                        <option value="4">Tên: A-Z</option>
+                        <option value="5">Tên: Z-A</option>
+                        <option value="6">Cũ nhất</option>
+                        <option value="7">Mới nhất</option>
+                    </select>
                 </div>
+            </div>
+        </div>
+    </div>
                 <div class="row" id="filtered-products">
                   @*   @foreach (var item in Model.Where(p => p.TrangThaiCTSP == 1))
                     {
@@ -274,37 +265,66 @@
         $(`.${id} .stars-inner`).css('width', starPercentageRounded);
     }
     function loadsp() {
-        var PriceRange = Filter();
-        var searchfilter = Search();
-        var idloaiSp = filterLoaiSP();
-        var idMauSac = filterMauSac();
-        var idKichCo = filterKichCo();
-        var idChatLieu = filterChatLieu();
-        var idsortSP = Sort();
-        var request = { page: pageIndex, pageSize: pagesize, priceRange: PriceRange, search: searchfilter, loaiSP: idloaiSp, mauSac: idMauSac, kichCo: idKichCo, chatLieu: idChatLieu, sortSP: idsortSP };
+        var request = {
+            page: pageIndex,
+            pageSize: pagesize,
+            priceRange: Filter(),
+            search: Search(),
+            loaiSP: filterLoaiSP(),
+            mauSac: filterMauSac(),
+            kichCo: filterKichCo(),
+            chatLieu: filterChatLieu(),
+            sortSP: Sort()
+        };
+
         $.ajax({
             url: "/Home/ShowProduct",
             type: "POST",
             data: request,
             success: function (response) {
                 $("#filtered-products").empty();
-                console.log(response);
+
                 $.each(response.data, function (i, item) {
-                    const id = item.id.substring(0, 8);
-                    if(item.soLuong > 0){
-                        if (item.trangThaiKM == 0) {
-                            $("#filtered-products").append("<div class='col-lg-4 col-md-6 col-sm-6'><div class='product__item "+id+"'><div class='product__item__pic set-bg' style='height:300px!important'><span style='background-color:black;color:white;'class='label'>" + '-' + Intl.NumberFormat().format(item.giaTriKM) + ' ' + 'VNĐ' + "</span><a href='/Home/ProductDetail?idSanPham=" + item.id + "' > <img style='width:260px;height:300px;' src='/img/product/" + item.image + "'></a></div><div class='product__item__text'><h6>" + item.ten + "</h6><a onclick=\"addCart('" + item.idChiTietSanPham + "')\" class='add-cart' style='cursor:pointer'> + Thêm vào giỏ hàng </a><div class='stars-outer'> <div class='stars-inner'></div> <span class='number-rating'></span> </div><h5> " + Intl.NumberFormat().format(item.giaBan) + ' ' + 'VNĐ' + " </h5><span style='font - size: 14px; color:#3a3b3c; '> <del>" + Intl.NumberFormat().format(item.giaGoc) + ' ' + 'VNĐ' + "</del> </span></div></div></div>");
-                        } else if (item.trangThaiKM == 1) {
-                            $("#filtered-products").append("<div class='col-lg-4 col-md-6 col-sm-6'><div class='product__item "+id+"'><div class='product__item__pic set-bg' style='height:300px!important'><span style='background-color:black;color:white;'class='label'>" + '-' + item.giaTriKM + '%' + "</span><a href='/Home/ProductDetail?idSanPham=" + item.id + "' > <img style='width:260px;height:300px;' src='/img/product/" + item.image + "'></a></div><div class='product__item__text'><h6>" + item.ten + "</h6><a onclick=\"addCart('" + item.idChiTietSanPham + "')\" class='add-cart' style='cursor:pointer'> + Thêm vào giỏ hàng </a><div class='stars-outer'> <div class='stars-inner'></div> <span class='number-rating'></span> </div><h5> " + Intl.NumberFormat().format(item.giaBan) + ' ' + 'VNĐ' + " </h5><span style='font - size: 14px; color:#3a3b3c; '> <del>" + Intl.NumberFormat().format(item.giaGoc) + ' ' + 'VNĐ' + "</del> </span></div></div></div>");
-                        }else{
-                            $("#filtered-products").append("<div class='col-lg-4 col-md-6 col-sm-6'><div class='product__item "+id+"'><div class='product__item__pic set-bg' style='height:300px!important'><a href='/Home/ProductDetail?idSanPham=" + item.id + "' > <img style='width:260px;height:300px;' src='/img/product/" + item.image + "'></a></div><div class='product__item__text'><h6>" + item.ten + "</h6><a onclick=\"addCart('" + item.idChiTietSanPham + "')\" class='add-cart' style='cursor:pointer'> + Thêm vào giỏ hàng </a><div class='stars-outer'> <div class='stars-inner'></div> <span class='number-rating'></span> </div><h5> " + Intl.NumberFormat().format(item.giaBan) + ' ' + 'VNĐ' + " </h5></div></div></div>");
-                        }
-                    }else{
-                        $("#filtered-products").append("<div class='col-lg-4 col-md-6 col-sm-6'><div class='product__item " + id + "'><div class='product__item__pic set-bg' style='height:300px!important'><span style='background-color:black;color:white;'class='label'>" + 'Hết hàng' + "</span><a href='/Home/ProductDetail?idSanPham=" + item.id + "' > <img style='width:260px;height:300px;' src='/img/product/" + item.image + "'></a></div><div class='product__item__text'><h6>" + item.ten + "</h6><a onclick=\"addCartSoLuongBangKhong()\" class='add-cart' style='cursor:pointer'> + Thêm vào giỏ hàng </a><div class='stars-outer'> <div class='stars-inner'></div> <span class='number-rating'></span> </div><h5> " + Intl.NumberFormat().format(item.giaBan) + ' ' + 'VNĐ' + " </h5><span style='font - size: 14px; color:#3a3b3c; '> </span></div></div></div>");
+                    const idShort = item.id.substring(0, 8);
+                    let label = "";
+                    let delPrice = "";
+                    let addCartAction = `addCart('${item.idChiTietSanPham}')`;
+
+                    if (item.soLuong <= 0) {
+                        label = `<span style="background-color:black;color:white;" class="label">Hết hàng</span>`;
+                        addCartAction = `addCartSoLuongBangKhong()`;
+                    } else if (item.trangThaiKM == 0) {
+                        label = `<span style="background-color:black;color:white;" class="label">-${Intl.NumberFormat().format(item.giaTriKM)} VNĐ</span>`;
+                        delPrice = `<span style="font-size:14px;color:#3a3b3c;"><del>${Intl.NumberFormat().format(item.giaGoc)} VNĐ</del></span>`;
+                    } else if (item.trangThaiKM == 1) {
+                        label = `<span style="background-color:black;color:white;" class="label">-${item.giaTriKM}%</span>`;
+                        delPrice = `<span style="font-size:14px;color:#3a3b3c;"><del>${Intl.NumberFormat().format(item.giaGoc)} VNĐ</del></span>`;
                     }
-                    
-                    getRatings(id, item.soSao);
+
+                    let html = `
+                        <div class="col-lg-4 col-md-6 col-sm-6">
+                            <div class="product__item ${idShort}">
+                                <div class="product__item__pic set-bg" style="height:300px!important">
+                                    ${label}
+                                    <a href="/Home/ProductDetail?idSanPham=${item.id}">
+                                        <img style="width:260px;height:300px;" src="${item.image}">
+                                    </a>
+                                </div>
+                                <div class="product__item__text">
+                                    <h6>${item.ten}</h6>
+                                    <a onclick="${addCartAction}" class="add-cart" style="cursor:pointer"> + Thêm vào giỏ hàng </a>
+                                    <div class="stars-outer"><div class="stars-inner"></div><span class="number-rating"></span></div>
+                                    <h5>${Intl.NumberFormat().format(item.giaBan)} VNĐ</h5>
+                                    ${delPrice}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    $("#filtered-products").append(html);
+                    getRatings(idShort, item.soSao);
                 });
+
                 pagingsp(response.total, function () {
                     loadsp();
                 });
@@ -383,12 +403,8 @@
         loadsp();
     }
     function filterLoaiSP() {
-        var checkboxes = $('#LoaiSpFilter input[type="radio"]:checked')
-        var value = []
-        checkboxes.each(function () {
-            value.push($(this).attr('val'))
-        })
-        return value
+        var selected = $('#LoaiSpFilter input[type="radio"]:checked');
+        return selected.length > 0 ? [selected.attr('val')] : [];
     }
     function filterMauSac() {
         var checkboxes = $('#filter-color input[type="checkbox"]:checked')
@@ -446,39 +462,4 @@
                 elem.previous = elem.checked;
             });
     }
-    //function Filtered() {
-    //    var PriceRange = Filter("filter-price");
-    //    var searchfilter = Search();
-    //    var idloaiSp = filterLoaiSP();
-    //    var idMauSac = filterMauSac();
-    //    var idKichCo = filterKichCo();
-    //    var idChatLieu = filterChatLieu();
-    //    var idsortSP = Sort();
-    //    var data = {
-    //        priceRange: PriceRange,
-    //        search: searchfilter,
-    //        loaiSP: idloaiSp,
-    //        mauSac: idMauSac,
-    //        kichCo: idKichCo,
-    //        chatLieu: idChatLieu,
-    //        sortSP: idsortSP
-    //    }
-    //    fetch("/Home/GetFilteredProducts", {
-    //        method: "POST",
-    //        headers: {
-    //            "Content-Type": "application/json"
-    //        },
-    //        body: JSON.stringify(data)
-    //    }).then(function (reponse) {
-    //        if (reponse.ok) {
-    //            return reponse.text();
-    //        } else {
-    //            throw new Error("Error sending data to controller");
-    //        }
-    //    }).then(function (result) {
-    //        $("#filtered-products").html(result);
-    //    }).catch(function (error) {
-    //        console.log("An error occured", error)
-    //    })
-    //}
 </script>

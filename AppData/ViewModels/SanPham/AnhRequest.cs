@@ -11,5 +11,6 @@ namespace AppData.ViewModels.SanPham
         public Guid IDSanPhamChiTiet { get; set; }
         public string DuongDan { get; set; } = string.Empty;
         public string? MaMau { get; set; }
+        public Guid? IDAnh { get; set; }
     }
 }

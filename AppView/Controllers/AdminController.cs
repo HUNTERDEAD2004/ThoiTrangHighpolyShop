@@ -10,6 +10,7 @@ using QRCoder;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Linq;
 
 namespace AppView.Controllers
 {
@@ -43,40 +44,36 @@ namespace AppView.Controllers
             {
                 var response = _httpClient.GetAsync(_httpClient.BaseAddress + "SanPham/GetAllSanPhamAdmin").Result;
                 List<SanPhamViewModelAdmin> lstSanpham = new List<SanPhamViewModelAdmin>();
+
                 if (response.IsSuccessStatusCode)
                 {
                     lstSanpham = JsonConvert.DeserializeObject<List<SanPhamViewModelAdmin>>(response.Content.ReadAsStringAsync().Result);
-                    //Sắp xếp
-                    if (filter.sortSP == "1")
+
+                    // Tìm kiếm theo tên sản phẩm
+                    if (!string.IsNullOrEmpty(filter.search))
                     {
-                        lstSanpham = lstSanpham.OrderBy(x => Convert.ToInt32(x.Ma.Substring(2))).ToList();
+                        lstSanpham = lstSanpham
+                            .Where(x => x.Ten != null && x.Ten.ToLower().Contains(filter.search.ToLower()))
+                            .ToList();
                     }
-                    else if (filter.sortSP == "6")
+
+                    // Lọc theo loại sản phẩm (multi-select)
+                    if (!string.IsNullOrEmpty(filter.loaiSP))
                     {
-                        lstSanpham = lstSanpham.OrderBy(x => x.Ten).ToList();
+                        lstSanpham = lstSanpham
+                            .Where(x => x.LoaiSP != null && x.LoaiSP == filter.loaiSP)
+                            .ToList();
                     }
-                    else if (filter.sortSP == "2")
+
+                    // Lọc theo chất liệu
+                    if (filter.chatLieu != null && filter.chatLieu.Any())
                     {
-                        lstSanpham = lstSanpham.OrderBy(x => x.GiaBan).ToList();
+                        lstSanpham = lstSanpham
+                            .Where(x => x.ChatLieu != null && filter.chatLieu.Contains(x.ChatLieu))
+                            .ToList();
                     }
-                    else if (filter.sortSP == "3")
-                    {
-                        lstSanpham = lstSanpham.OrderByDescending(x => x.GiaBan).ToList();
-                    }
-                    else if (filter.sortSP == "4")
-                    {
-                        lstSanpham = lstSanpham.OrderBy(x => x.SoLuong).ToList();
-                    }
-                    else if (filter.sortSP == "5")
-                    {
-                        lstSanpham = lstSanpham.OrderByDescending(x => x.SoLuong).ToList();
-                    }
-                    //Tìm kiếm theo tên sản phẩm
-                    if (filter.search != null)
-                    {
-                        lstSanpham = lstSanpham.Where(x => x.Ten.ToLower().Contains(filter.search.ToLower())).ToList();
-                    }
-                    //Tìm kiếm theo giá
+
+                    // Lọc theo giá
                     if (filter.minPrice != null)
                     {
                         lstSanpham = lstSanpham.Where(x => x.GiaBan >= filter.minPrice).ToList();
@@ -85,16 +82,36 @@ namespace AppView.Controllers
                     {
                         lstSanpham = lstSanpham.Where(x => x.GiaBan <= filter.maxPrice).ToList();
                     }
-                    //Tìm kiếm theo loại sản phẩm
-                    if (filter.loaiSPCha != "all")
+
+                    // Sắp xếp
+                    switch (filter.sortSP)
                     {
-                        lstSanpham = lstSanpham.Where(x => x.LoaiSPCha == filter.loaiSPCha).ToList();
-                        if (filter.loaiSPCon != "all")
-                        {
-                            lstSanpham = lstSanpham.Where(x => x.LoaiSPCon == filter.loaiSPCon).ToList();
-                        }
+                        case "1":
+                            lstSanpham = lstSanpham.OrderBy(x => Convert.ToInt32(x.Ma.Substring(2))).ToList();
+                            break;
+                        case "2":
+                            lstSanpham = lstSanpham.OrderBy(x => x.GiaBan).ToList();
+                            break;
+                        case "3":
+                            lstSanpham = lstSanpham.OrderByDescending(x => x.GiaBan).ToList();
+                            break;
+                        case "4":
+                            lstSanpham = lstSanpham.OrderBy(x => x.SoLuong).ToList();
+                            break;
+                        case "5":
+                            lstSanpham = lstSanpham.OrderByDescending(x => x.SoLuong).ToList();
+                            break;
+                        case "6":
+                            lstSanpham = lstSanpham.OrderBy(x => x.Ten).ToList();
+                            break;
                     }
-                    var model = lstSanpham.Skip((filter.page - 1) * filter.pageSize).Take(filter.pageSize).ToList();
+
+                    // Phân trang
+                    var model = lstSanpham
+                        .Skip((filter.page - 1) * filter.pageSize)
+                        .Take(filter.pageSize)
+                        .ToList();
+
                     return Json(new
                     {
                         data = model,
@@ -102,13 +119,13 @@ namespace AppView.Controllers
                         status = true
                     });
                 }
-                else return Json(new { status = false });
+
+                return Json(new { status = false });
             }
             catch
             {
                 return Json(new { status = false });
             }
-
         }
         [HttpPost]
         public JsonResult UpdateTrangThaiSanPham(string idSanPham, int trangThai)
@@ -127,11 +144,17 @@ namespace AppView.Controllers
                 return Json(new { Status = false });
             }
         }
-        public JsonResult GetLoaiSPCha()
+        public JsonResult GetLoaiSP()
         {
             try
             {
-                HttpResponseMessage response = _httpClient.GetAsync(_httpClient.BaseAddress + "SanPham/GetAllLoaiSPCha").Result;
+                HttpResponseMessage response = _httpClient.GetAsync(_httpClient.BaseAddress + "SanPham/GetAllLoaiSP").Result;
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return Json(new List<LoaiSP>());
+                }
+
                 var loaiSP = JsonConvert.DeserializeObject<List<LoaiSP>>(response.Content.ReadAsStringAsync().Result);
                 return Json(loaiSP);
             }
@@ -250,25 +273,6 @@ namespace AppView.Controllers
                 return Json(new List<ChatLieu>());
             }
         }
-        public async Task<JsonResult> GetLoaiSPCon(Guid idLoaiSPCha)
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}SanPham/GetAllLoaiSPCon?idLoaiSPCha={idLoaiSPCha}");
-                if (!response.IsSuccessStatusCode)
-                    return Json(new { TrangThai = false });
-
-                var body = await response.Content.ReadAsStringAsync();
-                var loaiSP = JsonConvert.DeserializeObject<List<LoaiSP>>(body);
-
-                return Json(new { KetQua = loaiSP, TrangThai = true });
-            }
-            catch (Exception ex)
-            {
-                // Có thể log nếu cần: _logger.LogError(ex, "...");
-                return Json(new { TrangThai = false });
-            }
-        }
         // Danh sách các ID màu bị đánh dấu xoá
         private List<Guid> _mauBiXoa = new List<Guid>();
         private List<Guid> _sizeBiXoa = new List<Guid>();
@@ -287,7 +291,6 @@ namespace AppView.Controllers
         {
             return View();
         }
-
         [HttpPost]
         public async Task<IActionResult> AddSanPham(IFormFile file, SanPhamRequest sanPhamRequest)
         {
@@ -304,8 +307,7 @@ namespace AppView.Controllers
                     IDChatLieu = sanPhamRequest.IDChatLieu,
                     IDKichCos = sanPhamRequest.IDKichCos,
                     IDMauSacs = sanPhamRequest.IDMauSacs,
-                    IDLoaiSPCha = sanPhamRequest.IDLoaiSPCha,
-                    IDLoaiSPCon = sanPhamRequest.IDLoaiSPCon
+                    IDLoaiSP = sanPhamRequest.IDLoaiSP,
                 };
 
                 request.IDMauSacs?.RemoveAll(id => XoaMau(id));
@@ -505,7 +507,7 @@ namespace AppView.Controllers
                 if (!xoaFile)
                     Console.WriteLine($"Không thể xóa file vật lý: {duongDan}");
 
-                return RedirectToAction("QuanLyAnhChiTiet", new { idSanPham });
+                return Ok(); 
             }
             catch (Exception ex)
             {
@@ -513,7 +515,6 @@ namespace AppView.Controllers
                 return BadRequest("Lỗi server");
             }
         }
-
         [HttpGet]
         public IActionResult AddChiTietSanPham(string idSanPham)
         {
@@ -735,22 +736,9 @@ namespace AppView.Controllers
                 var chatLieus = await _httpClient.GetFromJsonAsync<List<ChatLieu>>("SanPham/GetAllChatLieu");
                 ViewBag.ChatLieus = new SelectList(chatLieus, "ID", "Ten", response.IDChatLieu);
 
-                // Load danh sách loại sản phẩm cha
-                var loaiSPChas = await _httpClient.GetFromJsonAsync<List<LoaiSP>>("SanPham/GetAllLoaiSPCha");
-                ViewBag.LoaiSPChas = new SelectList(loaiSPChas, "ID", "Ten", response.IDLoaiSPCha);
-
-                // Load danh sách loại sản phẩm con theo cha
-                if (response.IDLoaiSPCha != Guid.Empty)
-                {
-                    var loaiSPCons = await _httpClient.GetFromJsonAsync<List<LoaiSP>>(
-                        $"SanPham/GetAllLoaiSPCon?idLoaiSPCha={response.IDLoaiSPCha}");
-
-                    ViewBag.LoaiSPCons = new SelectList(loaiSPCons, "ID", "Ten", response.IDLoaiSPCon);
-                }
-                else
-                {
-                    ViewBag.LoaiSPCons = new SelectList(new List<LoaiSP>(), "ID", "Ten");
-                }
+                // Load toàn bộ danh sách loại sản phẩm (chỉ 1 cấp)
+                var loaiSPs = await _httpClient.GetFromJsonAsync<List<LoaiSP>>("SanPham/GetAllLoaiSP");
+                ViewBag.LoaiSPs = new SelectList(loaiSPs, "ID", "Ten", response.IDLoaiSP);
 
                 return View(response);
             }
@@ -760,10 +748,15 @@ namespace AppView.Controllers
             }
         }
         [HttpPost]
-        public IActionResult UpdateSanPham(SanPhamUpdateRequest request)
+        public IActionResult UpdateSanPham([FromForm] SanPhamUpdateRequest request)
         {
             try
             {
+                // test debug xem request.AnhDaiDien có null ko
+                if (string.IsNullOrEmpty(request.AnhDaiDien))
+                {
+                    return RedirectToAction("ProductManager");
+                }
                 var response = _httpClient.PutAsJsonAsync("SanPham/UpdateSanPham", request).Result;
                 if (response.IsSuccessStatusCode)
                 {
@@ -787,17 +780,10 @@ namespace AppView.Controllers
 
             foreach (var image in images)
             {
-                if (image.Length > 0)
+                var filePath = await _iFileService.AddFile(image, wwwrootPath);
+                if (!string.IsNullOrEmpty(filePath))
                 {
-                    string fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
-                    string filePath = Path.Combine(wwwrootPath, "uploads", fileName);
-
-                    Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-
-                    using var stream = new FileStream(filePath, FileMode.Create);
-                    await image.CopyToAsync(stream);
-
-                    duongDanList.Add("/uploads/" + fileName);
+                    duongDanList.Add(filePath); // filePath đã là đường dẫn tương đối /img/product/xxx
                 }
             }
 

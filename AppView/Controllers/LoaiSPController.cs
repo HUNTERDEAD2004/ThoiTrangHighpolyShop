@@ -30,23 +30,36 @@ namespace AppView.Controllers
                 string apiUrl = "https://localhost:7095/api/LoaiSP/getAll";
                 var response = await _httpClient.GetAsync(apiUrl);
                 string apiData = await response.Content.ReadAsStringAsync();
-                var LoaiSPs = JsonConvert.DeserializeObject<List<LoaiSP>>(apiData);
-                var filteredLoaiSPs = LoaiSPs.Where(lsp => lsp.IDLoaiSPCha == null).ToList();
+                var loaiSPs = JsonConvert.DeserializeObject<List<LoaiSP>>(apiData);
+
+                // Không lọc loại cha nữa, hiển thị tất cả
+                var pagedLoaiSPs = loaiSPs.Skip((ProductPage - 1) * PageSize).Take(PageSize).ToList();
+
                 return View(new PhanTrangLoaiSP
                 {
-                    listlsp = filteredLoaiSPs.Skip((ProductPage - 1) * PageSize).Take(PageSize),
+                    listlsp = pagedLoaiSPs,
                     PagingInfo = new PagingInfo
                     {
                         ItemsPerPage = PageSize,
                         CurrentPage = ProductPage,
-                        TotalItems = filteredLoaiSPs.Count()
+                        TotalItems = loaiSPs.Count
                     }
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                // Gợi ý: Log lỗi ở đây để dễ debug
+                Console.WriteLine(ex);
+                return View(new PhanTrangLoaiSP
+                {
+                    listlsp = new List<LoaiSP>(),
+                    PagingInfo = new PagingInfo
+                    {
+                        ItemsPerPage = PageSize,
+                        CurrentPage = ProductPage,
+                        TotalItems = 0
+                    }
+                });
             }
         }
         // Tim kiem Loai SP theo ten
@@ -244,31 +257,36 @@ namespace AppView.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditLoaiSPCon(LoaiSP lsp)
+        public async Task<IActionResult> EditLoaiSP(LoaiSP lsp)
         {
             try
             {
                 lsp.TrangThai = 1;
-                string apiUrl = $"https://localhost:7095/api/LoaiSP/save";
-                var content = new StringContent(JsonConvert.SerializeObject(lsp), Encoding.UTF8, "application/json");
-                var reponsen = await _httpClient.PutAsync(apiUrl, content);
-                if (reponsen.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("GetLoaiSpById", "LoaiSP", new { id = lsp.IDLoaiSPCha });
-                }
-                else if (reponsen.StatusCode == HttpStatusCode.BadRequest)
-                {
-                    ViewBag.ErrorMessage = "Loại sản phẩm này đã có trong danh sách";
-                    return View();
-                }
-                return RedirectToAction("GetLoaiSpById", "LoaiSP", new { id = lsp.IDLoaiSPCha });
-            }
-            catch (Exception)
-            {
 
-                throw;
+                string apiUrl = "https://localhost:7095/api/LoaiSP/save";
+                var content = new StringContent(JsonConvert.SerializeObject(lsp), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync(apiUrl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Show", "LoaiSP"); // Trở lại danh sách loại sản phẩm
+                }
+                else if (response.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    ViewBag.ErrorMessage = "Loại sản phẩm này đã tồn tại.";
+                    return View(lsp); // Hiển thị lại form để sửa
+                }
+
+                TempData["Error"] = "Cập nhật thất bại.";
+                return RedirectToAction("Show", "LoaiSP");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Lỗi hệ thống: " + ex.Message;
+                return View(lsp);
             }
         }
+
         public async Task<IActionResult> CreateLoaiSPCon()
         {
             var responseLoaiSP = _httpClient.GetAsync(_httpClient.BaseAddress + $"https://localhost:7095/api/LoaiSP/getAll").Result;

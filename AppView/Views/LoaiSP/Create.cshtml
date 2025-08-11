@@ -4,7 +4,6 @@
 @{
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
     ViewData["Title"] = "Create";
-    var listLoaiSP = ViewData["listLoaiSP"] as List<LoaiSP>;
 }
 
 <h1>Thêm loại sản phẩm</h1>
@@ -12,40 +11,33 @@
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             @if (ViewBag.ErrorMessage != null)
             {
                 <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
             }
+
             <div class="form-group">
-                <label class="control-label">Tên Loại SP</label>
-                <input asp-for="Ten" class="form-control" class="form-control" />
+                <label class="control-label">Tên Loại Sản Phẩm</label>
+                <input asp-for="Ten" class="form-control" />
                 <div id="emptyNameError" class="invalid-feedback d-none">Vui lòng nhập tên loại sản phẩm!</div>
             </div>
-            <div class="form-group">
-                <label asp-for="IDLoaiSPCha" class="control-label"> Tên Loại SP Cha</label>
-                <select class="form-control" asp-for="IDLoaiSPCha" name="IDLoaiSPCha">
-                    @if (listLoaiSP != null)
-                    {
-                        <option value="null">Chọn loại sản phẩm cha</option>
-                        @foreach (var item in listLoaiSP.Where(p => p.IDLoaiSPCha == null).ToList())
-                        {
-                            <option value="@item.ID">@item.Ten</option>
-                        }
-                    }
-                </select>
-            </div>
+
             <input type="hidden" asp-for="TrangThai" value="1" />
+
             <div class="form-group">
-                <input type="submit" value="Thêm Loại SP" class="btn btn-success" style="margin-top: 10px" />
+                <input type="submit" value="Thêm Loại SP" class="btn btn-success mt-3" />
             </div>
         </form>
     </div>
 </div>
+
 <script>
     $("input[name='Ten']").on("input", function () {
         $(this).removeClass("is-invalid");
         $("#emptyNameError").text("");
     });
+
     $("form").submit(function () {
         var tenInput = $("input[name='Ten']");
         var tenValue = tenInput.val();

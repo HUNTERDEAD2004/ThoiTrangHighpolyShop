@@ -127,6 +127,7 @@ namespace AppView.Controllers
         {
             return View();
         }
+
         #region SanPham
         [HttpPost]
         public JsonResult ShowProduct(FilterData filter)
@@ -197,20 +198,12 @@ namespace AppView.Controllers
                     //loaiSP-filter
                     List<SanPhamViewModel> lsttam = new List<SanPhamViewModel>();
                     List<SanPhamViewModel> lsttam1 = new List<SanPhamViewModel>();
-                    if (filter.loaiSP != null && filter.loaiSP.Count > 0)
+                    if (filter.loaiSP != null && filter.loaiSP.Count() > 0)
                     {
-                        foreach (var x in filter.loaiSP)
-                        {
-                            lsttam = lstSanphamfn.Where(p => p.LoaiSP == x).ToList();
-                            foreach (var item in lsttam)
-                            {
-                                if (lsttam1.FirstOrDefault(p => p.ID == item.ID) == null)
-                                {
-                                    lsttam1.Add(item);
-                                }
-                            }
-                        }
-                        lstSanphamfn = lsttam1;
+                        var ids = filter.loaiSP; // List<Guid> hoặc List<string> tùy kiểu
+                        lstSanphamfn = lstSanphamfn
+                            .Where(p => filter.loaiSP.Contains(p.LoaiSP)) // nếu lọc theo ID
+                            .ToList();
                     }
                     //Search
                     if (filter.search != null)
@@ -531,6 +524,7 @@ namespace AppView.Controllers
                 return Json(new { error = false, message = "  Not Add to cart " });
             }
         }
+
         #region Cart
         [HttpGet]
         public async Task<IActionResult> ShoppingCart()

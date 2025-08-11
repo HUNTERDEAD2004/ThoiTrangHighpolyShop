@@ -11,7 +11,6 @@ namespace AppData.Configurations
             builder.HasKey(x => x.ID);
             builder.Property(x => x.Ten).HasColumnType("nvarchar(30)").IsRequired();
             builder.Property(x => x.TrangThai).HasColumnType("int");
-            builder.HasOne(x => x.LoaiSPCha).WithMany().HasForeignKey(x => x.IDLoaiSPCha);
         }
     }
 }

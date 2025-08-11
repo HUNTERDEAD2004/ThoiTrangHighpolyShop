@@ -16,8 +16,7 @@ namespace AppData.ViewModels.SanPham
         public decimal GiaGoc { get; set; }
         public int SoLuong { get; set; }
         public string? ChatLieu { get; set; }
-        public string? LoaiSPCha { get; set; }
-        public string? LoaiSPCon { get; set; }
+        public string? LoaiSP { get; set; }
         public int TrangThai { get; set; }
         public Guid? IDKhuyenMai { get; set; }
     }

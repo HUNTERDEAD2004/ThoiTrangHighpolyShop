@@ -29,12 +29,12 @@
                 </div>
             </div>
 
-            <!-- LOẠI SẢN PHẨM CHA & CON -->
+            <!-- LOẠI SẢN PHẨM -->
             <div class="form-group mb-3">
                 <label class="control-label fw-bold">Loại sản phẩm</label>
                 <div class="d-flex gap-2">
-                    <select name="IDLoaiSPCha" id="LoaiSPChaID" class="form-select" onchange="loadLoaiSPCon()"></select>
-                    <select name="IDLoaiSP" id="LoaiSPConID" class="form-select"></select>
+                    <select name="IDLoaiSP" id="LoaiSPID" class="form-select flex-grow-1"></select>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="taoMoiLoaiSP()">➕</button>
                 </div>
             </div>
 
@@ -143,15 +143,16 @@
         themBienTheMauSac();
         });
 
-        // Gọi dữ liệu loại sản phẩm cha
-        $.get("/Admin/GetLoaiSPCha", function (res) {
-        const cha = $("#LoaiSPChaID");
-        cha.empty().append('<option value="">-- Chọn loại cha --</option>');
-        res.forEach(x => {
-        cha.append(`<option value="${x.id}">${x.ten}</option>`);
+        // Gọi dữ liệu loại sản phẩm
+            $.get("/Admin/GetLoaiSP", function (res) {
+            const select = $("#LoaiSPID");
+            select.empty().append('<option value="">-- Chọn loại sản phẩm --</option>');
+            res.forEach(x => {
+                select.append(`<option value="${x.id}">${x.ten}</option>`);
+            });
         });
-        });
-     });
+
+    });
 
     // --- Tạo mới Chất liệu ---
     function taoMoiChatLieu() {
@@ -217,27 +218,24 @@
         });
     }
 
-
     // --- Tạo mới Loại sản phẩm ---
-    function taoMoiLoaiSPCha() {
-        const ten = prompt("Nhập tên loại sản phẩm cha:");
+    function taoMoiLoaiSP() {
+        const ten = prompt("Nhập tên loại sản phẩm:");
         if (!ten) return;
 
         $.post("/LoaiSP/save", { ten: ten }, function (res) {
             if (res.success) {
-                $.get("/Admin/GetLoaiSPCha", function (data) {
-                    const select = $("#LoaiSPChaID");
-                    select.empty().append('<option value="">-- Chọn loại cha --</option>');
+                alert("Thêm thành công!");
+                $.get("/Admin/GetAllLoaiSanPham", function (data) {
+                    const select = $("#LoaiSPID");
+                    select.empty().append('<option value="">-- Chọn loại sản phẩm --</option>');
                     data.forEach(x => {
                         select.append(`<option value="${x.id}" ${x.ten === ten ? 'selected' : ''}>${x.ten}</option>`);
                     });
-                    loadLoaiSPCon();
                 });
             }
         });
     }
-
-    // --- Tạo mới Loại sản phẩm ---
 
     // --- Kích cỡ ---
     function themBienTheKichCo() {
@@ -285,27 +283,6 @@
     function xoaMau(id) {
         $(`#mau${id}`).remove();
     }
-
-    // --- LOẠI SẢN PHẨM ---
-   function loadLoaiSPCon() {
-    const idCha = $("#LoaiSPChaID").val();
-    console.log("ID loại cha đã chọn:", idCha);
-
-    const con = $("#LoaiSPConID");
-    con.empty().append('<option value="">-- Chọn loại con --</option>');
-
-    if (!idCha) return;
-
-    $.get("/LoaiSP/GetLoaiSPCon", { idLoaiSPCha: idCha }, function (res) {
-        console.log("Loại con trả về:", res);
-        res.forEach(x => {
-            con.append(`<option value="${x.id}">${x.ten}</option>`);
-        });
-    }).fail(function (xhr, status, err) {
-        console.error("Gọi API lỗi:", status, err);
-    });
-}
-
 
     function disableSubmit(form) {
         const btn = form.querySelector('input[type="submit"], button[type="submit"]');

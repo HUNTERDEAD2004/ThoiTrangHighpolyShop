@@ -20,7 +20,6 @@ namespace AppData.ViewModels.SanPham
         [Required]
         public Guid IDChatLieu { get; set; }
         [Required]
-        public Guid IDLoaiSPCha { get; set; }
-        public Guid? IDLoaiSPCon { get; set; }
+        public Guid IDLoaiSP{ get; set; }
     }
 }
