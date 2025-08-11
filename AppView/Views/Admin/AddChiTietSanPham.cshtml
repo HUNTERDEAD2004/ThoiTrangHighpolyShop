@@ -16,16 +16,16 @@
             <div class="form-group">
                 <label class="control-label">Màu sắc</label>
                 <div id="lstMauSac" class="d-flex flex-column gap-2"></div>
-                <input type="button" class="btn btn-primary mt-2" value="Thêm màu" onclick="themBienTheMauSac()" />
-                <input type="button" class="btn btn-primary mt-2" value="Thêm màu" onclick="taoMoiMauSac()" />
+                <input type="button" value="Thêm màu có sẵn" onclick="themBienTheMauSac()" />
+                <input type="button" value="Tạo màu mới" onclick="taoMoiMauSac()" />
             </div>
 
             <!-- Kích cỡ -->
             <div class="form-group">
                 <label class="control-label">Kích cỡ</label>
                 <div id="lstKichCo" class="d-flex flex-column gap-2"></div>
-                <input type="button" class="btn btn-primary mt-2" value="Thêm kích cỡ" onclick="themBienTheKichCo()" />
-                <input type="button" class="btn btn-primary mt-2" value="Thêm kích cỡ" onclick="taoMoiKichCo()" />
+                <input type="button" class="btn btn-primary mt-2" value="Thêm kích cỡ có sẵn" onclick="themBienTheKichCo()" />
+                <input type="button" class="btn btn-primary mt-2" value="Thêm kích cỡ mới" onclick="taoMoiKichCo()" />
             </div>
 
             <div class="form-group">
@@ -34,12 +34,6 @@
         </form>
     </div>
 </div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
 
 <script src="~/js/jquery-3.3.1.min.js"></script>
 <script>
@@ -151,3 +145,9 @@
         $(`#mau${id}`).remove();
     }
 </script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

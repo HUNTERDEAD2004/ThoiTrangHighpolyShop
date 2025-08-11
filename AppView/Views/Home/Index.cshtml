@@ -37,7 +37,7 @@
 <!-- Hero Section Begin -->
 <section class="hero">
     <div class="hero__slider owl-carousel">
-        <div class="hero__items set-bg" data-setbg="img/hero/thoitrang2.jpg">
+        <div class="hero__items set-bg" data-setbg="/img/hero/thoitrang2.jpg">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-5 col-lg-7 col-md-8">
@@ -50,7 +50,7 @@
                 </div>
             </div>
         </div>
-        <div class="hero__items set-bg" data-setbg="img/hero/herone2.jpg">
+        <div class="hero__items set-bg" data-setbg="/img/hero/herone2.jpg">
             <div class="container">
                 <div class="row">
                     <div class="col-xl-5 col-lg-7 col-md-8">
@@ -73,7 +73,7 @@
             <div class="col-lg-7 offset-lg-4">
                 <div class="banner__item">
                     <div class="banner__item__pic">
-                        <img src="img/banner/banner-1.jpg" alt="">
+                        <img src="/img/banner/banner-1.jpg" alt="">
                     </div>
                     <div class="banner__item__text">
                         <h2>Phân loại đa dạng</h2>
@@ -84,7 +84,7 @@
             <div class="col-lg-5">
                 <div class="banner__item banner__item--middle">
                     <div class="banner__item__pic">
-                        <img src="img/banner/banner-2.jpg" alt="">
+                        <img src="/img/banner/banner-2.jpg" alt="">
                     </div>
                     <div class="banner__item__text">
                         <h2>Thiết kế hiện đại</h2>
@@ -95,7 +95,7 @@
             <div class="col-lg-7">
                 <div class="banner__item banner__item--last">
                     <div class="banner__item__pic">
-                        <img src="img/banner/banner3.png" alt="">
+                        <img src="/img/banner/banner3.png" alt="">
                     </div>
                     <div class="banner__item__text">
                         <h2></h2>
@@ -596,7 +596,7 @@
                         <div class="col-lg-3 col-md-6 col-sm-6 col-md-6 col-sm-6 mix new-arrivals">
                           <div class="product__item sale ${id}">
                             <a href="/Home/ProductDetail?idSanPham=${item.id}">
-                              <div class="product__item__pic" style="background-image: url('img/product/${item.anh}');">
+                              <div class="product__item__pic" style="background-image: url('${item.anh || '/img/no-image.png'}');">
                                 ${khuyenMaiHTML}
                                 <ul class="product__hover">
                                   <li><a href="/Home/ProductDetail?idSanPham=${item.id}"><img src="img/icon/search.png" alt=""></a></li>

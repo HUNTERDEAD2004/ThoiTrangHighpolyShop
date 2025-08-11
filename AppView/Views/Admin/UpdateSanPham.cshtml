@@ -68,7 +68,7 @@
 		</form>
 	</div>
 </div>
-
+<script src="/js/jquery-3.3.1.min.js"></script>
 <script>
 	let uploadDone = true; // mặc định true nếu không đổi ảnh
 
@@ -96,6 +96,8 @@
 
 	$("#fileUpload").on("change", function () {
 		var files = this.files;
+
+		console.log(files);
 		if (files.length === 0) return;
 
 		uploadDone = false; // đang upload
@@ -182,7 +184,6 @@
 		return true;
 	}
 </script>
-
 @section Scripts {
 	@{
 		await Html.RenderPartialAsync("_ValidationScriptsPartial");

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Drawing;
+using System.Linq;
 using AppAPI.IServices;
 using AppData.Models;
 using AppData.ViewModels;
@@ -21,8 +22,6 @@ namespace AppAPI.Services
         {
             var existing = await _context.SanPhams.FirstOrDefaultAsync(x => x.ID == request.ID);
             if (existing == null) return false;
-
-            var anh = request.AnhDaiDien; // phải có giá trị ảnh upload
 
             existing.Ten = request.Ten?.Trim();
             existing.AnhDaiDien = request.AnhDaiDien;
@@ -341,45 +340,52 @@ namespace AppAPI.Services
         {
             try
             {
-                var lstChiTietSanPham = await _context.ChiTietSanPhams
-                    .Where(x => x.IDSanPham == request.IDSanPham)
-                    .ToListAsync();
-
-                var lst = new List<ChiTietSanPhamRequest>();
-                var mauSacCanThemAnh = new List<MauSac>();
-
-                foreach (var idMau in request.IDMauSacs)
-                {
-                    foreach (var idSize in request.IDKichCos)
-                    {
-                        var ctsp = await CreateChiTietSanPhamFromSanPham(idMau, idSize, request.IDSanPham);
-                        if (ctsp != null)
-                        {
-                            lst.Add(ctsp);
-                        }
-                    }
-
-                    // Kiểm tra màu chưa có ảnh
-                    bool hasImage = await (from a in _context.Anhs
-                                           join ctsp in _context.ChiTietSanPhams on a.IDSanPhamChiTiet equals ctsp.ID
-                                           where ctsp.IDSanPham == request.IDSanPham && ctsp.IDMauSac == idMau
-                                           select a).AnyAsync();
-
-                    if (!hasImage)
-                    {
-                        var mau = await _context.MauSacs.FirstOrDefaultAsync(x => x.ID == idMau);
-                        if (mau != null)
-                        {
-                            mauSacCanThemAnh.Add(mau);
-                        }
-                    }
-                }
-
                 var maSanPham = await _context.SanPhams
                     .Where(x => x.ID == request.IDSanPham)
                     .Select(x => x.Ma)
                     .FirstOrDefaultAsync();
+                var lst = new List<ChiTietSanPhamRequest>();
+                // Lặp từng màu và size để tạo chi tiết
+                foreach (var idMau in request.IDMauSacs)
+                {
+                    foreach (var idSize in request.IDKichCos)
+                    {
+                        var mau = await _context.MauSacs.FirstOrDefaultAsync(x => x.ID == idMau);
+                        var size = await _context.KichCos.FirstOrDefaultAsync(x => x.ID == idSize);
 
+                        var maChiTiet = RemoveUnicode($"{maSanPham}{mau.Ten?.Trim().ToUpper()}{size.Ten?.Trim().ToUpper()}");
+
+                        var chiTiet = new ChiTietSanPham
+                        {
+                            ID = Guid.NewGuid(),
+                            IDSanPham = request.IDSanPham,
+                            IDMauSac = idMau,
+                            IDKichCo = idSize,
+                            SoLuong = 0,
+                            GiaBan = 0,
+                            NgayTao = DateTime.Now,
+                            IsDefault = false,
+                            TrangThai = 0, // luôn khởi tạo ở trạng thái không hoạt động
+                            MaSPChiTiet = maChiTiet
+                        };
+                        lst.Add(new ChiTietSanPhamRequest
+                        {
+                            IDChiTietSanPham = chiTiet.ID,
+                            IDMauSac = chiTiet.IDMauSac,
+                            IDKichCo = chiTiet.IDKichCo,
+                            TenKichCo = size.Ten,
+                            TenMauSac = mau.Ten,
+                            MaMau = mau.Ma,
+                            SoLuong = chiTiet.SoLuong,
+                            GiaBan = chiTiet.GiaBan,
+                            GiaGoc = chiTiet.GiaBan,
+                            trangThai = chiTiet.TrangThai                          
+                        });
+                        await _context.ChiTietSanPhams.AddAsync(chiTiet);
+                        _context.SaveChanges();
+                    }
+                }
+                // Trả về kết quả
                 return new ChiTietSanPhamUpdateRequest
                 {
                     IDSanPham = request.IDSanPham,
@@ -388,7 +394,6 @@ namespace AppAPI.Services
                         .Select(y => y.First())
                         .ToList(),
                     Location = 1,
-                    MauSacs = mauSacCanThemAnh,
                     Ma = maSanPham
                 };
             }
@@ -562,37 +567,7 @@ namespace AppAPI.Services
         {
             throw new NotImplementedException();
         }
-        public async Task<ChiTietSanPhamRequest?> CreateChiTietSanPhamFromSanPham(Guid idMauSac, Guid idKichCo, Guid? idSanPham = null)
-        {
-            try
-            {
-                // Lấy thông tin màu sắc đã có sẵn
-                var mauSac = await _context.MauSacs.FirstOrDefaultAsync(x => x.ID == idMauSac);
-                if (mauSac == null) return null;
 
-                // Lấy thông tin kích cỡ, nếu chưa có thì thêm
-                var kichCo = await _context.KichCos.FirstOrDefaultAsync(x => x.ID == idKichCo);
-                if (kichCo == null) return null;
-
-                var chiTiet = new ChiTietSanPhamRequest()
-                {
-                    IDChiTietSanPham = Guid.NewGuid(),
-                    IDMauSac = mauSac.ID,
-                    IDKichCo = kichCo.ID,
-                    MaMau = mauSac.Ma,  
-                    TenMauSac = mauSac.Ten,
-                    TenKichCo = kichCo.Ten,
-                    GiaBan = 0,
-                    SoLuong = 0
-                };
-
-                return chiTiet;
-            }
-            catch
-            {
-                return null;
-            }
-        }
         public async Task<bool> UpdateSoluongChiTietSanPham(Guid id, int soLuong)
         {
             try
@@ -926,11 +901,11 @@ namespace AppAPI.Services
                              .Select(a => a.ID)
                              .Distinct()
                              .ToList(),
-                        IDAnh = group
+                         IDAnh = group
                              .SelectMany(x => x.Anhs ?? new List<Anh>())
                              .Where(a => !string.IsNullOrWhiteSpace(a.DuongDan))
                              .Select(a => a.ID)
-                             .FirstOrDefault() 
+                             .FirstOrDefault()
                      })
                      .ToList();
 

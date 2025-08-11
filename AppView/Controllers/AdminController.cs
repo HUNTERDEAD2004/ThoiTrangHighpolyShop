@@ -752,11 +752,6 @@ namespace AppView.Controllers
         {
             try
             {
-                // test debug xem request.AnhDaiDien có null ko
-                if (string.IsNullOrEmpty(request.AnhDaiDien))
-                {
-                    return RedirectToAction("ProductManager");
-                }
                 var response = _httpClient.PutAsJsonAsync("SanPham/UpdateSanPham", request).Result;
                 if (response.IsSuccessStatusCode)
                 {
