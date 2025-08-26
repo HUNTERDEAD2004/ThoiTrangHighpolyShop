@@ -27,7 +27,7 @@ namespace AppAPI.Controllers
         }
 
         // GET: api/KhachHang
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<List<KhachHang>> GetAll()
         {
             return await _dbcontext.KhachHangs.ToListAsync();

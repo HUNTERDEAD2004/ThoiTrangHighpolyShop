@@ -567,23 +567,24 @@ namespace AppAPI.Services
         {
             throw new NotImplementedException();
         }
-
         public async Task<bool> UpdateSoluongChiTietSanPham(Guid id, int soLuong)
         {
             try
             {
-                var chiTietSanPham = await _context.ChiTietSanPhams.FirstAsync(x => x.ID == id);
+                var chiTietSanPham = await _context.ChiTietSanPhams
+                .Include(ct => ct.SanPham) // load sản phẩm cha
+                .FirstAsync(x => x.ID == id);
 
                 chiTietSanPham.SoLuong = soLuong;
 
-                // Nếu cả giá bán <= 0 thì ngừng hoạt động
-                if (soLuong <= 0)
+                // Chỉ hoạt động nếu SL > 0, Giá > 0, và sản phẩm cha đang hoạt động
+                if (soLuong > 0 && chiTietSanPham.GiaBan > 0 && chiTietSanPham.SanPham.TrangThai == 1)
                 {
-                    chiTietSanPham.TrangThai = 0;
+                    chiTietSanPham.TrangThai = 1;
                 }
                 else
                 {
-                    chiTietSanPham.TrangThai = 1;
+                    chiTietSanPham.TrangThai = 0;
                 }
 
                 _context.ChiTietSanPhams.Update(chiTietSanPham);
@@ -599,14 +600,23 @@ namespace AppAPI.Services
         {
             try
             {
-                var chiTietSanPham = await _context.ChiTietSanPhams.FirstOrDefaultAsync(x => x.ID == id);
+                var chiTietSanPham = await _context.ChiTietSanPhams
+                   .Include(ct => ct.SanPham) // load sản phẩm cha
+                   .FirstOrDefaultAsync(x => x.ID == id);
                 if (chiTietSanPham == null) return -1;
 
                 // Cập nhật giá gốc (được lưu vào trường GiaBan)
                 chiTietSanPham.GiaBan = giaGoc;
 
-                // Cập nhật trạng thái: nếu giá <= 0 thì Ngùng hoạt động, ngược lại thì Hoạt động
-                chiTietSanPham.TrangThai = (giaGoc <= 0) ? 0 : 1;
+                // Điều kiện hoạt động: Giá > 0, SL > 0, SP cha hoạt động
+                if (giaGoc > 0 && chiTietSanPham.SoLuong > 0 && chiTietSanPham.SanPham.TrangThai == 1)
+                {
+                    chiTietSanPham.TrangThai = 1; // Hoạt động
+                }
+                else
+                {
+                    chiTietSanPham.TrangThai = 0; // Ngừng hoạt động
+                }
 
                 _context.ChiTietSanPhams.Update(chiTietSanPham);
                 await _context.SaveChangesAsync();
@@ -635,65 +645,50 @@ namespace AppAPI.Services
                 return -1;
             }
         }
-        public async Task<bool> UpdateTrangThaiChiTietSanPham(Guid id)
+        public async Task<int> UpdateSoLuongGiaChung(UpdateSoLuongGiaRequest request)
         {
-            try
+            if (request.Ids == null || request.Ids.Count == 0)
+                return 0;
+
+            // Lấy tất cả chi tiết sản phẩm theo ID
+            var lstChiTiet = await _context.ChiTietSanPhams
+                .Where(x => request.Ids.Contains(x.ID))
+                .ToListAsync();
+
+            if (lstChiTiet.Count == 0)
+                return 0;
+
+            // Lấy ID sản phẩm cha từ chi tiết đầu tiên
+            var idSanPhamCha = lstChiTiet[0].IDSanPham;
+
+            // Lấy trạng thái sản phẩm cha (1: hoạt động, 0: không hoạt động)
+            var trangThaiCha = await _context.SanPhams
+                .Where(sp => sp.ID == idSanPhamCha)
+                .Select(sp => sp.TrangThai)
+                .FirstOrDefaultAsync();
+
+            bool isParentActive = trangThaiCha == 1;
+
+            foreach (var item in lstChiTiet)
             {
-                var chiTietSanPham = await _context.ChiTietSanPhams.FindAsync(id);
+                if (request.GiaGoc.HasValue)
+                    item.GiaBan = request.GiaGoc.Value;
 
-                if (chiTietSanPham == null)
+                if (request.SoLuong.HasValue)
+                    item.SoLuong = request.SoLuong.Value;
+
+                // Nếu cha không hoạt động → tất cả con đều tắt
+                if (!isParentActive)
                 {
-                    Console.WriteLine("Không tìm thấy chi tiết sản phẩm.");
-                    return false;
+                    item.TrangThai = 0;
+                    continue;
                 }
 
-                bool isHiding = chiTietSanPham.TrangThai == 1;
-                chiTietSanPham.TrangThai = isHiding ? 0 : 1;
-
-                if (isHiding && chiTietSanPham.IsDefault)
-                {
-                    chiTietSanPham.IsDefault = false;
-
-                    var bienTheKhac = await _context.ChiTietSanPhams
-                        .Where(x => x.IDSanPham == chiTietSanPham.IDSanPham
-                                 && x.ID != chiTietSanPham.ID
-                                 && x.TrangThai == 1
-                                 && x.GiaBan > 0
-                                 && x.SoLuong > 0)
-                        .OrderBy(x => x.GiaBan)
-                        .FirstOrDefaultAsync();
-
-                    if (bienTheKhac != null)
-                    {
-                        bienTheKhac.IsDefault = true;
-                        _context.ChiTietSanPhams.Update(bienTheKhac);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Không còn biến thể hợp lệ để gán mặc định.");
-                    }
-                }
-
-                if (!isHiding)
-                {
-                    var daCoMacDinh = await _context.ChiTietSanPhams
-                        .AnyAsync(x => x.IDSanPham == chiTietSanPham.IDSanPham && x.IsDefault && x.TrangThai == 1);
-
-                    if (!daCoMacDinh && chiTietSanPham.GiaBan > 0 && chiTietSanPham.SoLuong > 0)
-                    {
-                        chiTietSanPham.IsDefault = true;
-                    }
-                }
-
-                _context.ChiTietSanPhams.Update(chiTietSanPham);
-                await _context.SaveChangesAsync();
-                return true;
+                // Nếu cha hoạt động → con bật khi giá > 0 và còn hàng
+                item.TrangThai = (item.GiaBan > 0 && item.SoLuong > 0) ? 1 : 0;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Lỗi khi cập nhật trạng thái chi tiết sản phẩm: " + ex.Message);
-                return false;
-            }
+
+            return await _context.SaveChangesAsync();
         }
         public async Task<List<ChiTietSanPhamViewModelAdmin>> GetAllChiTietSanPhamAdmin(Guid idSanPham)
         {

@@ -11,6 +11,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Linq;
+using System.Text;
 
 namespace AppView.Controllers
 {
@@ -613,12 +614,14 @@ namespace AppView.Controllers
             }
         }
         [HttpPost]
-        public async Task<JsonResult> UpdateTrangThaiChiTietSanPham(Guid id)
+        public async Task<JsonResult> UpdateMultipleProductDetails([FromBody] UpdateSoLuongGiaRequest request)
         {
             try
             {
+                var content = new StringContent(JsonConvert.SerializeObject(request),Encoding.UTF8,"application/json");
+
                 var response = await _httpClient.PutAsync(
-                    $"SanPham/UpdateTrangThaiChiTietSanPham?id={id}", null);
+                    "SanPham/UpdateSoLuongGia", content);
 
                 return Json(new { TrangThai = response.IsSuccessStatusCode });
             }

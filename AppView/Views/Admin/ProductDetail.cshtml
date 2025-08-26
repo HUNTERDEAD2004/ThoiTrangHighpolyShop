@@ -83,6 +83,49 @@
     </div>
 </div>
 
+<!-- Modal Sửa Giá & SL -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Cập nhật giá & số lượng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Giá gốc mới</label>
+                        <input type="number" id="editGiaGoc" class="form-control" min="0">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Số lượng mới</label>
+                        <input type="number" id="editSoLuong" class="form-control" min="0">
+                    </div>
+                </div>
+
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;"><input type="checkbox" id="checkAll"></th>
+                            <th>Mã</th>
+                            <th>Tên màu</th>
+                            <th>Size</th>
+                            <th>SL hiện tại</th>
+                            <th>Giá gốc hiện tại</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalProductList"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <!-- ✅ sửa tên hàm cho đúng -->
+                <button type="button" class="btn btn-primary" onclick="updateMultipleProductDetails()">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="~/js/jquery-3.3.1.min.js"></script>
 <script>
     var pageIndex = 1;
@@ -124,7 +167,11 @@
                         ? `<span style="color:green">Hoạt động</span>`
                         : `<span style="color:red">Không hoạt động</span>`;
 
-                    let actionButtons = `<a href="/Admin/GenerateQRCode?id=${item.id}&ma=${item.ma}" class="btn btn-secondary">Tạo mã QR</a>`;
+                    let actionButtons = "";
+
+                    // chức năng tạo mã qr sẽ nâng cấp sau không được xóa
+                    // let actionButtons = `<a href="/Admin/GenerateQRCode?id=${item.id}&ma=${item.ma}" class="btn btn-secondary">Tạo mã QR</a>`;
+
                     if (item.trangThai == 0) {
                             const canUndo = item.giaGoc > 0 && item.soLuong > 0;
                             const titleUndo = !canUndo
@@ -135,6 +182,9 @@
                     else {
                         actionButtons += `<button type="button" class="btn btn-danger" onclick="xoa('${item.id}')">Xóa</button>`;
                     }
+
+                    // luôn hiển thị nút sửa
+                    actionButtons += `<button type="button" class="btn btn-warning" onclick="openEditModal()">Sửa</button>`;
 
                     $("#list_productdetails").append(`
                         <tr>
@@ -286,6 +336,78 @@
             $("#list_productdetails").html(`<tr><td colspan="11" class="text-center">Đang tải...</td></tr>`);
         }
     }
+
+    function openEditModal() {
+        $("#editGiaGoc").val("");
+        $("#editSoLuong").val("");
+        $("#modalProductList").html(`<tr><td colspan="6" class="text-center">Đang tải...</td></tr>`);
+
+        // Lấy danh sách chi tiết sản phẩm (không phân trang, để chọn nhiều)
+        $.get('/Admin/ShowProductDetail', { page: 1, pageSize: 999, id: idSanPham }, function (res) {
+            if (res.data && res.data.length > 0) {
+                $("#modalProductList").empty();
+                $.each(res.data, function (i, item) {
+                    $("#modalProductList").append(`
+                        <tr>
+                            <td><input type="checkbox" class="chkProduct" value="${item.id}"></td>
+                            <td>${item.ma}</td>
+                            <td>${item.tenMauSac}</td>
+                            <td>${item.tenKichCo}</td>
+                            <td>${item.soLuong}</td>
+                            <td>${item.giaGoc}</td>
+                        </tr>
+                    `);
+                });
+            } else {
+                $("#modalProductList").html(`<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>`);
+            }
+        });
+
+        $("#editModal").modal('show');
+    }
+
+    // Chọn tất cả checkbox
+    $(document).on("change", "#checkAll", function () {
+        $(".chkProduct").prop('checked', $(this).prop('checked'));
+    });
+
+    function updateMultipleProductDetails() {
+        let ids = $(".chkProduct:checked").map(function () {
+            return $(this).val();
+        }).get();
+
+        let giaGoc = $("#editGiaGoc").val();
+        let soLuong = $("#editSoLuong").val();
+
+        if (ids.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 sản phẩm.");
+            return;
+        }
+
+        $.ajax({
+            url: '/Admin/UpdateMultipleProductDetails',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                Ids: ids,          // ✅ đổi đúng PascalCase
+                GiaGoc: giaGoc || null,
+                SoLuong: soLuong || null
+            }),
+            success: function (res) {
+                if (res.trangThai) {
+                    alert("Cập nhật thành công.");
+                    $("#editModal").modal('hide');
+                    ReloadPagination();
+                } else {
+                    alert("Cập nhật thất bại.");
+                }
+            },
+            error: function () {
+                alert("Có lỗi xảy ra khi cập nhật.");
+            }
+        });
+    }
+
 </script>
 
 

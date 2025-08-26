@@ -38,7 +38,7 @@ namespace AppAPI.IServices
         Task<bool> DeleteChiTietSanPham(Guid id);
         Task<bool> UpdateSoluongChiTietSanPham(Guid id, int soLuong);
         Task<decimal> UpdateGiaGocChiTietSanPham(Guid id, decimal giaGoc);
-        Task<bool> UpdateTrangThaiChiTietSanPham(Guid id);
+        Task<int> UpdateSoLuongGiaChung(UpdateSoLuongGiaRequest request);
         Task<bool> UpdateChiTietSanPham(ChiTietSanPham chiTietSanPham);
         Task<bool> UndoChiTietSanPham(Guid id);
         List<UploadAnhViewModel> GetAllAnhSanPhamChiTiet(Guid idSanPham);

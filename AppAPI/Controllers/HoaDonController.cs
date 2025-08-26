@@ -41,6 +41,11 @@ namespace AppAPI.Controllers
         {
             return _iHoaDonService.CheckVoucher(ten, tongtien);
         }
+        [HttpGet("GetAllHoaDonTaiQuay")]
+        public List<Voucher> GetAllHoaDonTaiQuay(decimal tongTien)
+        {
+            return _iHoaDonService.GetAvailableVouchers(tongTien);
+        }
         [HttpGet("LichSuGiaoDich")]
         public List<HoaDon> LichSuGiaoDich(Guid idNguoidung)
         {
@@ -66,10 +71,11 @@ namespace AppAPI.Controllers
         {
             return _iHoaDonService.CreateHoaDon(hoaDon.ChiTietHoaDons, hoaDon);
         }
-        [HttpPost("Offline/{idnhanvien}")]
-        public bool CreateHoaDonOffline(Guid idnhanvien)
+        [HttpPost("Offline/{idNhanVien}")]
+        public IActionResult CreateHoaDonOffline(Guid idNhanVien, [FromBody] HoaDonOfflineRequest req)
         {
-            return _iHoaDonService.CreateHoaDonOffline(idnhanvien);
+            var result = _iHoaDonService.CreateHoaDonOffline(idNhanVien, req.IdKhachHang, req.IdPhuongThucTT);
+            return Ok(new { success = result });
         }
         [HttpGet("GetAllHDCho")]
         public IActionResult GetAllHDCho()

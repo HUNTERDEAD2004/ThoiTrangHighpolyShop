@@ -21,28 +21,27 @@ namespace AppAPI.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var hdctList = await _context.ChiTietHoaDons
-                .Where(c => c.IDHoaDon == request.IdHoaDon && c.IDCTSP == request.IdChiTietSanPham)
-                .ToListAsync();
+                // Lấy hóa đơn để biết IDKhachHang
+                var hoaDon = await _context.HoaDons
+                    .FirstOrDefaultAsync(h => h.ID == request.IdHoaDon);
+                if (hoaDon == null) return false;
 
-                var hdct = hdctList.FirstOrDefault();
+                // Tìm chi tiết hóa đơn đã tồn tại
+                var hdct = await _context.ChiTietHoaDons
+                    .FirstOrDefaultAsync(c => c.IDHoaDon == request.IdHoaDon
+                                           && c.IDCTSP == request.IdChiTietSanPham);
 
+                // Check tồn kho
                 var ctsp = await _context.ChiTietSanPhams.FindAsync(request.IdChiTietSanPham);
                 if (ctsp == null || ctsp.SoLuong < request.SoLuong)
                     return false;
 
                 if (hdct == null)
                 {
-                    var danhgia = new DanhGia
-                    {
-                        ID = (Guid)request.Id,
-                        IDKhachHang = Guid.Parse("e106c66d-f18d-4609-8a38-08e09d68e78c"),
-                        TrangThai = 0
-                    };
-
+                    // Tạo mới ChiTietHoaDon
                     var newHDCT = new ChiTietHoaDon
                     {
-                        ID = danhgia.ID,
+                        ID = Guid.NewGuid(),
                         IDHoaDon = request.IdHoaDon,
                         IDCTSP = request.IdChiTietSanPham,
                         DonGia = request.DonGia,
@@ -50,15 +49,25 @@ namespace AppAPI.Services
                         TrangThai = 0,
                     };
 
-                    await _context.AddRangeAsync(danhgia, newHDCT);
-                    await _context.SaveChangesAsync();
+                    // Tạo mới DanhGia, gắn FK về HDCT + lấy IDKhachHang từ HoaDon
+                    var danhgia = new DanhGia
+                    {
+                        ID = Guid.NewGuid(),
+                        IDChiTietHoaDon = newHDCT.ID,
+                        IDKhachHang = hoaDon.IDKhachHang, // Lấy từ hóa đơn
+                        TrangThai = 0
+                    };
+
+                    await _context.AddRangeAsync(newHDCT, danhgia);
                 }
                 else
                 {
+                    // Nếu đã có thì chỉ cộng số lượng
                     hdct.SoLuong += request.SoLuong;
                     _context.ChiTietHoaDons.Update(hdct);
                 }
 
+                // Trừ kho
                 ctsp.SoLuong -= request.SoLuong;
                 _context.ChiTietSanPhams.Update(ctsp);
 
@@ -77,22 +86,37 @@ namespace AppAPI.Services
         {
             try
             {
-                var exist = _context.ChiTietHoaDons.Find(id);
+                var exist = await _context.ChiTietHoaDons.FindAsync(id);
                 if (exist == null) throw new Exception($"Không tìm thấy CTHD: {id}");
-                //Tăng lại số lượng cho sp
+
+                // Tăng lại số lượng cho sản phẩm
                 var ctsp = await _context.ChiTietSanPhams.FindAsync(exist.IDCTSP);
-                ctsp.SoLuong += exist.SoLuong;
-                _context.ChiTietSanPhams.Update(ctsp);
-                await _context.SaveChangesAsync();
-                //Xóa đánh giá 
-                var danhgia = await _context.DanhGias.Where(c => c.ID == id).FirstOrDefaultAsync();
-                _context.DanhGias.Remove(danhgia);
-                await _context.SaveChangesAsync();
+                if (ctsp != null)
+                {
+                    ctsp.SoLuong += exist.SoLuong;
+                    _context.ChiTietSanPhams.Update(ctsp);
+                }
+
+                // Xoá đánh giá (nếu có)
+                var danhgia = await _context.DanhGias
+                    .FirstOrDefaultAsync(c => c.IDChiTietHoaDon == id);
+
+                if (danhgia != null)
+                {
+                    _context.DanhGias.Remove(danhgia);
+                }
+
+                // Xoá chi tiết hoá đơn
                 _context.ChiTietHoaDons.Remove(exist);
+
+                // Chỉ SaveChanges 1 lần
                 await _context.SaveChangesAsync();
+
                 return true;
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
+                // Có thể log ex.Message để debug
                 return false;
             }
         }

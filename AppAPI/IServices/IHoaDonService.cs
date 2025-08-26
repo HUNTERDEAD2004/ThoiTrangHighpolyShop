@@ -13,6 +13,7 @@ namespace AppAPI.IServices
         public List<ChiTietHoaDon> GetAllChiTietHoaDon(Guid idHoaDon);
         public bool UpdateTrangThaiGiaoHang(Guid idHoaDon, int trangThai,Guid? idNhanVien);
         public int CheckVoucher(string ten, int tongtien);
+        public List<Voucher> GetAvailableVouchers(decimal tongTien);
         public List<HoaDon> TimKiemVaLocHoaDon(string ten,int? loc);
         public List<HoaDon> LichSuGiaoDich(Guid idNguoiDung);
         //Nhinh sửa
@@ -21,7 +22,7 @@ namespace AppAPI.IServices
         public bool HoanHangThanhCong(Guid idhd, Guid idnv);
         public bool HuyHD(Guid idhd, Guid idnv);
         Task<bool> CopyHD(Guid idhd, Guid idnv);
-        public bool CreateHoaDonOffline(Guid idnhanvien);
+        public bool CreateHoaDonOffline(Guid idnhanvien, Guid idKhachHang, Guid idPhuongThucTT);
         public bool DeleteHoaDon(Guid id);
         public bool UpdateHoaDon(HoaDonThanhToanRequest hoaDon);
         public bool UpdateGhiChuHD(Guid idhd,Guid idnv, string ghichu);

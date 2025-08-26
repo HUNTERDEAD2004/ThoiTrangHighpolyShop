@@ -64,33 +64,71 @@ namespace AppAPI.Services
         public int CheckVoucher(string ten, int tongtien)
         {
             var voucher = reposVoucher.GetAll().FirstOrDefault(p => p.Ten == ten);
-            if (voucher != null)
-            {
-                if (tongtien >= voucher.GiaTriToiThieu && tongtien <= voucher.GiaTriToiDa
-                    && DateTime.Compare(voucher.NgayApDung, DateTime.Now) <= 0
-                    && DateTime.Compare(DateTime.Now, voucher.NgayKetThuc) <= 0
-                    && voucher.SoLuong > 0)
-                {
-                    if (voucher.HinhThucGiamGia == 1)
-                    {
-                        tongtien -= voucher.GiaTri;
-                        return tongtien;
-                    }
-                    else
-                    {
-                        tongtien = tongtien - (tongtien * voucher.GiaTri / 100);
-                        return tongtien;
-                    }
-                }
-                else
-                {
-                    return tongtien;
-                }
-            }
-            else
-            {
+
+            if (voucher == null) return tongtien;
+
+            // kiểm tra trạng thái và điều kiện
+            if (voucher.TrangThai != 1 || voucher.SoLuong <= 0)
                 return tongtien;
+
+            if (tongtien < voucher.GiaTriToiThieu)
+                return tongtien;
+
+            if (DateTime.Now < voucher.NgayApDung || DateTime.Now > voucher.NgayKetThuc)
+                return tongtien;
+
+            // tính giảm
+            int giam = 0;
+            if (voucher.HinhThucGiamGia == 0) // giảm thẳng
+            {
+                giam = voucher.GiaTri;
             }
+            else // giảm %
+            {
+                giam = tongtien * voucher.GiaTri / 100;
+                if (giam > voucher.GiaTriToiDa) // không vượt quá mức giảm tối đa
+                    giam = (int)voucher.GiaTriToiDa;
+            }
+
+            int tongTienSauGiam = tongtien - giam;
+
+            // trừ số lượng (nếu bạn muốn check xong là tính luôn)
+            voucher.SoLuong -= 1;
+            reposVoucher.Update(voucher);
+
+            return tongTienSauGiam;
+        }
+        
+        //check voucher hop le
+        public List<Voucher> GetAvailableVouchers(decimal tongTien)
+        {
+            var now = DateTime.Now;
+
+            var vouchers = reposVoucher.GetAll()
+                .Where(v =>
+                    v.TrangThai == 1 &&                  // đang hoạt động
+                    v.SoLuong > 0 &&                     // còn số lượng
+                    now >= v.NgayApDung &&               // trong thời gian áp dụng
+                    now <= v.NgayKetThuc &&
+                    tongTien >= v.GiaTriToiThieu         // thỏa điều kiện tối thiểu
+                )
+                .AsEnumerable() // chuyển sang LINQ to Objects để tính toán
+                .OrderByDescending(v =>
+                {
+                    if (v.HinhThucGiamGia == 0) // giảm thẳng
+                    {
+                        return v.GiaTri;
+                    }
+                    else // giảm %
+                    {
+                        var giam = tongTien * v.GiaTri / 100;
+                        if (giam > v.GiaTriToiDa) giam = v.GiaTriToiDa;
+                        return giam;
+                    }
+                })
+                .ToList();
+
+            return vouchers;
         }
 
         //Thanh toan online
@@ -257,8 +295,6 @@ namespace AppAPI.Services
             }
         }
 
-
-
         private void HandleTichTieuDiem(HoaDonViewModel hoaDon, HoaDon newHoaDon, int subtotal, DonMuaSuccessViewModel result)
         {
             var quyDoi = reposQuyDoiDiem.GetAll().FirstOrDefault(p => p.TrangThai > 0);
@@ -310,52 +346,46 @@ namespace AppAPI.Services
         }
 
         //Bán hàng tại quầy
-        public bool CreateHoaDonOffline(Guid idnhanvien)
+        public bool CreateHoaDonOffline(Guid idNhanVien, Guid idKhachHang, Guid idPhuongThucTT)
         {
             try
             {
-                HoaDon hoaDon1 = new HoaDon();
-                hoaDon1.ID = Guid.NewGuid();
-                hoaDon1.IDNhanVien = idnhanvien;
-                hoaDon1.NgayTao = DateTime.Now;
-                hoaDon1.TrangThaiGiaoHang = 1;
-                hoaDon1.LoaiHoaDon = 1;
-                hoaDon1.MaHoaDon = "HD" + (hoaDon1.ID).ToString().Substring(0, 8).ToUpper();
-                hoaDon1.TienShip = 0; // Mặc định là 0 vì bán tại quầy không có phí ship
-                // THÊM DỮ LIỆU BẮT BUỘC
-                hoaDon1.IDKhachHang = Guid.Parse("e106c66d-f18d-4609-8a38-08e09d68e78c"); // Khách hàng mặc định là khách lẻ
-                hoaDon1.IDPhuongThucTT = Guid.Parse("9b6289bf-5e83-419a-94d5-926abb264961"); // Phương thức thanh toán mặc định là tiền mặt
-                                                                                             // Tạo lịch sử hóa đơn
+                var hoaDon = new HoaDon
+                {
+                    ID = Guid.NewGuid(),
+                    IDNhanVien = idNhanVien,
+                    NgayTao = DateTime.Now,
+                    TrangThaiGiaoHang = 1, // Hóa đơn chờ
+                    LoaiHoaDon = 1,        // Bán tại quầy
+                    MaHoaDon = "HD" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
+                    TienShip = 0,
+                    IDKhachHang = idKhachHang,
+                    IDPhuongThucTT = idPhuongThucTT
+                };
+
                 var lichSu = new LichSuHoaDon
                 {
                     ID = Guid.NewGuid(),
                     NgayLap = DateTime.Now,
-                    IDNhanvien = hoaDon1.IDNhanVien,
-                    GhiChu = $"Tạo đơn bán tại quầy {hoaDon1.MaHoaDon}",
-                    TrangThai = hoaDon1.TrangThaiGiaoHang,
-                    HoaDons = new List<HoaDon> { hoaDon1 }
+                    IDNhanvien = idNhanVien,
+                    GhiChu = $"Tạo đơn bán tại quầy {hoaDon.MaHoaDon}",
+                    TrangThai = hoaDon.TrangThaiGiaoHang,
+                    HoaDons = new List<HoaDon> { hoaDon }
                 };
 
-                // Gán ID lịch sử vào hóa đơn
-                hoaDon1.IDLichSuHD = lichSu.ID;
+                hoaDon.IDLichSuHD = lichSu.ID;
 
-                // Add cả hai
                 context.LichSuHoaDons.Add(lichSu);
-                context.SaveChangesAsync();
-                if (reposHoaDon.Add(hoaDon1))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                context.SaveChanges();
+
+                return true;
             }
             catch
             {
                 return false;
             }
         }
+
         public bool DeleteHoaDon(Guid id)
         {
             try
@@ -409,10 +439,12 @@ namespace AppAPI.Services
         {
             return reposChiTietHoaDon.GetAll().Where(x => x.IDHoaDon == idHoaDon).ToList();
         }
+
         public List<HoaDon> GetAllHDCho()
         {
             return context.HoaDons.Where(c => c.TrangThaiGiaoHang == 1 || c.TrangThaiGiaoHang == 0).OrderByDescending(c => c.TrangThaiGiaoHang).ToList();
         }
+
         //Nhinh
         public List<HoaDonQL> GetAllHDQly()
         {
@@ -440,10 +472,12 @@ namespace AppAPI.Services
 
             return result;
         }
+
         public List<HoaDon> GetAllHoaDon()
         {
             return reposHoaDon.GetAll();
         }
+
         public ChiTietHoaDonQL GetCTHDByID(Guid idhd)
         {
             try
@@ -529,6 +563,7 @@ namespace AppAPI.Services
                 throw new Exception(ex.Message);
             }
         }
+
         public HoaDonViewModelBanHang GetHDBanHang(Guid id)
         {
             List<HoaDonChiTietViewModel> lsthdct = (from cthd in context.ChiTietHoaDons
@@ -572,14 +607,17 @@ namespace AppAPI.Services
                           }).FirstOrDefault();
             return result;
         }
+
         public HoaDon GetHoaDonById(Guid idhd)
         {
             return reposHoaDon.GetAll().FirstOrDefault(c => c.ID == idhd);
         }
+
         public LichSuTichDiem GetLichSuGiaoDichByIdHD(Guid idHoaDon)
         {
             return reposLichSuTichDiem.GetAll().FirstOrDefault(c => c.IDHoaDon == idHoaDon);
         }
+
         public bool HuyHD(Guid idhd, Guid idnv)
         {
             try
@@ -686,6 +724,7 @@ namespace AppAPI.Services
                 return false;
             }
         }
+
         //Copy
         public async Task<bool> CopyHD(Guid idhd, Guid idnv)
         {
@@ -767,6 +806,7 @@ namespace AppAPI.Services
                 return false;
             }
         }
+
         public List<HoaDon> LichSuGiaoDich(string makhachhang)
         {
             var idhoadon = reposLichSuTichDiem.GetAll().Where(p => p.MaKhachHang == makhachhang).ToList();
@@ -793,6 +833,7 @@ namespace AppAPI.Services
             }
             return timkiem;
         }
+
         public bool UpdateGhiChuHD(Guid idhd, Guid idnv, string ghichu)
         {
             try
@@ -816,6 +857,7 @@ namespace AppAPI.Services
                 return false;
             }
         }
+
         // Check khách hàng đã dùng voucher này chưa
         public bool CheckCusUseVoucher(Guid idkh, Guid idvoucher)
         {
@@ -830,6 +872,7 @@ namespace AppAPI.Services
             }
             return (hdkh.Any(c => c.IDVoucher == idvoucher) ? true : false);
         }
+
         public bool UpdateHoaDon(HoaDonThanhToanRequest hoaDon)
         {
             var update = reposHoaDon.GetAll().FirstOrDefault(p => p.ID == hoaDon.Id);
@@ -935,6 +978,7 @@ namespace AppAPI.Services
             update.IDVoucher = hoaDon.IdVoucher == Guid.Empty ? null : hoaDon.IdVoucher;
             return reposHoaDon.Update(update);
         }
+
         public bool UpdateTrangThaiGiaoHang(Guid idHoaDon, int trangThai, Guid? idNhanVien)
         {
             var update = reposHoaDon.GetAll().FirstOrDefault(p => p.ID == idHoaDon);
@@ -977,6 +1021,7 @@ namespace AppAPI.Services
                 return false;
             }
         }
+
         //Giao thành công
         public bool ThanhCong(Guid idhd, Guid idnv) // Chỉ cho đơn online
         {
@@ -1010,6 +1055,7 @@ namespace AppAPI.Services
                 throw new Exception(ex.Message);
             }
         }
+
         // Hoàn hàng
         public bool HoanHang(Guid idhd, Guid idnv)
         {
@@ -1058,6 +1104,7 @@ namespace AppAPI.Services
                 throw new Exception(ex.Message);
             }
         }
+
         // Hoàn hàng thành công
         public bool HoanHangThanhCong(Guid idhd, Guid idnv)
         {
@@ -1134,9 +1181,89 @@ namespace AppAPI.Services
                 throw new Exception(ex.Message);
             }
         }
+
         public List<HoaDon> LichSuGiaoDich(Guid idNguoiDung)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<ChiTietHoaDon?> AddSanPhamVaoHoaDon(Guid hoaDonId, Guid chiTietSanPhamId, int soLuong)
+        {
+            try
+            {
+                // 1. Kiểm tra hóa đơn
+                var hoaDon = await context.HoaDons
+                    .Include(x => x.ChiTietHoaDons)
+                    .FirstOrDefaultAsync(x => x.ID == hoaDonId);
+
+                if (hoaDon == null)
+                    throw new Exception("Không tìm thấy hóa đơn");
+
+                // 2. Kiểm tra chi tiết sản phẩm
+                var ctsp = await context.ChiTietSanPhams
+                    .FirstOrDefaultAsync(x => x.ID == chiTietSanPhamId);
+
+                if (ctsp == null)
+                    throw new Exception("Không tìm thấy chi tiết sản phẩm");
+
+                // 3. Tìm trong hóa đơn xem đã có sản phẩm này chưa
+                var chiTietHD = hoaDon.ChiTietHoaDons?
+                    .FirstOrDefault(x => x.IDCTSP == chiTietSanPhamId);
+
+                if (chiTietHD != null)
+                {
+                    // Nếu đã có thì cộng dồn số lượng
+                    chiTietHD.SoLuong += soLuong;
+                    chiTietHD.DonGia = ctsp.GiaBan; // cập nhật giá mới nhất
+                }
+                else
+                {
+                    // Nếu chưa có thì thêm mới
+                    chiTietHD = new ChiTietHoaDon
+                    {
+                        ID = Guid.NewGuid(),
+                        IDHoaDon = hoaDonId,
+                        IDCTSP = chiTietSanPhamId,
+                        SoLuong = soLuong,
+                        DonGia = ctsp.GiaBan,
+                        TrangThai = 1 // 1 = bình thường (tùy bạn quy định)
+                    };
+
+                    await context.ChiTietHoaDons.AddAsync(chiTietHD);
+                }
+
+                // 4. Cập nhật tổng tiền hóa đơn
+                hoaDon.TongTien = await context.ChiTietHoaDons
+                    .Where(x => x.IDHoaDon == hoaDonId)
+                    .SumAsync(x => x.DonGia * x.SoLuong);
+
+                await context.SaveChangesAsync();
+                return chiTietHD;
+            }
+            catch (Exception ex)
+            {
+                // log lỗi nếu cần
+                return null;
+            }
+        }
+
+        public async Task<bool> UpdateDiaChiHoaDon(Guid hoaDonId, Guid diaChiId)
+        {
+            var hoaDon = await context.HoaDons.FindAsync(hoaDonId);
+            if (hoaDon == null) return false;
+
+            var diaChi = await context.DiaChis.FindAsync(diaChiId);
+            if (diaChi == null) return false;
+
+            // Ghép địa chỉ thành string
+            var fullDiaChi = $"{diaChi.DiaChiChiTiet}, {diaChi.Xa}, {diaChi.Quan}, {diaChi.Huyen}, {diaChi.Tinh}";
+
+            hoaDon.DiaChi = fullDiaChi;
+            hoaDon.TenNguoiNhan = hoaDon.KhachHang?.Ten; // tuỳ bạn muốn lấy thêm
+            hoaDon.SDT = hoaDon.KhachHang?.SDT;
+
+            await context.SaveChangesAsync();
+            return true;
         }
     }
 }

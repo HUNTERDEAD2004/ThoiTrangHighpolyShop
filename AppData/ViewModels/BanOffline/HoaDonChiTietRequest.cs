@@ -11,6 +11,7 @@ namespace AppData.ViewModels.BanOffline
         public Guid? Id { get; set; }    
         public Guid IdHoaDon { get; set; }
         public Guid IdChiTietSanPham { get; set; }
+        public Guid IDKhachHang { get; set; } // Bắt buộc có
         public int SoLuong { get; set; }
         public decimal DonGia { get; set; }  // Bắt buộc có
         public int TrangThai { get; set; }

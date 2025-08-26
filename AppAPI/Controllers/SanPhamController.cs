@@ -142,11 +142,14 @@ namespace AppAPI.Controllers
 
             return Ok(result); // Trả về decimal trực tiếp
         }
-        [HttpGet("UpdateTrangThaiChiTietSanPham")]
-        public bool UpdateTrangThaiChiTietSanPham(string id)
+        [HttpPut("UpdateSoLuongGia")]
+        public async Task<IActionResult> UpdateSoLuongGia([FromBody] UpdateSoLuongGiaRequest request)
         {
-            var response = _sanPhamServices.UpdateTrangThaiChiTietSanPham(new Guid(id)).Result;
-            return response;
+            if (request == null || request.Ids == null || request.Ids.Count == 0)
+                return BadRequest("Request null hoặc không có dữ liệu");
+
+            var result = await _sanPhamServices.UpdateSoLuongGiaChung(request);
+            return Ok(result);
         }
         [HttpGet("GetAllChiTietSanPham")]
         public async Task<IActionResult> GetAllChiTietSanPham()

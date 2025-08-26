@@ -16,6 +16,5 @@ namespace AppData.ViewModels.BanOffline
         public Guid IdLsp { get; set; }
         public decimal? GiaBan { get; set; }
         public decimal? GiaGoc { get; set; }
-
     }
 }

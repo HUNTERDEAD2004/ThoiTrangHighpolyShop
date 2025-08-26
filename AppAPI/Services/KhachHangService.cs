@@ -86,8 +86,6 @@ namespace AppAPI.Services
             return khach;
         }
 
-
-
         private async Task SendAccountInfoEmail(string email, string ten, string maKH, string password)
         {
             string subject = "🎉 Chào mừng bạn đến với ThoiTrangHighpolyShop!";
@@ -216,8 +214,7 @@ namespace AppAPI.Services
 
             await _mailService.SendEmailAsync(email, subject, body);
         }
-
-
+          
         private string GenerateRandomPassword(int length = 8)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -268,9 +265,11 @@ namespace AppAPI.Services
         public async Task<List<KhachHangViewModel>> GetAll()
         {
             var model = await (from kh in _dbContext.KhachHangs
-                               join dc in _dbContext.DiaChis on kh.IDKhachHang equals dc.IDKhachHang
-                               where dc.IsDefault == true
-                               orderby kh.MaKhachHang descending 
+                               join dc in _dbContext.DiaChis
+                                   .Where(x => x.IsDefault == true)
+                                   on kh.IDKhachHang equals dc.IDKhachHang into gj
+                               from dc in gj.DefaultIfEmpty() // left join
+                               orderby kh.MaKhachHang descending
                                select new KhachHangViewModel
                                {
                                    Id = kh.IDKhachHang,
@@ -278,20 +277,25 @@ namespace AppAPI.Services
                                    Ten = kh.Ten,
                                    Email = kh.Email,
                                    SDT = kh.SDT,
-                                   NgaySinh = kh.NgaySinh.HasValue ? kh.NgaySinh.Value.ToString("yyyy-MM-dd") : null,
+                                   NgaySinh = kh.NgaySinh.HasValue
+                                        ? kh.NgaySinh.Value.ToString("yyyy-MM-dd")
+                                        : null,
                                    GioiTinh = kh.GioiTinh,
                                    TrangThai = kh.TrangThai,
                                    DiemTich = kh.DiemTich,
-                                   Xa = dc.Xa,
-                                   Quan = dc.Quan,
-                                   Huyen = dc.Huyen,
-                                   Tinh = dc.Tinh,
-                                   DiaChiChiTiet = dc.DiaChiChiTiet,
-                                   DiaChi = $"{dc.DiaChiChiTiet}, {dc.Xa}, {dc.Quan}, {dc.Huyen}, {dc.Tinh}"
+                                   Xa = dc != null ? dc.Xa : null,
+                                   Quan = dc != null ? dc.Quan : null,
+                                   Huyen = dc != null ? dc.Huyen : null,
+                                   Tinh = dc != null ? dc.Tinh : null,
+                                   DiaChiChiTiet = dc != null ? dc.DiaChiChiTiet : null,
+                                   DiaChi = dc != null
+                                        ? $"{dc.DiaChiChiTiet}, {dc.Xa}, {dc.Quan}, {dc.Huyen}, {dc.Tinh}"
+                                        : null
                                }).ToListAsync();
 
             return model;
         }
+
 
         public async Task<List<HoaDon>> GetAllHDKH(Guid idkh)
         {
@@ -420,11 +424,6 @@ namespace AppAPI.Services
 
             return query.ToList();
         }
-
-
-
- 
-
      
     }
 }
