@@ -1,26 +1,47 @@
 ﻿@model AppData.ViewModels.VoucherView
 
 @{
-    ViewData["Title"] = "Chi tiết mã giảm giá";
+    ViewData["Title"] = "CHI TIẾT MÃ GIẢM GIÁ";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
 }
 
+<style>
+    /* Biến toàn bộ text thành UPPERCASE */
+    body,
+    .form-label,
+    .form-control::placeholder,
+    .btn,
+    .badge,
+    .page-link,
+    h1, h2, h3, h4, h5, h6,
+    label,
+    th, td,
+    .section-title,
+    .card-header,
+    .form-check-label,
+    small,
+    .alert {
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px;
+    }
+</style>
+
 <div class="container mt-4">
-    <h3 class="text-center text-uppercase mb-4 text-primary">Chi tiết mã giảm giá</h3>
+    <h3 class="text-center mb-4 text-primary">CHI TIẾT MÃ GIẢM GIÁ</h3>
 
     <div class="row g-3">
         <div class="col-md-6">
-            <label class="form-label text-dark">Mã giảm giá</label>
+            <label class="form-label text-dark">MÃ GIẢM GIÁ</label>
             <input asp-for="Ten" class="form-control" readonly />
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-dark">Mô tả</label>
+            <label class="form-label text-dark">MÔ TẢ</label>
             <input asp-for="MoTa" class="form-control" readonly />
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-dark">Giá trị giảm</label>
+            <label class="form-label text-dark">GIÁ TRỊ GIẢM</label>
             <div class="input-group">
                 <input asp-for="GiaTri" class="form-control" readonly />
                 <div class="input-group-text">
@@ -37,32 +58,32 @@
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-dark">Số lượng</label>
+            <label class="form-label text-dark">SỐ LƯỢNG</label>
             <input asp-for="SoLuong" class="form-control" readonly />
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-dark">Đơn hàng tối thiểu</label>
+            <label class="form-label text-dark">ĐƠN HÀNG TỐI THIỂU</label>
             <input asp-for="GiaTriToiThieu" class="form-control" readonly />
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-dark">Giảm tối đa</label>
+            <label class="form-label text-dark">GIẢM TỐI ĐA</label>
             <input asp-for="GiaTriToiDa" class="form-control" readonly />
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-dark">Ngày bắt đầu</label>
+            <label class="form-label text-dark">NGÀY BẮT ĐẦU</label>
             <input value="@Model.NgayApDung.ToString("yyyy-MM-ddTHH:mm")" type="datetime-local" class="form-control" readonly />
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-dark">Ngày kết thúc</label>
+            <label class="form-label text-dark">NGÀY KẾT THÚC</label>
             <input value="@Model.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm")" type="datetime-local" class="form-control" readonly />
         </div>
     </div>
 
     <div class="mt-4 d-flex justify-content-end">
-        <a asp-action="GetAllVoucher" class="btn btn-secondary">Quay lại</a>
+        <a asp-action="GetAllVoucher" class="btn btn-secondary">QUAY LẠI</a>
     </div>
 </div>

@@ -20,6 +20,7 @@ namespace AppData.Configurations
             builder.Property(x => x.SoLuong).HasColumnType("int");
             builder.Property(x => x.MoTa).HasColumnType("nvarchar(50)");
             builder.Property(x => x.TrangThai).HasColumnType("int");
+            builder.Property(x => x.IsPublic).HasColumnType("bit");
         }
     }
 }

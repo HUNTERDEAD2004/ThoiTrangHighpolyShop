@@ -73,3 +73,6 @@ artifacts/
 /.gitignore
 /.gitignore
 /.gitignore
+/AppData/Models/AssignmentDBContext.cs
+/DATN.rar
+/DuAnTotNghiep.sln
