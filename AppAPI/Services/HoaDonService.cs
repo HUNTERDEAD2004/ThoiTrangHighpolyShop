@@ -281,8 +281,8 @@ namespace AppAPI.Services
                 DiaChi = diaChi,
                 TienShip = vm.TienShip,
                 TongTien = vm.TongTien,
-                GhiChu = vm.GhiChu ?? "",
-                TrangThaiGiaoHang = 2,
+                GhiChu = vm.GhiChu ?? "",               
+                TrangThaiGiaoHang = 2 ,
                 LoaiHoaDon = 0
             };
         }
@@ -1186,7 +1186,7 @@ namespace AppAPI.Services
             var query = context.HoaDons.AsQueryable();
 
             // lọc trạng thái
-            var trangThaiHienThi = new List<int> { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+            var trangThaiHienThi = new List<int> { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,12 };
             query = query.Where(h => trangThaiHienThi.Contains(h.TrangThaiGiaoHang));
 
             if (!string.IsNullOrEmpty(maHoaDon))
@@ -1222,23 +1222,7 @@ namespace AppAPI.Services
 
 
 
-        private static string GetTrangThaiText(int trangThai)
-        {
-            return trangThai switch
-            {
-                1 => "Đơn nháp",
-                2 => "Chờ xác nhận",
-                3 => "Đang giao hàng",
-                4 => "Đang hoàn hàng",
-                5 => "Hoàn hàng thành công",
-                6 => "Giao hàng thành công",
-                7 => "Đơn hủy",
-                8 => "Chờ xác nhận hủy",
-                9 => "Chờ xác nhận hoàn hàng",
-                11 => "Đã xác nhận",
-                _ => "Không xác định"
-            };
-        }
+    
 
         List<HoaDon> IHoaDonService.LichSuGiaoDich(Guid idNguoiDung)
         {

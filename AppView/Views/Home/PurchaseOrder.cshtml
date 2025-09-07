@@ -74,9 +74,9 @@
                     new { Value = "11", Label = "Đã xác nhận" },
                     new { Value = "10", Label = "Chờ đóng hàng" },
                     new { Value = "3", Label = "Đang giao" },
+                    new { Value = "12", Label = "Giao hàng thất bại" },
                     new { Value = "6", Label = "Hoàn thành" },
-                    new { Value = "7", Label = "Đã hủy" },
-                    new { Value = "5", Label = "Hoàn hàng" }
+                    new { Value = "7", Label = "Đã hủy" }
                     })
                     {
                         <div>
@@ -231,15 +231,13 @@
             function getTrangThaiLabel(status) {
             switch (status) {
                 case 2: return 'Chờ xác nhận';
-                case 11: return 'Đã xác nhận'; 
+                case 11: return 'Đã xác nhận';
                 case 10: return 'Chờ đóng hàng';
                 case 3: return 'Đang giao hàng';
+                case 12: return 'Giao hàng thất bại';
                 case 6: return 'Hoàn thành';
                 case 7: return 'Đã hủy';
-                case 5: return 'Hoàn hàng';
-                case 9: return 'Chờ xác nhận hoàn hàng';
                 case 8: return 'Chờ xác nhận hủy';
-                case 4: return 'Đang hoàn hàng';
                 default: return 'Không xác định';
             }
         }

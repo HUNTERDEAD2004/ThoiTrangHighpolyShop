@@ -14,12 +14,6 @@
             <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#ttgh" type="button" role="tab" aria-selected="false" tabindex="-1">Thông tin giao hàng</button>
         </li>
     }
-    @if (Model.KhachHang != "Khách lẻ")
-    {
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#lstd" type="button" role="tab" aria-selected="false" tabindex="-1">Lịch sử điểm</button>
-        </li>
-    }
 </ul>
 <div class="tab-content pt-2" id="myTabjustifiedContent">
     <!--Thông tin-->
@@ -59,15 +53,13 @@
                         <label class="col-form-label text-primary">
                             @{
                                 @(Model.TrangThai == 2 ? "Chờ xác nhận" :
-
-                            (Model.TrangThai == 11 ? "Đã xác nhận" :
-                            (Model.TrangThai == 10 ? "Đang đóng hàng" :
-                            (Model.TrangThai == 3 ? "Đang giao hàng" :
-                            (Model.TrangThai == 4 ? "Đang hoàn hàng" :
-                            (Model.TrangThai == 5 ? "Hoàn hàng thành công" :
-                            (Model.TrangThai == 6 ? "Thành công" :
-                            (Model.TrangThai == 7 ? "Đơn hủy" :
-                            (Model.TrangThai == 8 ? "Chờ xác nhận hủy" : "Chờ xác nhận hoàn hàng")))))))))
+                                (Model.TrangThai == 11 ? "Đã xác nhận" :
+                                (Model.TrangThai == 10 ? "Đang đóng hàng" :
+                                (Model.TrangThai == 3 ? "Đang giao hàng" :
+                                (Model.TrangThai == 12 ? "Giao hàng thất bại" :
+                                (Model.TrangThai == 6 ? "Thành công" :
+                                (Model.TrangThai == 7 ? "Đơn hủy" :
+                                (Model.TrangThai == 8 ? "Chờ xác nhận hủy" : "Chờ xác nhận"))))))))
                             }
                         </label>
                     </div>
@@ -165,7 +157,7 @@
                     <div class="row  text-end">
                         <label class="col-sm-6 col-form-label">Tổng số lượng:</label>
                         <div class="col-sm-6">
-                            <label class="col-sm-5 col-form-label">@Model.listsp.Sum(c=>c.SoLuong)</label>
+                            <label class="col-sm-5 col-form-label">@Model.listsp.Sum(c => c.SoLuong)</label>
                         </div>
                     </div>
                     <div class="row  text-end">
@@ -174,15 +166,6 @@
                             <label class="col-sm-5 col-form-label">@tienhang.ToString("n0")</label>
                         </div>
                     </div>
-                    @if (@Model.lstlstd.Count != 0)
-                    {
-                        <div class="row  text-end">
-                            <label class="col-sm-6 col-form-label">Trừ tiêu điểm:</label>
-                            <div class="col-sm-6">
-                                <label class="col-sm-5 col-form-label">@Model.TruTieuDiem?.ToString("n0")</label>
-                            </div>
-                        </div>
-                    }
 
                     @if (@Model.voucher != null)
                     {
@@ -208,7 +191,7 @@
                         <label class="col-sm-6 col-form-label">Tổng cộng:</label>
                         <div class="col-sm-6 ">
                             @{
-                                var tongcong = Model.listsp.Sum(c => c.SoLuong * c.GiaLuu) + Model.TienShip - @voucher - Model.TruTieuDiem;
+                                var tongcong = Model.listsp.Sum(c => c.SoLuong * c.GiaLuu) + Model.TienShip - @voucher;
                                 <label class="col-sm-5 col-form-label">
                                     <b>
                                         @tongcong?.ToString("n0")
@@ -228,16 +211,6 @@
         </div>
         <hr />
         <div class="d-flex flex-row justify-content-end">
-            @* Thành công → cho hoàn hàng nếu là Website *@
-            @if (Model.TrangThai == 6 && Model.TrangThai != 9 && Model.LoaiHD == 0)
-            {
-                <div class="d-flex p-2">
-                    <button type="button" onclick="hoanHang('@Model.Id')" class="btn btn-danger fw-normal text-white">
-                        <i class="bi bi-reply-all-fill me-2"></i> Hoàn hàng
-                    </button>
-                </div>
-            }
-
             @* Chờ xác nhận *@
             @if (Model.TrangThai == 2)
             {
@@ -273,35 +246,22 @@
                 </div>
             }
 
-            @* Đang giao hàng → Giao thành công *@
+            @* Đang giao hàng → Giao thành công hoặc Giao hàng thất bại *@
             @if (Model.TrangThai == 3)
             {
                 <div class="d-flex p-2">
-                    <button type="button" onclick="DoiTrangThai('6')" class="btn btn-primary fw-normal text-white">
+                    <button type="button" onclick="DoiTrangThai('6')" class="btn btn-success fw-normal text-white">
                         <i class="fa-solid fa-check fa-xs me-2"></i> Giao hàng thành công
                     </button>
                 </div>
-            }
-
-            @* Đang hoàn hàng → hoàn hàng thành công *@
-            @if (Model.TrangThai == 4)
-            {
                 <div class="d-flex p-2">
-                    <button type="button" onclick="hoanHangTC('@Model.Id')" class="btn btn-danger fw-normal text-white">
-                        <i class="fa-solid fa-check fa-xs me-2"></i> Hoàn hàng thành công
+                    <button type="button" onclick="DoiTrangThai('12')" class="btn btn-warning fw-normal text-white">
+                        <i class="fa-solid fa-exclamation-triangle fa-xs me-2"></i> Giao hàng thất bại
                     </button>
                 </div>
             }
 
-            @* Thành công (Tại quầy) → có thể hoàn hàng *@
-            @if (Model.TrangThai == 6 && Model.LoaiHD == 1)
-            {
-                <div class="d-flex p-2">
-                    <button type="button" onclick="hoanHang('@Model.Id')" class="btn btn-danger fw-normal text-white">
-                        <i class="bi bi-reply-all-fill me-2"></i> Hoàn hàng
-                    </button>
-                </div>
-            }
+         
 
             @* Chờ xác nhận hủy → xác nhận hủy hoặc tiếp tục đơn *@
             @if (Model.TrangThai == 8)
@@ -318,37 +278,19 @@
                 </div>
             }
 
-            @* Chờ xác nhận hoàn hàng *@
-            @if (Model.TrangThai == 9)
-            {
-                <div class="d-flex p-2">
-                    <button type="button" onclick="hoanHang('@Model.Id')" class="btn btn-danger fw-normal text-white">
-                        <i class="fa-solid fa-check fa-xs me-2"></i> Xác nhận hoàn hàng
-                    </button>
-                </div>
-            }
-
             @* Ghi chú, sao chép, in, export, đóng *@
             <div class="d-flex p-2">
                 <button type="button" id="save" class="btn btn-success fw-normal text-white">
                     <i class="fa-solid fa-floppy-disk fa-xs me-2"></i> Lưu ghi chú
                 </button>
             </div>
-            <div class="d-flex p-2">
-                <button type="button" onclick="location.href='@Url.Action("CopyHD", "QuanLyHoaDon", new { idhd = @Model.Id })'" class="btn btn-success fw-normal text-white">
-                    <i class="ri-file-copy-line me-2"></i> Sao chép
-                </button>
-            </div>
+           
             <div class="d-flex p-2">
                 <button type="button" onclick="InHD('@Model.Id')" class="btn btn-secondary fw-normal text-white">
                     <i class="ri-printer-line me-2"></i> In Hóa đơn
                 </button>
             </div>
-            <div class="d-flex p-2">
-                <button type="button" onclick="location.href='@Url.Action("ExportPDF", "QuanLyHoaDon", new { idhd = @Model.Id })'" class="btn btn-secondary fw-normal text-white">
-                    <i class="fa-solid fa-file-export fa-xs me-2"></i> Xuất PDF
-                </button>
-            </div>
+            
             <div class="d-flex p-2">
                 <button type="button" class="btn btn-secondary fw-normal text-white" data-bs-dismiss="modal">
                     <i class="fa-solid fa-x fa-xs me-2"></i> Đóng
@@ -356,117 +298,34 @@
             </div>
         </div>
 
-    @if (Model.LoaiHD == 0)
-    {
-        <!--Thông tin giao hàng-->
-        <div class="tab-pane fade" id="ttgh" role="tabpanel" aria-labelledby="profile-tab">
-            <div class="d-flex mt-2">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th scope="col">Tên người nhận</th>
-                            <th scope="col">SĐT</th>
-                            <th scope="col">Địa chỉ</th>
-                            <th scope="col">Email</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th scope="row">@Model.NguoiNhan</th>
-                            <td>@Model.SĐT</td>
-                            <td>@Model.DiaChi</td>
-                            <td>@Model.Email</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    }
-    <!--Lịch sử tích điểm-->
-    @if (@Model.KhachHang != "Khách lẻ")
-    {
-        <div class="tab-pane fade" id="lstd" role="tabpanel" aria-labelledby="profile-tab">
-            <div class="d-flex mt-2">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th scope="col">Mã tích điểm</th>
-                            <th scope="col">Điểm</th>
-                            <th scope="col">Loại</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (@Model.lstlstd.Count == 0)
-                        {
+        @if (Model.LoaiHD == 0)
+        {
+            <!--Thông tin giao hàng-->
+            <div class="tab-pane fade" id="ttgh" role="tabpanel" aria-labelledby="profile-tab">
+                <div class="d-flex mt-2">
+                    <table class="table table-bordered">
+                        <thead>
                             <tr>
-                                <td colspan=3>
-                                    <p style="text-align:center">Không có lịch sử tích điểm nào</p>
-                                </td>
+                                <th scope="col">Tên người nhận</th>
+                                <th scope="col">SĐT</th>
+                                <th scope="col">Địa chỉ</th>
+                                <th scope="col">Email</th>
                             </tr>
-                        }
-                        else
-                        {
-                            @foreach (var item in @Model.lstlstd)
-                            {
-                                if (item.TrangThai == 1)
-                                {
-                                    <tr>
-                                        <td>@item.ID</td>
-                                        <td class="text-success">@item.Diem</td>
-                                        <td class="text-success">
-                                            Tích điểm
-                                        </td>
-                                    </tr>
-                                }
-                                else if(item.TrangThai == 0)
-                                {
-                                    <tr>
-                                        <td>@item.ID</td>
-                                        <td class="text-danger">@item.Diem</td>
-                                        <td class="text-danger">
-                                            Tiêu điểm
-                                        </td>
-                                    </tr>
-                                }
-                                else if(item.TrangThai == 2)
-                                {
-                                    <tr>
-                                        <td>@item.ID</td>
-                                        <td class="text-success">@item.Diem</td>
-                                        <td class="text-success">
-                                            Hoàn điểm đơn hủy
-                                        </td>
-                                    </tr>
-                                }
-                                else if(item.TrangThai == 3)
-                                {
-                                    <tr>
-                                        <td>@item.ID</td>
-                                        <td class="text-danger">@item.Diem</td>
-                                        <td class="text-danger">
-                                            Trừ điểm đơn hoàn hàng
-                                        </td>
-                                    </tr>
-                                }
-                                else
-                                {
-                                    <tr>
-                                        <td>@item.ID</td>
-                                        <td class="text-success">@item.Diem</td>
-                                        <td class="text-success">
-                                            Hoàn điểm đơn hoàn hàng
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">@Model.NguoiNhan</th>
+                                <td>@Model.SĐT</td>
+                                <td>@Model.DiaChi</td>
+                                <td>@Model.Email</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-    }
-</div>
-<script>
+        }
+    </div>
+    <script>
             $("#save").click(function(){
                 var inputValue = $("#ghiChuinTTHD").val();
                 if(inputValue === '' || inputValue.trim == ''){
@@ -517,9 +376,6 @@
             }
             function huyDon(IDHD){
                 var gc = $("#ghiChuinTTHD").val();
-                if(@Model.TrangThai === 4){
-                    toastr.error('Đơn hàng trong trạng thái hoàn, không thể hủy', "Error Alert", { timeOut: 1000 });
-                }
                 if(gc ===''|| gc == '@Model.GhiChu'){
                     toastr.error('Vui lòng nhập ghi chú hóa đơn', "Error Alert", { timeOut: 1000 });
                 }else{
@@ -547,26 +403,6 @@
                     }
                 }
             }
-    @*function copyDon(IDHD){
-        $.ajax({
-        url: "/QuanLyHoaDon/HuyHD",
-        type: "GET",
-        dataType: 'json',
-        data:{
-        idhd: IDHD,
-        ghichu: gc,
-        },
-        contentType: 'application/json',
-        success: function(response) {
-        toastr.success(response.message, "Success Alert", { timeOut: 300 });
-        billDetail(IDHD);
-        loadBill();
-        },
-        error: function(err) {
-        toastr.error('Thay đổi trạng thái thất bại', "Error Alert", { timeOut: 300 });
-        }
-        });
-        }*@
 
             $("#exportPDF").click(function(){
                     var id = "@Model.Id"
@@ -588,61 +424,11 @@
             if(ans){
                     $.ajax({
                     url: "/QuanLyHoaDon/DoiTrangThai",
-                    type: "POST",
+                    type: "POST",                  
                     data:{
                         trangthai:trangthai,
                         idhd: id,
-                    },
-                    success: function(response) {
-                        toastr.success(response.message, "Success Alert", { timeOut: 300 });
-                        billDetail(id);
-                        loadBill();
-                    },
-                    error: function(err) {
-                        toastr.error('Thay đổi trạng thái thất bại', "Error Alert", { timeOut: 300 });
-                    }
-                });
-            }
-        }
-        //Hoàn hàng
-        function hoanHang(){
-            var gc = $("#ghiChuinTTHD").val();
-            if( gc === "" || gc === "@Model.GhiChu"){
-                toastr.error('Bạn chưa nhập ghi chú cho đơn hàng', "Error Alert", { timeOut: 1000 });
-            }else{
-                var ans = confirm("Cập nhật trạng thái hóa đơn này?");
-                var id = "@Model.Id";
-                if(ans){
-                        $.ajax({
-                        url: "/QuanLyHoaDon/HoanHang",
-                        type: "GET",
-                        data:{
-                            idhd: id,
-                            ghichu: gc,
-                        },
-                        success: function(response) {
-                            toastr.success(response.message, "Success Alert", { timeOut: 300 });
-                            billDetail(id);
-                            loadBill();
-                        },
-                        error: function(err) {
-                            toastr.error('Thay đổi trạng thái thất bại', "Error Alert", { timeOut: 300 });
-                        }
-                    });
-                }
-            }
-        }
-        //Hoàn hàng thành công
-        function hoanHangTC(){
-            var ans = confirm("Cập nhật trạng thái hóa đơn này?");
-            var id = "@Model.Id";
-            if(ans){
-                    $.ajax({
-                    url: "/QuanLyHoaDon/HoanHangTC",
-                    type: "GET",
-                    data:{
-                        idhd: id,
-                    },
+                    },                
                     success: function(response) {
                         toastr.success(response.message, "Success Alert", { timeOut: 300 });
                         billDetail(id);
@@ -655,4 +441,4 @@
             }
         }
 
-</script>
+    </script>
