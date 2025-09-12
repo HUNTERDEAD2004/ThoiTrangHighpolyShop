@@ -12,10 +12,13 @@ namespace AppView.Controllers
     public class BanHangTaiQuayController : Controller
     {
         private readonly HttpClient _httpClient;
+        private readonly ILogger<BanHangTaiQuayController> _logger;
 
-        public BanHangTaiQuayController(IHttpClientFactory httpClientFactory)
+        public BanHangTaiQuayController(IHttpClientFactory httpClientFactory, ILogger<BanHangTaiQuayController> logger)
         {
+
             _httpClient = httpClientFactory.CreateClient("API");
+            _logger = logger;
         }
         //Giao diện bán hàng
         [HttpGet]
@@ -433,7 +436,8 @@ namespace AppView.Controllers
             }
         }
         //ThanhToan
-        public async Task<IActionResult> ThanhToan(HoaDonThanhToanRequest request)
+        [HttpPost]
+        public async Task<IActionResult> ThanhToan([FromBody] HoaDonThanhToanRequest request)
         {
             try
             {
@@ -441,25 +445,51 @@ namespace AppView.Controllers
                 var ID_TIEN_MAT = Guid.Parse("9b6289bf-5e83-419a-94d5-926abb264961");
                 var ID_BANKING = Guid.Parse("f29cd85d-0251-4b50-8867-6a88891417f6");
 
+                // Lấy thông tin đăng nhập từ Session nếu request không có
+                if (request == null)
+                {
+                    return Json(new { success = false, message = "Request null" });
+                }
+
+                if (request.IdNhanVien == Guid.Empty)
+                {
+                    string? session = HttpContext.Session.GetString("LoginInfor");
+                    if (!string.IsNullOrEmpty(session))
+                    {
+                        var loginInfor = JsonConvert.DeserializeObject<LoginViewModel>(session);
+                        if (loginInfor != null)
+                            request.IdNhanVien = loginInfor.Id;
+                        else
+                            return Json(new { success = false, message = "Không lấy được thông tin nhân viên từ session" });
+                    }
+                }
+
                 if (request.IDPhuongThucThanhToan == ID_TIEN_MAT)
                 {
                     var hdrequest = new HoaDonThanhToanRequest()
                     {
                         Id = request.Id,
-                        IdNhanVien = request.IdNhanVien,
+                        IdNhanVien = request.IdNhanVien,   // ✅ Lấy từ Session
                         NgayThanhToan = DateTime.Now,
                         IdVoucher = request.IdVoucher == Guid.Empty ? Guid.Empty : request.IdVoucher,
                         IDPhuongThucThanhToan = request.IDPhuongThucThanhToan,
+                        TienShip = request.TienShip,
+                        tenNguoiNhan = request.tenNguoiNhan,
+                        sdtNguoiNhan = request.sdtNguoiNhan,
+                        GhiChu = request.GhiChu,
+                        diaChi = request.diaChi,
                         TongTien = request.TongTien,
-                        DiemTichHD = request.DiemTichHD,
-                        DiemSD = request.DiemSD,
                         TrangThai = 6,
                     };
 
                     // ✅ Thanh toán tiền mặt: gọi API nội bộ như hiện tại
                     var response = await _httpClient.PutAsJsonAsync("HoaDon/UpdateHoaDon/", hdrequest);
                     if (response.IsSuccessStatusCode)
+                    {
+                        // Gọi xoá hóa đơn chờ nếu cần
+                        await _httpClient.DeleteAsync($"HoaDon/DeleteHoaDonCho?idHoaDon={hdrequest.Id}");
                         return Json(new { success = true, message = "Thanh toán thành công" });
+                    }
 
                     return Json(new { success = false, message = "Thanh toán thất bại" });
                 }
@@ -470,7 +500,7 @@ namespace AppView.Controllers
                     var order = new OrderInfo
                     {
                         OrderId = DateTime.Now.Ticks,
-                        Amount = request.TongTien,
+                        Amount = (long)request.TongTien,
                         Status = "0",
                         CreatedDate = DateTime.Now
                     };
@@ -503,6 +533,7 @@ namespace AppView.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error processing payment");
                 return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
             }
         }
@@ -525,6 +556,14 @@ namespace AppView.Controllers
                     }
                 }
 
+                // Lấy thông tin đăng nhập từ Session
+                var loginInfor = new LoginViewModel();
+                string? session = HttpContext.Session.GetString("LoginInfor");
+                if (session != null)
+                {
+                    loginInfor = JsonConvert.DeserializeObject<LoginViewModel>(session);
+                }
+
                 long orderId = Convert.ToInt64(vnpay.GetResponseData("vnp_TxnRef"));
                 string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
                 string vnp_TransactionStatus = vnpay.GetResponseData("vnp_TransactionStatus");
@@ -545,13 +584,16 @@ namespace AppView.Controllers
                 var hdrequest = new HoaDonThanhToanRequest
                 {
                     Id = request.Id,
-                    IdNhanVien = request.IdNhanVien,
+                    IdNhanVien = request.IdNhanVien,  
                     NgayThanhToan = DateTime.Now,
                     IdVoucher = request.IdVoucher == Guid.Empty ? Guid.Empty : request.IdVoucher,
                     IDPhuongThucThanhToan = request.IDPhuongThucThanhToan,
+                    TienShip = request.TienShip,
+                    tenNguoiNhan = request.tenNguoiNhan,
+                    sdtNguoiNhan = request.sdtNguoiNhan,
+                    GhiChu = request.GhiChu,
+                    diaChi = request.diaChi,
                     TongTien = request.TongTien,
-                    DiemTichHD = request.DiemTichHD,
-                    DiemSD = request.DiemSD,
                     TrangThai = 6
                 };
 

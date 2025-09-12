@@ -391,20 +391,20 @@ namespace AppAPI.Services
             try
             {
                 var hoaDon = reposHoaDon.GetAll().FirstOrDefault(p => p.ID == id);
-
                 if (hoaDon == null) return false;
 
-                // ✅ Chỉ xóa hóa đơn đơn nháp (TrangThaiGiaoHang = 1) và bán tại quầy (LoaiHoaDon = 1)
+                // ✅ Chỉ xóa hóa đơn nháp bán tại quầy
                 if (hoaDon.TrangThaiGiaoHang != 1 || hoaDon.LoaiHoaDon != 1)
-                {
-                    // Không cho phép xóa hóa đơn đã được xử lý hoặc không phải đơn bán tại quầy
                     return false;
-                }
 
                 var lsthdct = reposChiTietHoaDon.GetAll().Where(c => c.IDHoaDon == hoaDon.ID).ToList();
 
-                var deletedg = context.DanhGias.Where(c => lsthdct.Select(x => x.ID).Contains(c.ID)).ToList();
+                // Lấy đánh giá liên quan
+                var deletedg = context.DanhGias
+                    .Where(c => lsthdct.Select(x => x.ID).Contains(c.IDChiTietHoaDon))
+                    .ToList();
 
+                // Cộng lại số lượng tồn kho
                 foreach (var item in lsthdct)
                 {
                     var ctsp = repsCTSanPham.GetAll().FirstOrDefault(c => c.ID == item.IDCTSP);
@@ -415,23 +415,19 @@ namespace AppAPI.Services
                     }
                 }
 
-                // Xóa chi tiết hóa đơn
-                context.ChiTietHoaDons.RemoveRange(lsthdct);
-                context.SaveChanges();
-
-                // Xóa đánh giá nếu có
+                // ✅ Xóa theo đúng thứ tự
                 context.DanhGias.RemoveRange(deletedg);
-                context.SaveChanges();
-
-                // Xóa hóa đơn
+                context.ChiTietHoaDons.RemoveRange(lsthdct);
                 context.HoaDons.Remove(hoaDon);
+
                 context.SaveChanges();
 
                 return true;
             }
             catch (Exception e)
             {
-                throw new Exception(e.Message);
+                // In rõ inner exception để debug
+                throw new Exception(e.InnerException?.Message ?? e.Message);
             }
         }
 

@@ -1775,7 +1775,7 @@
         });
     });
 
-    // ===== Thanh toán hóa đơn =====
+    // ===== Thanh toán hóa đơn (ĐÃ SỬA ĐỂ PHÙ HỢP VỚI CONTROLLER) =====
     function thanhToanHoaDon() {
         // Lấy ID hóa đơn đang active
         const activeTab = $(".tabs-box .tab.active");
@@ -1786,42 +1786,112 @@
 
         const idHoaDon = activeTab.find("span").attr("value");
 
+        // Kiểm tra xem có sản phẩm trong giỏ hàng không
+        const gioHangElement = $(`.gioHangContent[data-id="${idHoaDon}"]`);
+        if (gioHangElement.find('table').length === 0) {
+            toastr.warning("Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán");
+            return;
+        }
+
         // Validate thông tin
         if ($("#giaoHang").is(":checked") && !validateFormGiaoHang()) {
             toastr.warning("Vui lòng điền đầy đủ thông tin giao hàng");
             return;
         }
 
-        // Thu thập dữ liệu thanh toán (thêm thông tin voucher)
+        // Lấy thông tin đăng nhập từ session (nếu có)
+        let idNhanVien = "00000000-0000-0000-0000-000000000000"; // Giá trị mặc định
+        try {
+            const sessionData = localStorage.getItem('LoginInfor') || sessionStorage.getItem('LoginInfor');
+            if (sessionData) {
+                const loginInfo = JSON.parse(sessionData);
+                idNhanVien = loginInfo.Id || idNhanVien;
+            }
+        } catch (e) {
+            console.error("Không thể lấy thông tin đăng nhập:", e);
+        }
+
+        // Lấy tổng tiền từ giao diện
+        const thanhTienText = $('#khachPhaiTra').text().replace(' đ', '').replace(/\./g, '');
+        const thanhTien = parseFloat(thanhTienText) || 0;
+
+        if (thanhTien <= 0) {
+            toastr.warning("Tổng tiền thanh toán phải lớn hơn 0");
+            return;
+        }
+
+        // Xác định ID phương thức thanh toán
+        let idPhuongThucTT = null;
+        const hinhThuc = $("#hinhThucThanhToan").val();
+
+        if (hinhThuc === "tienmat") {
+            idPhuongThucTT = "9b6289bf-5e83-419a-94d5-926abb264961"; // GUID tiền mặt
+        } else if (hinhThuc === "chuyenkhoan") {
+            idPhuongThucTT = "f29cd85d-0251-4b50-8867-6a88891417f6"; // GUID chuyển khoản
+        }
+
+        // Thu thập dữ liệu thanh toán - ĐẢM BẢO KHỚP VỚI C# REQUEST
+        
         const thanhToanData = {
-            idHoaDon: idHoaDon,
-            idKhachHang: currentKhachHangId,
-            phuongThucThanhToan: $("#hinhThucThanhToan").val(),
-            tienShip: phiShip,
-            ghiChu: $("#note").val(),
+            Id: idHoaDon,
+            IdNhanVien: idNhanVien,
+            IdKhachHang: $("#khachHangId").val(),
+            IDPhuongThucThanhToan: idPhuongThucTT, // ĐÚNG: IDPhuongThucThanhToan (viết hoa)
+            IdVoucher: currentVoucher && currentVoucher.id
+            ? currentVoucher.id
+            : "00000000-0000-0000-0000-000000000000",
+            TongTien: thanhTien,
+            TienShip: phiShip, // ĐÚNG: TienShip (viết hoa)
+            GhiChu: $("#note").val(),
             tenNguoiNhan: $("#tenNguoiNhan").val(),
             sdtNguoiNhan: $("#sdtNguoiNhan").val(),
             diaChi: getDiaChiDayDu(),
-            maVoucher: currentVoucher ? currentVoucher.maVoucher : null,
-            idVoucher: currentVoucher ? currentVoucher.id : null
         };
+
+        console.log("Dữ liệu gửi đi:", thanhToanData); // Debug
+
+        // Hiển thị loading
+        const originalText = $("#btnThanhToan").html();
+        $("#btnThanhToan").html('<span class="spinner-border spinner-border-sm" role="status"></span> Đang xử lý...');
+        $("#btnThanhToan").prop("disabled", true);
 
         // Gửi request thanh toán
         $.ajax({
             url: "/BanHangTaiQuay/ThanhToan",
             type: "POST",
             contentType: "application/json",
+            dataType: "json",
             data: JSON.stringify(thanhToanData),
             success: function (response) {
+                // Khôi phục trạng thái nút
+                $("#btnThanhToan").html(originalText);
+                $("#btnThanhToan").prop("disabled", false);
+
                 if (response.success) {
                     toastr.success("Thanh toán thành công!");
-                    loadHDCHO(); // Reload danh sách hóa đơn
+
+                    // Xử lý chuyển hướng nếu là thanh toán VNPay
+                    if (response.PaymentUrl) {
+                        window.location.href = response.PaymentUrl;
+                    } else {
+                        // Reset form cho thanh toán tại quầy
+                        xoaVoucher();
+                        resetFormGiaoHang();
+                        $("#giaoHang").prop("checked", false);
+                        toggleGiaoHangForm();
+                        loadHDCHO();
+                    }
                 } else {
                     toastr.error(response.message || "Thanh toán thất bại!");
                 }
             },
-            error: function () {
-                toastr.error("Có lỗi xảy ra khi thanh toán!");
+            error: function (xhr, status, error) {
+                // Khôi phục trạng thái nút
+                $("#btnThanhToan").html(originalText);
+                $("#btnThanhToan").prop("disabled", false);
+
+                console.error("Lỗi khi thanh toán:", error, xhr.responseText);
+                toastr.error("Có lỗi xảy ra khi thanh toán: " + (xhr.responseJSON?.message || error));
             }
         });
     }
@@ -2027,8 +2097,8 @@
             }
         } else { // Giảm theo số tiền cố định
             discount = currentVoucher.giaTri;
-
-            // Không giảm quá tổng tiền hàng
+            
+            // Không giảm quá tổng tiền hàngR
             if (discount > tongTienHang) {
                 discount = tongTienHang;
             }
@@ -2068,7 +2138,7 @@
         });
 
         return tongTien;
-    }s
+    }
 
         // ===== Sửa hàm capNhatTongTien để đảm bảo luôn hiển thị đúng =====
     function capNhatTongTien() {
