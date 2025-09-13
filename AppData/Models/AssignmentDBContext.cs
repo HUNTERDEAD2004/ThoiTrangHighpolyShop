@@ -32,7 +32,7 @@ namespace AppData.Models
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<Anh> Anhs { get; set; }
         public DbSet<LichSuHoaDon> LichSuHoaDons { get; set; }
-
+        public DbSet<UserVoucher> UserVouchers { get; set; }
         public DbSet<PhuongThucThanhToan> PhuongThucThanhToans { get; set; }
 
         public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }

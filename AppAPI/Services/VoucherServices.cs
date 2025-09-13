@@ -9,11 +9,11 @@ namespace AppAPI.Services
 {
     public class VoucherServices : IVoucherServices
     {
-        private readonly IAllRepository<Voucher> _voucherRepo;
-        AssignmentDBContext context= new AssignmentDBContext();
+        private readonly IAllRepository<Voucher> _allRepository;
+        AssignmentDBContext context = new AssignmentDBContext();
         public VoucherServices()
         {
-            _voucherRepo = new AllRepository<Voucher>(context,context.Vouchers);
+            _allRepository = new AllRepository<Voucher>(context, context.Vouchers);
         }
         public bool Add(VoucherView voucherview)
         {
@@ -28,35 +28,35 @@ namespace AppAPI.Services
                 }
             }
 
-            voucherview.Id=Guid.NewGuid();
-            var voucher= new Voucher();
-            voucher.ID=voucherview.Id;
-            voucher.Ten=voucherview.Ten?.Trim();
-            voucher.MaVoucher= normalizedCode;
-            voucher.HinhThucGiamGia=voucherview.HinhThucGiamGia;
+            voucherview.Id = Guid.NewGuid();
+            var voucher = new Voucher();
+            voucher.ID = voucherview.Id;
+            voucher.Ten = voucherview.Ten?.Trim();
+            voucher.MaVoucher = normalizedCode;
+            voucher.HinhThucGiamGia = voucherview.HinhThucGiamGia;
             voucher.GiaTriToiThieu = voucherview.GiaTriToiThieu;
             voucher.GiaTriToiDa = voucherview.GiaTriToiDa;
             voucher.GiaTri = voucherview.GiaTri;
-            voucher.NgayApDung=voucherview.NgayApDung;
-            voucher.NgayKetThuc=voucherview.NgayKetThuc;
+            voucher.NgayApDung = voucherview.NgayApDung;
+            voucher.NgayKetThuc = voucherview.NgayKetThuc;
             if (voucher.NgayApDung > voucher.NgayKetThuc)
             {
                 return false;
             }
-            voucher.SoLuong=voucherview.SoLuong;
+            voucher.SoLuong = voucherview.SoLuong;
             voucher.MoTa = voucherview.MoTa?.Trim();
-            voucher.TrangThai=voucherview.TrangThai;
+            voucher.TrangThai = voucherview.TrangThai;
             voucher.IsPublic = voucherview.IsPublic;
             return _allRepository.Add(voucher);
         }
 
         public bool Delete(Guid Id)
         {
-            var voucher = _voucherRepo.GetAll().FirstOrDefault(x => x.ID == Id);
+            var voucher = _allRepository.GetAll().FirstOrDefault(x => x.ID == Id);
             if (voucher != null)
             {
-               
-                return _voucherRepo.Delete(voucher);
+
+                return _allRepository.Delete(voucher);
             }
             else
             {
@@ -66,15 +66,15 @@ namespace AppAPI.Services
 
         public List<Voucher> GetAll()
         {
-            return _voucherRepo.GetAll();
+            return _allRepository.GetAll();
         }
 
         public Voucher GetById(Guid Id)
         {
-            return _voucherRepo.GetAll().FirstOrDefault(x => x.ID == Id);
+            return _allRepository.GetAll().FirstOrDefault(x => x.ID == Id);
         }
 
-        public bool Update(Guid id,VoucherView voucherview)
+        public bool Update(Guid id, VoucherView voucherview)
         {
             var voucher = _allRepository.GetAll().FirstOrDefault(x => x.ID == id);
             if (voucher != null)
@@ -124,7 +124,7 @@ namespace AppAPI.Services
 
         public Voucher ApplyVoucher(string code, int totalAmount)
         {
-            var voucher = _voucherRepo.GetAll().FirstOrDefault(v => v.Ten == code);
+            var voucher = _allRepository.GetAll().FirstOrDefault(v => v.Ten == code);
             if (voucher == null) return null;
 
             if (voucher.SoLuong > 0 &&
@@ -134,7 +134,7 @@ namespace AppAPI.Services
                 voucher.NgayKetThuc >= DateTime.Now)
             {
                 voucher.SoLuong--;
-                _voucherRepo.Update(voucher);
+                _allRepository.Update(voucher);
                 return voucher;
             }
 
