@@ -42,7 +42,13 @@
                     </span>
                     <span class="item-text">Chờ xác nhận</span>
                 </li>
-                 <li class="item">
+                <li class="item">
+                    <span class="checkbox">
+                        <i class="fa-solid fa-check check-icon" data-value="11"></i>
+                    </span>
+                    <span class="item-text">Đã xác Nhận</span>
+                </li>
+                <li class="item">
                     <span class="checkbox">
                         <i class="fa-solid fa-check check-icon" data-value="10"></i>
                     </span>
@@ -53,6 +59,12 @@
                         <i class="fa-solid fa-check check-icon" data-value="3"></i>
                     </span>
                     <span class="item-text">Đang giao hàng</span>
+                </li>
+                <li class="item">
+                    <span class="checkbox">
+                        <i class="fa-solid fa-check check-icon" data-value="12"></i>
+                    </span>
+                    <span class="item-text">Giao hàng thất bại</span>
                 </li>
                 <li class="item">
                     <span class="checkbox">
@@ -71,24 +83,6 @@
                         <i class="fa-solid fa-check check-icon" data-value="7"></i>
                     </span>
                     <span class="item-text">Đơn hủy</span>
-                </li>
-                <li class="item">
-                    <span class="checkbox">
-                        <i class="fa-solid fa-check check-icon" data-value="9"></i>
-                    </span>
-                    <span class="item-text">Chờ xác nhận hoàn hàng</span>
-                </li>
-                <li class="item">
-                    <span class="checkbox">
-                        <i class="fa-solid fa-check check-icon" data-value="4"></i>
-                    </span>
-                    <span class="item-text">Đang hoàn hàng</span>
-                </li>
-                <li class="item">
-                    <span class="checkbox">
-                        <i class="fa-solid fa-check check-icon" data-value="5"></i>
-                    </span>
-                    <span class="item-text">Hoàn hàng thành công</span>
                 </li>
             </ul>
         </div>
@@ -298,17 +292,17 @@
                                <td>${response.data[i].khachHang}</td>
                                <td>
                                    ${response.data[i].trangThai === 2 ? '<label class="badge bg-info">Chờ xác nhận</label>' :
+                                   response.data[i].trangThai === 11 ? '<label class="badge bg-info">Đã xác nhận</label>' :
                                    response.data[i].trangThai === 10 ? '<label class="badge bg-info">Đang đóng hàng</label>' :
                                    response.data[i].trangThai === 3 ? '<label class="badge bg-primary">Đang giao hàng</label>' :
-                                   response.data[i].trangThai === 4 ? '<label class="badge bg-danger">Đang hoàn hàng</label>' :
-                                   response.data[i].trangThai === 5 ? '<label class="badge bg-danger">Hoàn hàng thành công</label>' :
+                                   response.data[i].trangThai === 12 ? '<label class="badge bg-warning">Giao hàng thất bại</label>' :
                                    response.data[i].trangThai === 6 ? '<label class="badge bg-success">Thành công</label>' :
                                    response.data[i].trangThai === 7 ? '<label class="badge bg-dark">Đơn hủy</label>' :
                                    response.data[i].trangThai === 8 ? '<label class="badge bg-secondary">Chờ xác nhận hủy</label>' :
-                                   '<label class="badge bg-danger">Chờ xác nhận hoàn hàng</label>'}
+                                   '<label class="badge bg-info">Chờ xác nhận</label>'}
                                </td>
                                ${response.data[i].loaiHD === 1 ? `<td class="text-center">Tại quầy</td>` : `<td class="text-center">Website</td>`}
-                               
+
                                <td class="text-end">${Intl.NumberFormat().format(response.data[i].tongTienHang)}</td>
                                <td class="text-end">${Intl.NumberFormat().format(response.data[i].khachDaTra)}</td>
                            </tr>

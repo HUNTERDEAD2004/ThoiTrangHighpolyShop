@@ -13,7 +13,7 @@ namespace AppData.ViewModels.SanPham
         public string Email { get; set; }
         public string SDT { get; set; }
         public string DiaChi { get; set; }
-
+        public string? MaHoaDon { get; set; }   
         public string PhuongThucThanhToan { get; set; }
         public Guid? IDPhuongThucTT { get; set; } // ➕ nếu frontend cần
 
@@ -21,11 +21,15 @@ namespace AppData.ViewModels.SanPham
         public int DiemTich { get; set; }
         public int DiemSuDung { get; set; }
 
+        public Guid IDKhachHang { get; set; }
         public string MaVoucher { get; set; }
         public bool Login { get; set; }
         public string GhiChu { get; set; }
         public Guid? IDDiaChi { get; set; }
+        public int ErrorCode { get; set; } = 0;
 
+      
+        public string ErrorMessage { get; set; } = "";
         public List<GioHangRequest> GioHangs { get; set; }
     }
 

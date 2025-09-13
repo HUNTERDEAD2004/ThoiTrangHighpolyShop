@@ -1,4 +1,4 @@
-
+﻿
 using AppData.Models;
 
 namespace AppData.ViewModels
@@ -15,7 +15,7 @@ namespace AppData.ViewModels
         public int TongTien { get; set; }
         public Guid? IDNhanVien { get; set; }
         public string? TenVoucher { get; set; }
-        public Guid? IDKhachHang { get; set; }
+        public Guid IDKhachHang { get; set; }
         public Guid IDPhuongThucTT { get; set; }
         public int? Diem { get; set; }
         public DateTime? NgayThanhToan { get; set; }
@@ -23,5 +23,8 @@ namespace AppData.ViewModels
         public bool TrangThai { get; set; }
         public string? GhiChu { get; set; }
         public Guid? IDDiaChi { get; set; }
+        public string? MaHoaDon { get; set; }
+
+        public int TrangThaiGiaoHang { get; set; } // Trạng thái giao hàng
     }
 }

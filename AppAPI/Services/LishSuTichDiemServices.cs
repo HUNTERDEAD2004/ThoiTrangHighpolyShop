@@ -11,10 +11,12 @@ namespace AppAPI.Services
     public class LishSuTichDiemServices : ILishSuTichDiemServices
     {
         private readonly IAllRepository<LichSuTichDiem> _allRepository;
+        private readonly IAllRepository<KhachHang> _customerRepo;
         AssignmentDBContext context= new AssignmentDBContext();
         public LishSuTichDiemServices()
         {
             _allRepository= new AllRepository<LichSuTichDiem>(context,context.LichSuTichDiems);
+            _customerRepo = new AllRepository<KhachHang>(context, context.KhachHangs);
         }
         public bool Add(int diem, int trangthai, Guid IdKhachHang, Guid IdQuyDoiDiem, Guid IdHoaDon)
         {
@@ -39,6 +41,39 @@ namespace AppAPI.Services
             else
             {
                 return false;
+            }
+        }
+
+        public void AddPoint(Guid hoaDonId, string maKH, int diem, int trangThai, Guid idQuyDoi)
+        {
+            _allRepository.Add(new LichSuTichDiem
+            {
+                ID = Guid.NewGuid(),
+                IDHoaDon = hoaDonId,
+                MaKhachHang = maKH,
+                Diem = diem,
+                TrangThai = trangThai,
+                IDQuyDoiDiem = idQuyDoi
+            });
+        }
+
+        public void UpdateCustomerPoint(string maKH, int diem)
+        {
+            var kh = _customerRepo.GetAll().FirstOrDefault(x => x.MaKhachHang == maKH);
+            if (kh != null)
+            {
+                kh.DiemTich += diem;
+                _customerRepo.Update(kh);
+            }
+        }
+
+        public void ReduceCustomerPoint(string maKH, int diem)
+        {
+            var kh = _customerRepo.GetAll().FirstOrDefault(x => x.MaKhachHang == maKH);
+            if (kh != null && kh.DiemTich >= diem)
+            {
+                kh.DiemTich -= diem;
+                _customerRepo.Update(kh);
             }
         }
 

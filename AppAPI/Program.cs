@@ -15,7 +15,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: AllowSpecificOrigins, policy =>
     {
-        policy.WithOrigins("https://localhost:5001")
+        policy.WithOrigins("*")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -53,7 +53,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // DbContext
 builder.Services.AddDbContext<AssignmentDBContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DBContext")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBContext"), o => o.CommandTimeout(60)));
 
 // DI Services
 builder.Services.AddScoped<IChiTietGioHangServices, ChiTietGioHangServices>();

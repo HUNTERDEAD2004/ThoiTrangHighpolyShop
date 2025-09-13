@@ -10,6 +10,5 @@
         public Guid IDHoaDon { get; set; }
         public virtual HoaDon? HoaDon { get; set; }
         public virtual ChiTietSanPham? ChiTietSanPham { get; set; }
-        public virtual DanhGia? DanhGia { get; set; }
     }
 }

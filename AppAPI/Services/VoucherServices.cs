@@ -9,11 +9,11 @@ namespace AppAPI.Services
 {
     public class VoucherServices : IVoucherServices
     {
-        private readonly IAllRepository<Voucher> _allRepository;
+        private readonly IAllRepository<Voucher> _voucherRepo;
         AssignmentDBContext context= new AssignmentDBContext();
         public VoucherServices()
         {
-            _allRepository= new AllRepository<Voucher>(context,context.Vouchers);
+            _voucherRepo = new AllRepository<Voucher>(context,context.Vouchers);
         }
         public bool Add(VoucherView voucherview)
         {
@@ -35,16 +35,16 @@ namespace AppAPI.Services
             voucher.SoLuong=voucherview.SoLuong;
             voucher.MoTa = voucherview.MoTa?.Trim();
             voucher.TrangThai=voucherview.TrangThai;
-            return _allRepository.Add(voucher);
+            return _voucherRepo.Add(voucher);
         }
 
         public bool Delete(Guid Id)
         {
-            var voucher = _allRepository.GetAll().FirstOrDefault(x => x.ID == Id);
+            var voucher = _voucherRepo.GetAll().FirstOrDefault(x => x.ID == Id);
             if (voucher != null)
             {
                
-                return _allRepository.Delete(voucher);
+                return _voucherRepo.Delete(voucher);
             }
             else
             {
@@ -54,17 +54,17 @@ namespace AppAPI.Services
 
         public List<Voucher> GetAll()
         {
-            return _allRepository.GetAll();
+            return _voucherRepo.GetAll();
         }
 
         public Voucher GetById(Guid Id)
         {
-            return _allRepository.GetAll().FirstOrDefault(x => x.ID == Id);
+            return _voucherRepo.GetAll().FirstOrDefault(x => x.ID == Id);
         }
 
         public bool Update(Guid id,VoucherView voucherview)
         {
-            var voucher= _allRepository.GetAll().FirstOrDefault(x => x.ID == id);
+            var voucher= _voucherRepo.GetAll().FirstOrDefault(x => x.ID == id);
             if (voucher != null)
             {
               
@@ -81,7 +81,7 @@ namespace AppAPI.Services
                 voucher.SoLuong = voucherview.SoLuong;
                 voucher.MoTa = voucherview.MoTa?.Trim();
               
-                return _allRepository.Update(voucher);
+                return _voucherRepo.Update(voucher);
             }
             else
             {
@@ -90,7 +90,7 @@ namespace AppAPI.Services
         }
         public Voucher? GetVoucherByMa(string ma)
         {
-            return _allRepository.GetAll().FirstOrDefault(x => x.Ten.ToUpper() == ma.ToUpper());
+            return _voucherRepo.GetAll().FirstOrDefault(x => x.Ten.ToUpper() == ma.ToUpper());
         }
         public bool UpdateTrangThai(Guid id, int trangThaiMoi)
         {
@@ -107,5 +107,24 @@ namespace AppAPI.Services
         //{
         //    return _allRepository.GetAll().Where(x=>x.NgayApDung<DateTime.Now && x.NgayKetThuc>DateTime.Now && x.SoTienCan<tongTien && x.TrangThai>0 && x.SoLuong>0).ToList();
         //}
+
+        public Voucher ApplyVoucher(string code, int totalAmount)
+        {
+            var voucher = _voucherRepo.GetAll().FirstOrDefault(v => v.Ten == code);
+            if (voucher == null) return null;
+
+            if (voucher.SoLuong > 0 &&
+                totalAmount >= voucher.GiaTriToiThieu &&
+                totalAmount <= voucher.GiaTriToiDa &&
+                voucher.NgayApDung <= DateTime.Now &&
+                voucher.NgayKetThuc >= DateTime.Now)
+            {
+                voucher.SoLuong--;
+                _voucherRepo.Update(voucher);
+                return voucher;
+            }
+
+            return null;
+        }
     }
 }

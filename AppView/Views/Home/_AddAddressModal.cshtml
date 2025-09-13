@@ -1,0 +1,56 @@
+﻿@* Partial View dùng để hiển thị modal thêm địa chỉ mới *@
+
+<div class="modal fade" id="addAddressModal" tabindex="-1" role="dialog" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="addAddressModalLabel">Thêm địa chỉ mới</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form id="addAddressForm">
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="newTinh">Tỉnh/Thành phố</label>
+              <select id="newTinh" class="form-control" required>
+                <option value="">-- Chọn tỉnh --</option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="newHuyen">Quận/Huyện</label>
+              <select id="newHuyen" class="form-control" required>
+                <option value="">-- Chọn huyện --</option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="newXa">Phường/Xã</label>
+              <select id="newXa" class="form-control" required>
+                <option value="">-- Chọn xã --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="newChiTiet">Địa chỉ chi tiết</label>
+            <input type="text" class="form-control" id="newChiTiet" placeholder="Số nhà, tên đường..." required>
+          </div>
+
+          <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" id="isDefaultAddress">
+            <label class="form-check-label" for="isDefaultAddress">Đặt làm địa chỉ mặc định</label>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Huỷ</button>
+        <button type="button" class="btn btn-primary" onclick="submitNewAddress()">Lưu địa chỉ</button>
+      </div>
+
+    </div>
+  </div>
+</div>

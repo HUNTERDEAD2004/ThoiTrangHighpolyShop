@@ -34,7 +34,7 @@ namespace AppView.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly HttpClient _httpClient;
-       
+
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
@@ -409,13 +409,13 @@ namespace AppView.Controllers
             {
                 return Redirect("https://localhost:5001/");
             }
-            
-            
+
+
         }
         [HttpGet]
         public async Task<IActionResult> ProductDetailFromCart(Guid idctsp)
         {
-            try 
+            try
             {
                 HttpResponseMessage response = await _httpClient.GetAsync(_httpClient.BaseAddress + "SanPham/GetIDsanPhamByIdCTSP?idctsp=" + idctsp);
                 var idsanpham = JsonConvert.DeserializeObject<string>(response.Content.ReadAsStringAsync().Result);
@@ -868,7 +868,7 @@ namespace AppView.Controllers
                         var loginInfor = JsonConvert.DeserializeObject<LoginViewModel>(session);
                         if (loginInfor.vaiTro == 1)
                         {
-                            var chiTietGioHang = new ChiTietGioHang() { ID = Guid.NewGuid(), SoLuong = (soLuong != null) ? soLuong : 1, IDCTSP = new Guid(id),IDKhachHang = loginInfor.Id };
+                            var chiTietGioHang = new ChiTietGioHang() { ID = Guid.NewGuid(), SoLuong = (soLuong != null) ? soLuong : 1, IDCTSP = new Guid(id), IDKhachHang = loginInfor.Id };
                             var response1 = _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "GioHang/AddCart", chiTietGioHang).Result;
                             if (response1.IsSuccessStatusCode) return Json(new { success = true, message = "Thêm vào giỏ hàng thành công" });
                             else return Json(new { success = false, message = "Thêm vào giỏ hàng thất bại" });
@@ -902,7 +902,7 @@ namespace AppView.Controllers
             }
         }
 
-     
+
 
 
         [HttpPost]
@@ -998,10 +998,10 @@ namespace AppView.Controllers
         {
             return View();
         }
-       
-       
 
-     
+
+
+
 
         [HttpPost]
         public async Task<IActionResult> Register(KhachHangViewModel khachHang)
@@ -1061,7 +1061,7 @@ namespace AppView.Controllers
             {
                 return Redirect("https://localhost:5001/");
             }
-           
+
         }
         [HttpPut]
         public ActionResult UpdateProfile(string ten, string email, string sdt, int? gioitinh, string? ngaysinh, string? diachi)
@@ -1179,7 +1179,7 @@ namespace AppView.Controllers
             {
                 return Redirect("https://localhost:5001/");
             }
-            
+
         }
         public IActionResult LichSuTieuDiemTichDiem()
         {
@@ -1336,7 +1336,7 @@ namespace AppView.Controllers
             {
                 return Redirect("https://localhost:5001/");
             }
-            
+
         }
         public IActionResult ReviewProducts(Guid idCTHD)
         {
@@ -1354,7 +1354,7 @@ namespace AppView.Controllers
             {
                 return Redirect("https://localhost:5001/");
             }
-            
+
         }
         [HttpPost]
         public IActionResult ChangePassword(string newPassword, string oldPassword)
@@ -1407,7 +1407,7 @@ namespace AppView.Controllers
             {
                 return Redirect("https://localhost:5001/");
             }
-            
+
         }
         public IActionResult HuyDonHang(Guid idHoaDon)
         {
@@ -1424,7 +1424,7 @@ namespace AppView.Controllers
             {
                 return RedirectToAction("PurchaseOrder");
             }
-            
+
         }
         public IActionResult HoanTacHuyDonHang(Guid idHoaDon)
         {
@@ -1441,7 +1441,7 @@ namespace AppView.Controllers
             {
                 return RedirectToAction("PurchaseOrder");
             }
-            
+
         }
         public IActionResult DoiTraHang(Guid idHoaDon)
         {
@@ -1458,7 +1458,7 @@ namespace AppView.Controllers
             {
                 return RedirectToAction("PurchaseOrder");
             }
-            
+
         }
         public IActionResult HoanTacDoiTraHang(Guid idHoaDon)
         {
@@ -1476,7 +1476,7 @@ namespace AppView.Controllers
             {
                 return RedirectToAction("PurchaseOrder");
             }
-            
+
         }
         public IActionResult XacNhanGHTC(Guid idHoaDon)
         {
@@ -1641,7 +1641,7 @@ namespace AppView.Controllers
                     return View();
                 }
 
-             
+
 
                 if (password == confirmPassword)
                 {
@@ -1690,10 +1690,11 @@ namespace AppView.Controllers
                 {
                     // Xử lý khi email không hợp lệ
                     TempData["Message"] = "Invalid email.";
-                    return RedirectToAction("Login", new {actionNam = "Index"});
+                    return RedirectToAction("Login", new { actionNam = "Index" });
                 }
             }
-            catch {
+            catch
+            {
                 TempData["Message"] = "Invalid email.";
                 return RedirectToAction("Login", new { actionNam = "Index" });
             }
@@ -1829,7 +1830,7 @@ namespace AppView.Controllers
                 {
                     TempData["HoaDon"] = JsonConvert.SerializeObject(hoaDon);
 
-                    string returnUrl = "https://localhost:5001/Home/CheckOutSuccess";
+                    string returnUrl = "https://localhost:5001/Home/PaymentCallBack";
                     string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
                     string tmnCode = "NJJ0R8FS";
                     string hashSecret = "BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW";
@@ -1841,7 +1842,7 @@ namespace AppView.Controllers
                         Amount = hoaDon.TongTien,
                         CreatedDate = DateTime.Now,
                         OrderDesc = $"Thanh toán đơn hàng #{DateTime.Now.Ticks}",
-                        BankCode = ""
+                        BankCode = "VNPAYQR"
                     };
 
                     var vnpay = new VnPayLibrary();
@@ -1859,12 +1860,11 @@ namespace AppView.Controllers
                     vnpay.AddRequestData("vnp_TxnRef", order.OrderId.ToString());
                     vnpay.AddRequestData("vnp_ExpireDate", order.CreatedDate.AddMinutes(15).ToString("yyyyMMddHHmmss"));
                     vnpay.AddRequestData("vnp_BankCode", "");
-                    check = vnpay.CreateRequestUrl(url, hashSecret);
-                    return vnpay.CreateRequestUrl(url, hashSecret);
-                  
+
+                    return check = vnpay.CreateRequestUrl(url, hashSecret);
                 }
 
-                return "https://localhost:5001/Home/CheckOutSuccess";
+                return check;
             }
             catch (Exception ex)
             {
@@ -1917,6 +1917,7 @@ namespace AppView.Controllers
                             TempData.Remove("Quantity");
                             var hoaDon = JsonConvert.DeserializeObject<HoaDonViewModel>(TempData["HoaDon"].ToString());
                             hoaDon.NgayThanhToan = DateTime.Now;
+                            hoaDon.TrangThaiGiaoHang = 3;
                             HttpResponseMessage response = _httpClient.PostAsJsonAsync("HoaDon", hoaDon).Result;
                             if (response.IsSuccessStatusCode)
                             {
@@ -2055,7 +2056,7 @@ namespace AppView.Controllers
 
             var khachHang = JsonConvert.DeserializeObject<LoginViewModel>(session);
 
-            return View(khachHang); 
+            return View(khachHang);
         }
 
         [HttpPost]
@@ -2096,5 +2097,9 @@ namespace AppView.Controllers
             await _httpClient.DeleteAsync($"diachi/{id}");
             return RedirectToAction("Index");
         }
+
+
+
+
     }
 }

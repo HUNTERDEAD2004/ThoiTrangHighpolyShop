@@ -1,4 +1,5 @@
-﻿using AppData.ViewModels;
+﻿using AppData.Models;
+using AppData.ViewModels;
 using AppData.ViewModels.BanOffline;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -123,7 +124,7 @@ namespace AppView.Controllers
             }
         }
         // Cập nhật trạng thái
-        public async Task<IActionResult> DoiTrangThai(Guid idhd, int trangthai)// Dùng cho trạng thái truyền  vào: 10, 3
+        public async Task<IActionResult> DoiTrangThai(Guid idhd, int trangthai)
         {
             try
             {
@@ -133,6 +134,31 @@ namespace AppView.Controllers
                 {
                     loginInfor = JsonConvert.DeserializeObject<LoginViewModel>(session);
                     var idnv = loginInfor.Id;
+
+                    // Gọi API lấy chi tiết hóa đơn để kiểm tra trạng thái hiện tại
+                    var hoaDonResponse = await _httpClient.GetAsync($"HoaDon/GetById/{idhd}");
+                    if (!hoaDonResponse.IsSuccessStatusCode)
+                     {
+                        return Json(new { success = false, message = "Không lấy được thông tin hóa đơn" });
+                    }
+
+                    var jsonString = await hoaDonResponse.Content.ReadAsStringAsync();
+                    var hoaDon = JsonConvert.DeserializeObject<HoaDon>(jsonString);
+                    if (hoaDon == null)
+                    {
+                        return Json(new { success = false, message = "Hóa đơn không tồn tại" });
+                    }
+
+                    // Kiểm tra logic trạng thái
+                    //if (trangthai == 3 && hoaDon.TrangThaiGiaoHang != 11)
+                    //{
+                    //    return Json(new
+                    //    {
+                    //        success = false,
+                    //        message = "Phải xác nhận xong đóng hàng (trạng thái 11) trước khi chuyển sang 'Đang giao hàng'"
+                    //    });
+                    //}
+
                     if (trangthai == 6)
                     {
                         string url = $"HoaDon/GiaoThanhCong?idhd={idhd}&idnv={idnv}";
@@ -152,6 +178,7 @@ namespace AppView.Controllers
                         }
                     }
                 }
+
                 return Json(new { success = false, message = "Cập nhật trạng thái thất bại" });
             }
             catch (Exception)
@@ -159,6 +186,7 @@ namespace AppView.Controllers
                 return RedirectToAction("_QuanLyHoaDon", "QuanLyHoaDon");
             }
         }
+
         //Hủy hóa đơn
         [HttpGet("/QuanLyHoaDon/HuyHD")]
         public async Task<IActionResult> HuyHD(Guid idhd, string ghichu)
