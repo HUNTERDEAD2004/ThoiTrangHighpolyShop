@@ -1,0 +1,654 @@
+@model AppView.Models.VoucherCustomerVM
+
+@{
+    ViewData["Title"] = "Tạo voucher + Danh sách khách hàng";
+}
+
+<style>
+    body,
+    .form-label,
+    .form-control::placeholder,
+    .btn,
+    .badge,
+    .page-link,
+    h1, h2, h3, h4, h5, h6,
+    label,
+    th, td,
+    .section-title,
+    .card-header,
+    .form-check-label,
+    small,
+    .alert {
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px;
+    }
+    .form-label {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .form-control {
+        font-size: 1rem;
+        padding: 0.75rem;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.3rem rgba(102, 126, 234, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.3rem rgba(220, 53, 69, 0.25);
+    }
+    
+    .text-danger {
+        font-size: 1rem;
+        margin-top: 0.5rem;
+        font-weight: 600;
+        color: #dc3545;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 700;
+        font-size: 1.3rem;
+        border: none;
+        padding: 1.5rem;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+        transform: scale(1.2);
+    }
+    
+    .form-check-label {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #495057;
+        margin-left: 0.5rem;
+    }
+    
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+        font-weight: 600;
+    }
+    
+    .table th {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #2c3e50;
+    }
+    
+    .customer-checkbox:checked {
+        accent-color: #667eea;
+        transform: scale(1.2);
+    }
+    
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+        height: fit-content;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .required-field {
+        color: #e74c3c;
+        font-weight: 800;
+        font-size: 1.2rem;
+        margin-left: 0.25rem;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #667eea;
+        text-transform: none;
+        letter-spacing: 0.5px;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .input-group {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+    
+    .btn-outline-secondary {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #667eea;
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+    
+    .text-success {
+        color: #28a745 !important;
+        font-weight: 600;
+    }
+    
+    .text-warning {
+        color: #ffc107 !important;
+        font-weight: 600;
+    }
+    
+    #voucherCodeStatus {
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+    
+    #voucherCodeStatus i {
+        margin-right: 0.5rem;
+    }
+    
+    /* Hiệu ứng chuyển đổi mượt mà */
+    #voucherFormContainer,
+    #customerTableContainer {
+        transition: all 0.3s ease-in-out;
+    }
+    
+    /* Ẩn bảng khách hàng */
+    #customerTableContainer.hidden {
+        display: none !important;
+    }
+    
+    /* Form mở rộng */
+    #voucherFormContainer.expanded {
+        width: 100% !important;
+    }
+    
+    /* Thông báo */
+    #notification {
+        animation: slideInRight 0.3s ease-out;
+    }
+    
+    
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Form tạo voucher -->
+        <div class="col-lg-7 mb-3" id="voucherFormContainer">
+            <div class="card">
+                <div class="card-header">Tạo mới phiếu giảm giá</div>
+                <div class="card-body">
+                                         <form asp-action="CreateWithCustomers" method="post" id="voucherForm">
+                        <!-- Hiển thị voucher (chuyển lên đầu) -->
+                        <div class="section-title">Hiển thị voucher</div>
+                        <div class="form-group">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="Visibility" id="public" value="public" onchange="toggleCustomerTable()">
+                                <label class="form-check-label" for="public">Công khai</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="Visibility" id="private" value="private" checked onchange="toggleCustomerTable()">
+                                <label class="form-check-label" for="private">Riêng tư</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Thông tin cơ bản -->
+                        <div class="section-title">Thông tin cơ bản</div>
+                        
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Mã giảm giá <span class="required-field">*</span></label>
+                                    <div class="input-group">
+                                        <input asp-for="VoucherForm.MaVoucher" class="form-control" id="voucherCode" 
+                                               placeholder="Nhập mã voucher" required 
+                                               onblur="checkVoucherExists()" />
+                                        <button type="button" class="btn btn-outline-secondary" onclick="generateRandomCode()">
+                                            TẠO NGẪU NHIÊN
+                                        </button>
+                                    </div>
+                                    <div id="voucherCodeStatus" class="mt-1"></div>
+                                    <span asp-validation-for="VoucherForm.MaVoucher" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Tên mã giảm giá <span class="required-field">*</span></label>
+                                    <input asp-for="VoucherForm.Ten" class="form-control" placeholder="Nhập tên voucher" required />
+                                    <span asp-validation-for="VoucherForm.Ten" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cấu hình giảm giá -->
+                        <div class="section-title">Cấu hình giảm giá</div>
+                         
+                         <div class="row">
+                             <div class="col-6">
+                                 <div class="form-group">
+                                     <label class="form-label">Giá trị giảm <span class="required-field">*</span></label>
+                                     <input asp-for="VoucherForm.GiaTri" type="number" class="form-control" placeholder="Nhập giá trị" required min="0" />
+                                     <span asp-validation-for="VoucherForm.GiaTri" class="text-danger"></span>
+                                 </div>
+                             </div>
+                             <div class="col-6">
+                                 <div class="form-group">
+                                     <label class="form-label">Đơn vị giảm giá</label>
+                                     <div class="form-check form-check-inline">
+                                         <input class="form-check-input" type="radio" name="DiscountUnit" id="percent" value="percent" checked>
+                                         <label class="form-check-label" for="percent">Phần trăm (%)</label>
+                                     </div>
+                                     <div class="form-check form-check-inline">
+                                         <input class="form-check-input" type="radio" name="DiscountUnit" id="vnd" value="vnd">
+                                         <label class="form-check-label" for="vnd">Tiền mặt (VND)</label>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+
+                         <!-- Cài đặt số lượng và giá -->
+                         <div class="section-title">Cài đặt số lượng và giá</div>
+                         
+                         <div class="row">
+                             <div class="col-6">
+                                 <div class="form-group">
+                                     <label class="form-label">Số lượng voucher <span class="required-field">*</span></label>
+                                     <input asp-for="VoucherForm.SoLuong" type="number" class="form-control" placeholder="Nhập số lượng" required min="1" />
+                                     <span asp-validation-for="VoucherForm.SoLuong" class="text-danger"></span>
+                                 </div>
+                             </div>
+                             <div class="col-6">
+                                 <div class="form-group">
+                                     <label class="form-label">Đơn giá tối thiểu <span class="required-field">*</span></label>
+                                     <input asp-for="VoucherForm.GiaTriToiThieu" type="number" class="form-control" placeholder="Nhập giá tối thiểu" required min="0" />
+                                     <span asp-validation-for="VoucherForm.GiaTriToiThieu" class="text-danger"></span>
+                                 </div>
+                             </div>
+                         </div>
+
+                         <div class="form-group">
+                             <label class="form-label">Giảm tối đa <span class="required-field">*</span></label>
+                             <input asp-for="VoucherForm.GiaTriToiDa" type="number" class="form-control" placeholder="Nhập giá tối đa" required min="0" />
+                             <span asp-validation-for="VoucherForm.GiaTriToiDa" class="text-danger"></span>
+                         </div>
+
+                         <!-- Thời gian áp dụng -->
+                         <div class="section-title">Thời gian áp dụng</div>
+                         
+                         <div class="row">
+                             <div class="col-6">
+                                 <div class="form-group">
+                                     <label class="form-label">Ngày bắt đầu <span class="required-field">*</span></label>
+                                     <input asp-for="VoucherForm.NgayApDung" type="datetime-local" class="form-control" required />
+                                     <span asp-validation-for="VoucherForm.NgayApDung" class="text-danger"></span>
+                                 </div>
+                             </div>
+                             <div class="col-6"><!-- (đã chuyển radio hiển thị lên đầu) --></div>
+                         </div>
+
+                         <div class="form-group">
+                             <label class="form-label">Ngày kết thúc <span class="required-field">*</span></label>
+                             <input asp-for="VoucherForm.NgayKetThuc" type="datetime-local" class="form-control" required />
+                             <span asp-validation-for="VoucherForm.NgayKetThuc" class="text-danger"></span>
+                         </div>
+
+                         <!-- Mô tả -->
+                         <div class="section-title">Mô tả chi tiết</div>
+                         
+                         <div class="form-group">
+                             <label class="form-label">Mô tả voucher</label>
+                             <textarea asp-for="VoucherForm.MoTa" class="form-control" rows="3" placeholder="Nhập mô tả về voucher"></textarea>
+                             <span asp-validation-for="VoucherForm.MoTa" class="text-danger"></span>
+                         </div>
+
+                         <!-- Hành động -->
+                         <div class="section-title">Hành động</div>
+                         
+                         <div class="text-center">
+                             <a asp-action="GetAllVoucher" class="btn btn-secondary me-3">
+                                 HỦY BỎ
+                             </a>
+                             <button type="submit" class="btn btn-primary">
+                                 TẠO VOUCHER
+                             </button>
+                         </div>
+                         
+                         <div class="text-center mt-3">
+                             <small class="text-muted">
+                                 Các trường có dấu <span class="required-field">*</span> là bắt buộc phải nhập
+                             </small>
+                         </div>
+                     </form>
+                 </div>
+             </div>
+         </div>
+
+                 <!-- Danh sách khách hàng -->
+        <div class="col-lg-5 mb-3" id="customerTableContainer">
+            <div class="card">
+                <div class="card-header">Danh sách khách hàng</div>
+                <div class="card-body">
+                    @Html.Partial("~/Views/Shared/_CustomersTable.cshtml", Model.Customers)
+                </div>
+            </div>
+        </div>
+     </div>
+ </div>
+
+ <!-- JavaScript cho validation và chức năng -->
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation/1.19.5/jquery.validate.min.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+ 
+   <script>
+ var voucherExistsFlag = false;
+ 
+ // Tạo mã voucher ngẫu nhiên
+ function generateRandomCode() {
+     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+     let result = '';
+     for (let i = 0; i < 8; i++) {
+         result += chars.charAt(Math.floor(Math.random() * chars.length));
+     }
+     document.getElementById('voucherCode').value = result;
+     // Kiểm tra ngay sau khi tạo
+     checkVoucherExists();
+ }
+ 
+ // Kiểm tra mã voucher đã tồn tại
+ async function checkVoucherExists() {
+     const voucherCode = document.getElementById('voucherCode').value.trim();
+     const statusDiv = document.getElementById('voucherCodeStatus');
+     
+     if (voucherCode === '') {
+         statusDiv.innerHTML = '';
+         voucherExistsFlag = false;
+         return;
+     }
+ 
+     try {
+         const response = await fetch(`https://localhost:7095/api/Voucher/check-exists?maVoucher=${encodeURIComponent(voucherCode)}`);
+         if (!response.ok) throw new Error('Network');
+         const result = await response.json();
+         
+         if (result && (result.exists === true || result.exists === 'true')) {
+             statusDiv.innerHTML = '<div class="text-danger">Mã voucher này đã tồn tại!</div>';
+             document.getElementById('voucherCode').classList.add('is-invalid');
+             voucherExistsFlag = true;
+         } else {
+             statusDiv.innerHTML = '<div class="text-success">Mã voucher có thể sử dụng</div>';
+             document.getElementById('voucherCode').classList.remove('is-invalid');
+             voucherExistsFlag = false;
+         }
+     } catch (error) {
+         statusDiv.innerHTML = '<div class="text-warning">Không thể kiểm tra mã voucher</div>';
+     }
+ }
+ 
+ // Ngăn submit khi mã voucher trùng
+ document.getElementById('voucherForm').addEventListener('submit', function(e) {
+     if (voucherExistsFlag) {
+         alert('Mã voucher đã tồn tại. Vui lòng nhập mã khác.');
+         e.preventDefault();
+         e.stopPropagation();
+     }
+ });
+
+ // Xử lý ẩn/hiện bảng khách hàng dựa trên lựa chọn hiển thị
+ function toggleCustomerTable() {
+     const isPublic = document.getElementById('public').checked;
+     const customerTableContainer = document.getElementById('customerTableContainer');
+     const voucherFormContainer = document.getElementById('voucherFormContainer');
+     
+     if (isPublic) {
+         // Nếu chọn "Công khai" - ẩn bảng khách hàng, mở rộng form
+         customerTableContainer.classList.add('hidden');
+         voucherFormContainer.classList.add('expanded');
+         voucherFormContainer.className = 'col-lg-12 mb-3 expanded';
+         
+         // Ẩn tất cả checkbox khách hàng
+         document.querySelectorAll('.customer-checkbox').forEach(checkbox => {
+             checkbox.checked = false;
+             checkbox.disabled = true;
+         });
+     } else {
+         // Nếu chọn "Riêng tư" - hiện bảng khách hàng, thu nhỏ form
+         customerTableContainer.classList.remove('hidden');
+         voucherFormContainer.classList.remove('expanded');
+         voucherFormContainer.className = 'col-lg-7 mb-3';
+         
+         // Bật lại tất cả checkbox khách hàng
+         document.querySelectorAll('.customer-checkbox').forEach(checkbox => {
+             checkbox.disabled = false;
+         });
+     }
+ }
+
+  // Hiển thị thông báo
+  function showNotification(message, type = 'info') {
+      // Xóa thông báo cũ nếu có
+      const existingNotification = document.getElementById('notification');
+      if (existingNotification) {
+          existingNotification.remove();
+      }
+
+      // Tạo thông báo mới
+      const notification = document.createElement('div');
+      notification.id = 'notification';
+      notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+      notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+      
+      notification.innerHTML = `
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Tự động ẩn sau 5 giây
+      setTimeout(() => {
+          if (notification.parentNode) {
+              notification.remove();
+          }
+      }, 5000);
+  }
+
+ // Xử lý đơn vị giảm giá
+ document.querySelectorAll('input[name="DiscountUnit"]').forEach(radio => {
+     radio.addEventListener('change', function() {
+         const giaTriInput = document.getElementById('VoucherForm_GiaTri');
+         const currentValue = giaTriInput.value;
+         
+         if (this.value === 'percent') {
+             // Nếu chọn %, giới hạn giá trị từ 1-100
+             giaTriInput.min = '1';
+             giaTriInput.max = '100';
+             if (currentValue > 100) giaTriInput.value = '100';
+         } else {
+             // Nếu chọn VND, bỏ giới hạn
+             giaTriInput.min = '0';
+             giaTriInput.removeAttribute('max');
+         }
+     });
+ });
+
+   // Khởi tạo giao diện khi load trang
+  $(document).ready(function() {
+      // Kiểm tra trạng thái ban đầu
+      toggleCustomerTable();
+      
+      // Validation tùy chỉnh
+     $('#voucherForm').validate({
+         rules: {
+             'VoucherForm.MaVoucher': {
+                 required: true,
+                 minlength: 3,
+                 maxlength: 20
+             },
+             'VoucherForm.Ten': {
+                 required: true,
+                 minlength: 2,
+                 maxlength: 100
+             },
+             'VoucherForm.GiaTri': {
+                 required: true,
+                 min: function() {
+                     return $('input[name="DiscountUnit"]:checked').val() === 'percent' ? 1 : 0;
+                 },
+                 max: function() {
+                     return $('input[name="DiscountUnit"]:checked').val() === 'percent' ? 100 : 999999999;
+                 }
+             },
+             'VoucherForm.SoLuong': {
+                 required: true,
+                 min: 1,
+                 max: 999999
+             },
+             'VoucherForm.GiaTriToiThieu': {
+                 required: true,
+                 min: 0
+             },
+             'VoucherForm.GiaTriToiDa': {
+                 required: true,
+                 min: 0
+             },
+             'VoucherForm.NgayApDung': {
+                 required: true
+             },
+             'VoucherForm.NgayKetThuc': {
+                 required: true
+             }
+         },
+         messages: {
+             'VoucherForm.MaVoucher': {
+                 required: 'Vui lòng nhập mã voucher',
+                 minlength: 'Mã voucher phải có ít nhất 3 ký tự',
+                 maxlength: 'Mã voucher không được quá 20 ký tự'
+             },
+             'VoucherForm.Ten': {
+                 required: 'Vui lòng nhập tên voucher',
+                 minlength: 'Tên voucher phải có ít nhất 2 ký tự',
+                 maxlength: 'Tên voucher không được quá 100 ký tự'
+             },
+             'VoucherForm.GiaTri': {
+                 required: 'Vui lòng nhập giá trị giảm',
+                 min: 'Giá trị giảm phải lớn hơn 0',
+                 max: 'Giá trị giảm không hợp lệ'
+             },
+             'VoucherForm.SoLuong': {
+                 required: 'Vui lòng nhập số lượng',
+                 min: 'Số lượng phải lớn hơn 0',
+                 max: 'Số lượng không hợp lệ'
+             },
+             'VoucherForm.GiaTriToiThieu': {
+                 required: 'Vui lòng nhập đơn giá tối thiểu',
+                 min: 'Đơn giá tối thiểu phải lớn hơn hoặc bằng 0'
+             },
+             'VoucherForm.GiaTriToiDa': {
+                 required: 'Vui lòng nhập giảm tối đa',
+                 min: 'Giảm tối đa phải lớn hơn hoặc bằng 0'
+             },
+             'VoucherForm.NgayApDung': {
+                 required: 'Vui lòng chọn ngày bắt đầu'
+             },
+             'VoucherForm.NgayKetThuc': {
+                 required: 'Vui lòng chọn ngày kết thúc'
+             }
+         },
+         errorPlacement: function(error, element) {
+             error.insertAfter(element);
+         },
+         highlight: function(element) {
+             $(element).addClass('is-invalid');
+         },
+         unhighlight: function(element) {
+             $(element).removeClass('is-invalid');
+         }
+     });
+
+     // Validation ngày
+     $('#VoucherForm_NgayKetThuc').on('change', function() {
+         const startDate = new Date($('#VoucherForm_NgayApDung').val());
+         const endDate = new Date(this.value);
+         
+         if (endDate <= startDate) {
+             $(this).addClass('is-invalid');
+             if (!$(this).next('.text-danger').length) {
+                 $(this).after('<span class="text-danger">Ngày kết thúc phải sau ngày bắt đầu</span>');
+             }
+         } else {
+             $(this).removeClass('is-invalid');
+             $(this).next('.text-danger').remove();
+         }
+     });
+
+     // Validation giá trị
+     $('#VoucherForm_GiaTriToiDa').on('change', function() {
+         const giaTri = parseInt($('#VoucherForm_GiaTri').val());
+         const giaTriToiDa = parseInt(this.value);
+         
+         if (giaTriToiDa < giaTri) {
+             $(this).addClass('is-invalid');
+             if (!$(this).next('.text-danger').length) {
+                 $(this).after('<span class="text-danger">Giảm tối đa phải lớn hơn hoặc bằng giá trị giảm</span>');
+             }
+         } else {
+             $(this).removeClass('is-invalid');
+             $(this).next('.text-danger').remove();
+         }
+     });
+ });
+ </script>
+
+

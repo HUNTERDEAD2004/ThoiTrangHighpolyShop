@@ -1,0 +1,86 @@
+@model IEnumerable<AppData.ViewModels.KhachHangViewModel>
+
+<div class="mb-3">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <div class="input-group input-group-sm">
+                <input type="text" id="customerSearch" class="form-control" placeholder="Tìm kiếm khách hàng...">
+                <button class="btn btn-outline-secondary" type="button" onclick="searchCustomers()">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllCustomers()">
+                <i class="fa fa-check-square"></i> Chọn tất cả
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAllCustomers()">
+                <i class="fa fa-square"></i> Bỏ chọn tất cả
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered table-sm align-middle text-center">
+        <thead class="table-dark">
+            <tr>
+                <th>Chọn</th>
+                <th>ID</th>
+                <th>Họ tên</th>
+                <th>Số điện thoại</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>
+                    <input type="checkbox" name="SelectedCustomerIds" value="@c.Id" class="customer-checkbox" />
+                </td>
+                <td>@c.Id</td>
+                <td>@c.Ten</td>
+                <td>@c.SDT</td>
+                <td>@c.Email</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<script>
+function selectAllCustomers() {
+    document.querySelectorAll('.customer-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
+
+function deselectAllCustomers() {
+    document.querySelectorAll('.customer-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+function searchCustomers() {
+    const searchTerm = document.getElementById('customerSearch').value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const name = row.cells[2].textContent.toLowerCase();
+        const phone = row.cells[3].textContent.toLowerCase();
+        const email = row.cells[4].textContent.toLowerCase();
+        
+        if (name.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Tìm kiếm khi gõ
+document.getElementById('customerSearch').addEventListener('input', searchCustomers);
+</script>
+
+

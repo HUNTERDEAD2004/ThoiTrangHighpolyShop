@@ -17,11 +17,22 @@ namespace AppAPI.Services
         }
         public bool Add(VoucherView voucherview)
         {
+            // Reject duplicate voucher code (MaVoucher) case-insensitive
+            var normalizedCode = voucherview.MaVoucher?.Trim();
+            if (!string.IsNullOrWhiteSpace(normalizedCode))
+            {
+                var exists = context.Vouchers.Any(v => v.MaVoucher != null && v.MaVoucher.ToLower() == normalizedCode.ToLower());
+                if (exists)
+                {
+                    return false;
+                }
+            }
+
             voucherview.Id=Guid.NewGuid();
             var voucher= new Voucher();
             voucher.ID=voucherview.Id;
             voucher.Ten=voucherview.Ten?.Trim();
-            voucher.MaVoucher=voucherview.MaVoucher;
+            voucher.MaVoucher= normalizedCode;
             voucher.HinhThucGiamGia=voucherview.HinhThucGiamGia;
             voucher.GiaTriToiThieu = voucherview.GiaTriToiThieu;
             voucher.GiaTriToiDa = voucherview.GiaTriToiDa;
@@ -35,7 +46,8 @@ namespace AppAPI.Services
             voucher.SoLuong=voucherview.SoLuong;
             voucher.MoTa = voucherview.MoTa?.Trim();
             voucher.TrangThai=voucherview.TrangThai;
-            return _voucherRepo.Add(voucher);
+            voucher.IsPublic = voucherview.IsPublic;
+            return _allRepository.Add(voucher);
         }
 
         public bool Delete(Guid Id)
@@ -64,33 +76,35 @@ namespace AppAPI.Services
 
         public bool Update(Guid id,VoucherView voucherview)
         {
-            var voucher= _voucherRepo.GetAll().FirstOrDefault(x => x.ID == id);
+            var voucher = _allRepository.GetAll().FirstOrDefault(x => x.ID == id);
             if (voucher != null)
             {
-              
-                //voucher.Ten = voucherview.Ten;
-                //voucher.HinhThucGiamGia = voucherview.HinhThucGiamGia;
+                voucher.Ten = voucherview.Ten?.Trim();
+                voucher.MaVoucher = voucherview.MaVoucher?.Trim();
+                voucher.HinhThucGiamGia = voucherview.HinhThucGiamGia;
                 voucher.GiaTriToiThieu = voucherview.GiaTriToiThieu;
-                //voucher.GiaTri = voucherview.GiaTri;
-                voucher.NgayApDung = voucherview.NgayApDung;
-                voucher.NgayKetThuc = voucherview.NgayKetThuc;
-                if (voucher.NgayApDung > voucher.NgayKetThuc)
+                voucher.GiaTriToiDa = voucherview.GiaTriToiDa;
+                voucher.GiaTri = voucherview.GiaTri;
+
+                if (voucherview.NgayApDung > voucherview.NgayKetThuc)
                 {
                     return false;
                 }
+                voucher.NgayApDung = voucherview.NgayApDung;
+                voucher.NgayKetThuc = voucherview.NgayKetThuc;
                 voucher.SoLuong = voucherview.SoLuong;
                 voucher.MoTa = voucherview.MoTa?.Trim();
-              
-                return _voucherRepo.Update(voucher);
+                voucher.TrangThai = voucherview.TrangThai;
+                voucher.IsPublic = voucherview.IsPublic;
+
+                return _allRepository.Update(voucher);
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
         public Voucher? GetVoucherByMa(string ma)
         {
-            return _voucherRepo.GetAll().FirstOrDefault(x => x.Ten.ToUpper() == ma.ToUpper());
+            if (string.IsNullOrWhiteSpace(ma)) return null;
+            return _allRepository.GetAll().FirstOrDefault(x => x.MaVoucher != null && x.MaVoucher.ToUpper() == ma.ToUpper());
         }
         public bool UpdateTrangThai(Guid id, int trangThaiMoi)
         {

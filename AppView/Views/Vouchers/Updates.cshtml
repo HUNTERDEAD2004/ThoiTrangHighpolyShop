@@ -1,86 +1,90 @@
 ﻿@model AppData.ViewModels.VoucherView
 
 @{
-    ViewData["Title"] = "Cập nhật mã giảm giá";
-    Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
+    ViewData["Title"] = "CẬP NHẬT MÃ GIẢM GIÁ";
+    Layout = "_LayoutForAdmin";
 }
 
 <div class="container mt-4">
-    <h3 class="text-center text-uppercase mb-4 text-primary">Cập nhật mã giảm giá</h3>
+    <h3 class="text-center mb-4 text-primary">CẬP NHẬT MÃ GIẢM GIÁ</h3>
 
     <form asp-action="Updates" method="post">
+        @Html.AntiForgeryToken()
+
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-        <div class="row g-3">
-            <div class="col-md-6" hidden>
-                <label class="form-label text-dark">ID</label>
-                <input asp-for="Id" class="form-control" />
-            </div>
+        <!-- Hidden Id -->
+        <input type="hidden" asp-for="Id" />
 
-            <div class="col-md-6" hidden>
-                <label class="form-label text-dark">Mã giảm giá</label>
-                <input asp-for="Ten" class="form-control" />
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">MÃ GIẢM GIÁ</label>
+                <input asp-for="MaVoucher" class="form-control" />
+                <span asp-validation-for="MaVoucher" class="text-danger"></span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Mô tả</label>
+                <label class="form-label">MÔ TẢ</label>
                 <input asp-for="MoTa" class="form-control" />
                 <span asp-validation-for="MoTa" class="text-danger"></span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Giá trị giảm</label>
+                <label class="form-label">GIÁ TRỊ GIẢM</label>
                 <div class="input-group">
                     <input asp-for="GiaTri" class="form-control" type="number" min="0" />
                     <div class="input-group-text">
                         <div class="form-check me-2">
-                            <input class="form-check-input" type="radio" name="HinhThucGiamGia" value="1" checked />
+                            <input class="form-check-input" type="radio" asp-for="HinhThucGiamGia" value="1" />
                             <label class="form-check-label">%</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="HinhThucGiamGia" value="0" />
+                            <input class="form-check-input" type="radio" asp-for="HinhThucGiamGia" value="0" />
                             <label class="form-check-label">VND</label>
                         </div>
                     </div>
                 </div>
-                <span class="text-danger">@ViewData["GiaTri"]</span>
+                <span asp-validation-for="GiaTri" class="text-danger"></span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Số lượng</label>
+                <label class="form-label">SỐ LƯỢNG</label>
                 <input asp-for="SoLuong" class="form-control" type="number" min="0" />
-                <span class="text-danger">@ViewData["SoLuong"]</span>
+                <span asp-validation-for="SoLuong" class="text-danger"></span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Đơn hàng tối thiểu</label>
+                <label class="form-label">ĐƠN HÀNG TỐI THIỂU</label>
                 <input asp-for="GiaTriToiThieu" class="form-control" type="number" min="0" />
-                <span class="text-danger">@ViewData["GiaTriToiThieu"]</span>
+                <span asp-validation-for="GiaTriToiThieu" class="text-danger"></span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Giảm tối đa</label>
+                <label class="form-label">GIẢM TỐI ĐA</label>
                 <input asp-for="GiaTriToiDa" class="form-control" type="number" min="0" />
-                <span class="text-danger">@ViewData["GiaTriToiDa"]</span>
+                <span asp-validation-for="GiaTriToiDa" class="text-danger"></span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Ngày bắt đầu</label>
-                <input asp-for="NgayApDung" type="datetime-local" class="form-control" />
+                <label class="form-label">NGÀY BẮT ĐẦU</label>
+                <input asp-for="NgayApDung" type="datetime-local"
+                       value="@Model.NgayApDung.ToString("yyyy-MM-ddTHH:mm")"
+                       class="form-control" />
                 <span asp-validation-for="NgayApDung" class="text-danger"></span>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label text-dark">Ngày kết thúc</label>
-                <input asp-for="NgayKetThuc" type="datetime-local" class="form-control" />
+                <label class="form-label">NGÀY KẾT THÚC</label>
+                <input asp-for="NgayKetThuc" type="datetime-local"
+                       value="@Model.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm")"
+                       class="form-control" />
                 <span asp-validation-for="NgayKetThuc" class="text-danger"></span>
-                <span class="text-danger">@ViewData["Ngay"]</span>
             </div>
         </div>
 
         <div class="mt-4 d-flex justify-content-end gap-2">
-            <a asp-action="GetAllVoucher" class="btn btn-secondary">Quay lại</a>
-            <button type="submit" class="btn btn-success">Lưu thay đổi</button>
+            <a asp-action="GetAllVoucher" class="btn btn-secondary">QUAY LẠI</a>
+            <button type="submit" class="btn btn-success">LƯU THAY ĐỔI</button>
         </div>
     </form>
 </div>

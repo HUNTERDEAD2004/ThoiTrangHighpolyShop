@@ -47,5 +47,7 @@ namespace AppData.ViewModels
         public string? MoTa { get; set; }
         [Required(ErrorMessage = "mời bạn nhập dữ liệu")]
         public int TrangThai { get; set; }
+        // Chế độ hiển thị: true = công khai, false = riêng tư
+        public bool IsPublic { get; set; }
     }
 }

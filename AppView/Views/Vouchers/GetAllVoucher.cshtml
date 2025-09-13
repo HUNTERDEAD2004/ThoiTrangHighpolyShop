@@ -4,7 +4,11 @@
     int stt = 1;
     var now = DateTime.Now;
 }
-
+<style>
+    body, table, .form-label, .btn, .badge, .page-link, h2, h5, label, th, td {
+        text-transform: uppercase !important;
+    }
+</style>
 <h2 class="text-center text-uppercase mt-4 mb-4 text-primary font-weight-bold">Quản lý Voucher</h2>
 <div class="row g-3 align-items-end mb-3">
     <form asp-action="FilterVouchers" method="get" class="col-10 row g-3">
@@ -35,7 +39,7 @@
 
     <!-- Nút Thêm -->
     <div class="col-2 text-end">
-        <a class="btn btn-dark btn-sm" asp-action="Create">
+        <a class="btn btn-dark btn-sm" asp-action="CreateWithCustomers">
             <i class="fa fa-plus"></i> Thêm mới
         </a>
     </div>
@@ -82,6 +86,7 @@
                 <th>Ngày kết thúc</th>
                 <th>Số lượng</th>
                 <th>Mô tả</th>
+                <th>Chế độ</th>
                 <th>Trạng thái</th>
                 <th>Tình trạng</th>
                 <th>Thao tác</th>
@@ -109,7 +114,7 @@
                     <td>@item.NgayKetThuc.ToString("dd/MM/yyyy")</td>
                     <td>@item.SoLuong</td>
                     <td>@item.MoTa</td>
-
+                    <td>@(item.IsPublic ? "Công khai" : "Riêng tư")</td>
                    
 
                     @* Trạng thái (không lưu DB) - có badge màu khi Hoạt động *@
@@ -184,6 +189,10 @@
             <i class="fa fa-eye"></i>
         </a>
 
+        <!-- Gán khách hàng -->
+        <button type="button" class="btn btn-primary btn-sm" title="Thêm cho khách hàng" onclick="openAssignModal('@item.Id')">
+            <i class="fa fa-user-plus"></i>
+        </button>
        
 
         <!-- Xóa -->
@@ -200,6 +209,27 @@
     </table>
 </div>
 
+<!-- Modal gán voucher cho khách hàng -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Thêm voucher cho khách hàng</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="assignModalBody">
+            <div class="text-center py-5">Đang tải...</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-primary" id="assignSubmitBtn">Gán</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
 <nav aria-label="Page navigation" class="mt-4">
     <ul class="pagination justify-content-center">
         @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
@@ -210,3 +240,108 @@
         }
     </ul>
 </nav>
+
+<script>
+let currentVoucherId = null;
+
+async function openAssignModal(voucherId) {
+    currentVoucherId = voucherId;
+    const modal = new bootstrap.Modal(document.getElementById('assignModal'));
+    document.getElementById('assignModalBody').innerHTML = '<div class="text-center py-5">Đang tải...</div>';
+    modal.show();
+
+    try {
+        // Lấy thông tin voucher để biết công khai/riêng tư
+        const voucherRes = await fetch(`https://localhost:7095/api/Voucher/${voucherId}`);
+        const voucher = await voucherRes.json();
+
+        // Nếu voucher công khai, hiển thị thông báo và không cho gán thủ công
+        if (voucher && (voucher.isPublic === true || voucher.IsPublic === true)) {
+            document.getElementById('assignModalBody').innerHTML = `
+                <div class="alert alert-info">
+                    <strong>Mã:</strong> ${voucher.maVoucher || voucher.MaVoucher} - <strong>Chế độ:</strong> Công khai
+                </div>
+                <p>Voucher này đang ở chế độ Công khai và đã được áp dụng cho tất cả khách hàng đủ điều kiện. Không cần thêm thủ công.</p>`;
+            // Ẩn nút Gán
+            document.getElementById('assignSubmitBtn').style.display = 'none';
+            return;
+        } else {
+            // Hiện nút Gán nếu là riêng tư
+            document.getElementById('assignSubmitBtn').style.display = '';
+        }
+
+        const [customersRes, assignedIdsRes] = await Promise.all([
+            fetch('https://localhost:7095/api/KhachHang/get-view-all'),
+            fetch(`https://localhost:7095/api/UserVoucher/assigned-ids?voucherId=${voucherId}`)
+        ]);
+
+        const customers = await customersRes.json();
+        const assignedIds = new Set(await assignedIdsRes.json());
+
+        const rows = customers.map(c => {
+            const disabled = assignedIds.has(c.id || c.Id);
+            const id = c.id || c.Id;
+            const name = c.ten || c.Ten;
+            const phone = c.sdt || c.SDT;
+            const email = c.email || c.Email;
+            return `<tr>
+                <td><input type="checkbox" class="assign-cb" value="${id}" ${disabled ? 'disabled' : ''}></td>
+                <td>${name ?? ''}</td>
+                <td>${phone ?? ''}</td>
+                <td>${email ?? ''}</td>
+                <td>${disabled ? '<span class="badge bg-secondary">Đã có</span>' : ''}</td>
+            </tr>`;
+        }).join('');
+
+        document.getElementById('assignModalBody').innerHTML = `
+            <div class="mb-2">
+                <span class="badge bg-secondary">Mã: ${voucher.maVoucher || voucher.MaVoucher}</span>
+                <span class="badge bg-info text-dark ms-1">Chế độ: Riêng tư</span>
+            </div>
+            <div class="mb-2 d-flex justify-content-between">
+                <input id="assignSearch" class="form-control form-control-sm w-50" placeholder="Tìm khách hàng..." oninput="filterAssignTable()" />
+                <div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="checkAllAssign(false)">Bỏ chọn</button>
+                    <button class="btn btn-outline-success btn-sm" onclick="checkAllAssign(true)">Chọn tất</button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle text-center" id="assignTable">
+                    <thead class="table-light"><tr>
+                        <th>Chọn</th><th>Họ tên</th><th>SĐT</th><th>Email</th><th>Trạng thái</th>
+                    </tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
+
+    } catch (e) {
+        document.getElementById('assignModalBody').innerHTML = '<div class="text-danger">Không thể tải dữ liệu</div>';
+    }
+}
+
+function filterAssignTable(){
+    const q = (document.getElementById('assignSearch').value || '').toLowerCase();
+    document.querySelectorAll('#assignTable tbody tr').forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+function checkAllAssign(flag){
+    document.querySelectorAll('#assignTable .assign-cb:not(:disabled)').forEach(cb => cb.checked = flag);
+}
+
+document.getElementById('assignSubmitBtn').addEventListener('click', async () => {
+    const selected = Array.from(document.querySelectorAll('#assignTable .assign-cb:checked')).map(cb => cb.value);
+    if (!currentVoucherId || selected.length === 0){
+        return;
+    }
+    const res = await fetch('https://localhost:7095/api/UserVoucher/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ VoucherId: currentVoucherId, CustomerIds: selected })
+    });
+    if (res.ok){
+        location.reload();
+    }
+});
+</script>

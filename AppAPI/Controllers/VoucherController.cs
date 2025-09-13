@@ -33,9 +33,14 @@ namespace AppAPI.Controllers
 
         // POST api/<VoucherController>
         [HttpPost]
-        public bool Post(VoucherView voucher)
+        public IActionResult Post(VoucherView voucher)
         {
-            return _services.Add(voucher);
+            var added = _services.Add(voucher);
+            if (!added)
+            {
+                return Conflict("Mã voucher đã tồn tại hoặc dữ liệu không hợp lệ");
+            }
+            return Ok(true);
         }
 
         // PUT api/<VoucherController>/5
@@ -90,6 +95,19 @@ namespace AppAPI.Controllers
             {
                 return BadRequest("Cập nhật trạng thái thất bại.");
             }
+        }
+
+        // Kiểm tra mã voucher đã tồn tại
+        [HttpGet("check-exists")]
+        public IActionResult CheckVoucherExists([FromQuery] string maVoucher)
+        {
+            if (string.IsNullOrEmpty(maVoucher))
+            {
+                return BadRequest("Mã voucher không được để trống");
+            }
+
+            var existingVoucher = _services.GetVoucherByMa(maVoucher);
+            return Ok(new { exists = existingVoucher != null });
         }
 
         //[HttpGet("GetAllVoucherByTien")]
