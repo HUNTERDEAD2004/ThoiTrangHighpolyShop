@@ -110,55 +110,79 @@ namespace AppView.Controllers
             if (response.IsSuccessStatusCode) return Json(new { success = true, message = "Cập nhật thành công!" });
             return Json(new { success = false });
         }
-        // add km vo list SP theo id SP lay IDKhuyenMai Từ Session 
-        [HttpGet]
-        public async Task<IActionResult> AddCTSPByIdKMLayTuSession(Guid id, int ProductPage = 1)
-        {
-            // list khuyen mai view
-            string apiURL = $"https://localhost:7095/api/KhuyenMai";
-            var response = await _httpClient.GetAsync(apiURL);
-            var apiData = await response.Content.ReadAsStringAsync();
-            var roles = JsonConvert.DeserializeObject<List<KhuyenMaiView>>(apiData);
-            ViewBag.KhuyenMaiView = roles;
-            // list AllCTSP by SP
-            string apiURL1 = $"https://localhost:7095/api/KhuyenMai/GetAllCTSPBySP?idSanPham={id}";
-            var response1 = await _httpClient.GetAsync(apiURL1);
-            var apiData1 = await response1.Content.ReadAsStringAsync();
-            var bienthes = JsonConvert.DeserializeObject<List<AllViewCTSP>>(apiData1);
-            var idkhuyenmai = Guid.Parse(HttpContext.Session.GetString("IdKhuyenMai"));
-            ViewBag.IdKhuyenMai = idkhuyenmai;
-            return View(new PhanTrangCTSPBySP
-            {
-                listallctspbysp = bienthes.Where(x=>x.TrangThai==1||x.TrangThai==2)
-                        .Skip((ProductPage - 1) * PageSize).Take(PageSize),
-                PagingInfo = new PagingInfo
-                {
-                    ItemsPerPage = PageSize,
-                    CurrentPage = ProductPage,
-                    TotalItems = bienthes.Count()
-                }
-            });
-        }
+		// add km vo list SP theo id SP lay IDKhuyenMai Từ Session 
+		[HttpGet]
+		public async Task<IActionResult> AddCTSPByIdKMLayTuSession(Guid id, int ProductPage = 1)
+		{
+			// list khuyen mai view
+			string apiURL = $"https://localhost:7095/api/KhuyenMai";
+			var response = await _httpClient.GetAsync(apiURL);
+			var apiData = await response.Content.ReadAsStringAsync();
+			var roles = JsonConvert.DeserializeObject<List<KhuyenMaiView>>(apiData);
+			ViewBag.KhuyenMaiView = roles;
+
+			// list AllCTSP by SP
+			string apiURL1 = $"https://localhost:7095/api/KhuyenMai/GetAllCTSPBySP?idSanPham={id}";
+			var response1 = await _httpClient.GetAsync(apiURL1);
+			var apiData1 = await response1.Content.ReadAsStringAsync();
+			var bienthes = JsonConvert.DeserializeObject<List<AllViewCTSP>>(apiData1);
+
+			var idkhuyenmaiStr = HttpContext.Session.GetString("IdKhuyenMai");
+			if (string.IsNullOrEmpty(idkhuyenmaiStr))
+			{
+				TempData["Error"] = "Chưa chọn khuyến mãi.";
+				return RedirectToAction("Index"); // hoặc trang phù hợp
+			}
+			var idkhuyenmai = Guid.Parse(idkhuyenmaiStr);
+			ViewBag.IdKhuyenMai = idkhuyenmai;
+
+			return View(new PhanTrangCTSPBySP
+			{
+				listallctspbysp = bienthes.Where(x => x.TrangThai == 1 || x.TrangThai == 2)
+						.Skip((ProductPage - 1) * PageSize).Take(PageSize),
+				PagingInfo = new PagingInfo
+				{
+					ItemsPerPage = PageSize,
+					CurrentPage = ProductPage,
+					TotalItems = bienthes.Count()
+				}
+			});
+		}
 
 
-        [HttpPost]
-        public async Task<IActionResult> AddCTSPByIdKMLayTuSession(List<Guid> bienthes)
-        {
-            try
-            {
-                var idkhuyenmai = Guid.Parse(HttpContext.Session.GetString("IdKhuyenMai"));
-                var response = await _httpClient.PutAsJsonAsync($"https://localhost:7095/api/KhuyenMai/AddKmVoBT?IdKhuyenMai={idkhuyenmai}", bienthes);
 
-                if (response.IsSuccessStatusCode) return Json(new { success = true, message = "Cập nhật thành công!" });
-                return Json(new { success = false });
-            } // lay IdkhuyenMai Tu session
-            catch
-            {
-                return View();
-            }
-           
-        }
-        [HttpPost]
+		[HttpPost]
+		public async Task<IActionResult> AddCTSPByIdKMLayTuSession([FromBody] List<Guid> bienthes)
+		{
+			try
+			{
+				if (bienthes == null || !bienthes.Any())
+					return Json(new { success = false, message = "Danh sách chi tiết sản phẩm rỗng!" });
+
+				var idkhuyenmaiStr = HttpContext.Session.GetString("IdKhuyenMai");
+				if (string.IsNullOrEmpty(idkhuyenmaiStr))
+					return Json(new { success = false, message = "Chưa chọn khuyến mãi." });
+
+				var idkhuyenmai = Guid.Parse(idkhuyenmaiStr);
+
+				var response = await _httpClient.PutAsJsonAsync(
+					$"https://localhost:7095/api/KhuyenMai/AddKmVoBT?IdKhuyenMai={idkhuyenmai}",
+					bienthes
+				);
+
+				if (response.IsSuccessStatusCode)
+					return Json(new { success = true, message = "Cập nhật thành công!" });
+
+				var error = await response.Content.ReadAsStringAsync();
+				return Json(new { success = false, message = "API lỗi: " + error });
+			}
+			catch (Exception ex)
+			{
+				return Json(new { success = false, message = "Lỗi server: " + ex.Message });
+			}
+		}
+
+		[HttpPost]
         public async Task<IActionResult>XoaKHuyenMaiRaSP( List<Guid> bienthes)
         {
             try
@@ -548,7 +572,49 @@ namespace AppView.Controllers
 
             });
         }
+		[HttpPost]
+		public IActionResult GetCTSPByListSP([FromBody] List<Guid> listIdSP)
+		{
+			if (listIdSP == null || !listIdSP.Any())
+				return BadRequest("Danh sách sản phẩm trống!");
 
-        #endregion
-    }
+			var data = dBContext.ChiTietSanPhams
+				.Include(x => x.SanPham)
+				.Include(x => x.MauSac)
+				.Include(x => x.KichCo)
+				.Where(x => listIdSP.Contains(x.IDSanPham))
+				.Select(x => new {
+					id = x.ID,
+					tenSanPham = x.SanPham.Ten,
+					maCTSP = x.MaSPChiTiet,
+					tenMauSac = x.MauSac.Ten,
+					tenKichCo = x.KichCo.Ten,
+					giaGoc = x.GiaBan,
+					soLuong = x.SoLuong,
+					trangThai = x.TrangThai
+				})
+				.ToList();
+
+			return Json(data);
+		}
+
+
+		//
+		[HttpGet]
+		public JsonResult SetIdKhuyenMai(Guid id)
+		{
+			try
+			{
+				HttpContext.Session.SetString("IdKhuyenMai", id.ToString());
+				return Json(new { success = true });
+			}
+			catch (Exception ex)
+			{
+				// nếu cần log ex
+				return Json(new { success = false, message = ex.Message });
+			}
+		}
+
+		#endregion
+	}
 }

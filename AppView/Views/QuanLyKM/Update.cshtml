@@ -1,55 +1,99 @@
 ﻿@model AppData.ViewModels.KhuyenMaiView
 
 @{
-    ViewData["Title"] = "Sửa khuyến mãi";
+    ViewData["Title"] = "SỬA KHUYẾN MÃI";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
 }
 
-<div class="container mt-4">
-    <h2 class="text-center mb-4">Sửa Khuyến Mãi</h2>
+<div class="container mt-4 text-uppercase">
+    <h2 class="text-center fw-bold mb-4 text-dark">SỬA KHUYẾN MÃI</h2>
 
-    <form asp-action="Update">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <!-- THÔNG BÁO -->
+    @if (TempData["AlertMessage"] != null)
+    {
+        <div class="alert alert-@TempData["AlertType"] alert-dismissible fade show text-uppercase shadow-sm" role="alert">
+            <strong>THÔNG BÁO:</strong> @TempData["AlertMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
-        <!-- Hidden fields -->
+    <form asp-action="Update" method="post" class="shadow-sm p-4 border rounded bg-light text-uppercase">
+        <div asp-validation-summary="All" class="text-danger mb-3 fw-semibold"></div>
+
+        <!-- HIDDEN FIELDS -->
         <input asp-for="ID" type="hidden" />
         <input asp-for="Ten" type="hidden" />
         <input asp-for="GiaTri" type="hidden" />
 
         <div class="row g-3">
-            <!-- Ngày áp dụng -->
+            <!-- MÃ KHUYẾN MÃI -->
             <div class="col-md-6">
-                <label class="form-label fw-bold">Ngày áp dụng</label>
-                <input asp-for="NgayApDung" type="datetime-local" class="form-control" />
-                <span class="text-danger">@ViewData["NgayApDung"]</span>
+                <label asp-for="MaKhuyenMai" class="form-label text-dark">MÃ KHUYẾN MÃI</label>
+                <input asp-for="MaKhuyenMai" class="form-control text-uppercase" />
+                <span asp-validation-for="MaKhuyenMai" class="text-danger"></span>
             </div>
 
-            <!-- Ngày kết thúc -->
+            <!-- NGÀY BẮT ĐẦU -->
             <div class="col-md-6">
-                <label class="form-label fw-bold">Ngày kết thúc</label>
-                <input asp-for="NgayKetThuc" type="datetime-local" class="form-control" />
-                <span class="text-danger">@ViewData["NgayKetThuc"]</span>
-                <span class="text-danger">@ViewData["Ngay"]</span>
+                <label asp-for="NgayApDung" class="form-label text-dark">NGÀY BẮT ĐẦU</label>
+                <input asp-for="NgayApDung" type="datetime-local" class="form-control text-uppercase" />
+                <span asp-validation-for="NgayApDung" class="text-danger"></span>
             </div>
 
-            <!-- Mô tả -->
+            <!-- NGÀY KẾT THÚC -->
+            <div class="col-md-6">
+                <label asp-for="NgayKetThuc" class="form-label text-dark">NGÀY KẾT THÚC</label>
+                <input asp-for="NgayKetThuc" type="datetime-local" class="form-control text-uppercase" />
+                <span asp-validation-for="NgayKetThuc" class="text-danger"></span>
+                @if (ViewData["Ngay"] != null)
+                {
+                    <span class="text-danger">@ViewData["Ngay"]</span>
+                }
+            </div>
+
+            <!-- MÔ TẢ -->
             <div class="col-md-12">
-                <label class="form-label fw-bold">Mô tả</label>
-                <textarea asp-for="MoTa" class="form-control" rows="3" style="resize: vertical;" placeholder="Nhập mô tả khuyến mãi..."></textarea>
+                <label asp-for="MoTa" class="form-label text-dark">MÔ TẢ KHUYẾN MÃI</label>
+                <textarea asp-for="MoTa" class="form-control text-uppercase" rows="3" style="resize: vertical;" placeholder="NHẬP MÔ TẢ..."></textarea>
                 <span asp-validation-for="MoTa" class="text-danger"></span>
             </div>
         </div>
 
-        <!-- Buttons -->
-        <div class="mt-4 d-flex gap-3">
-            <button type="submit" class="btn btn-success px-4">Sửa khuyến mãi</button>
-            <a asp-action="GetAllKM" class="btn btn-secondary px-4">Quay lại</a>
+        <!-- NÚT THAO TÁC -->
+        <div class="mt-4 d-flex justify-content-end gap-3">
+            <button type="submit" class="btn btn-success px-4 text-uppercase">
+                <i class="fa fa-save me-1"></i> CẬP NHẬT
+            </button>
+            <a asp-action="GetAllKM" class="btn btn-secondary px-4 text-uppercase">
+                <i class="fa fa-arrow-left me-1"></i> QUAY LẠI
+            </a>
         </div>
     </form>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+input.form-control,
+textarea.form-control {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+input.form-control:focus,
+textarea.form-control:focus {
+    border-color: #212529;
+    box-shadow: 0 0 0 0.2rem rgba(33, 37, 41, 0.25);
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.text-uppercase {
+    letter-spacing: 0.5px;
 }

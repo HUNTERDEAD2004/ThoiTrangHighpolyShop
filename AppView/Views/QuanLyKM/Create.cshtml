@@ -1,73 +1,82 @@
 ﻿@model AppData.ViewModels.KhuyenMaiView
 
 @{
-    ViewData["Title"] = "Thêm khuyến mãi";
+    ViewData["Title"] = "THÊM KHUYẾN MÃI";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
 }
 
-<div class="container mt-4">
-    <h3 class="text-center text-uppercase mb-4 text-primary">Thêm khuyến mãi</h3>
+<div class="container mt-4 text-uppercase">
+    <h3 class="text-center fw-bold mb-4 text-dark">THÊM KHUYẾN MÃI</h3>
 
-    <form asp-action="Create" method="post">
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <form asp-action="Create" method="post" class="shadow-sm p-4 border rounded bg-light">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger text-uppercase fw-semibold border border-2 border-danger shadow-sm">
+            VUI LÒNG KIỂM TRA LẠI THÔNG TIN NHẬP
+        </div>
 
         <div class="row g-3">
+            <!-- TÊN KHUYẾN MÃI -->
             <div class="col-md-6">
-                <label asp-for="Ten" class="form-label text-dark">Tên đợt khuyến mãi</label>
-                <input asp-for="Ten" class="form-control" />
+                <label asp-for="Ten" class="form-label text-dark">TÊN ĐỢT KHUYẾN MÃI</label>
+                <input asp-for="Ten" class="form-control text-uppercase" />
                 <span asp-validation-for="Ten" class="text-danger"></span>
                 <span class="text-danger">@ViewData["Ma"]</span>
             </div>
 
+            <!-- MÃ KHUYẾN MÃI -->
             <div class="col-md-6">
-                <label asp-for="MaKhuyenMai" class="form-label text-dark">Mã khuyến mãi</label>
+                <label asp-for="MaKhuyenMai" class="form-label text-dark">MÃ KHUYẾN MÃI</label>
                 <div class="input-group">
-                    <input asp-for="MaKhuyenMai" class="form-control" id="maKhuyenMai" />
-                    <button type="button" class="btn btn-outline-secondary" onclick="generateRandomCode()">Random</button>
+                    <input asp-for="MaKhuyenMai" class="form-control text-uppercase" id="maKhuyenMai" />
+                    <button type="button" class="btn btn-dark text-white text-uppercase" onclick="generateRandomCode()">RANDOM</button>
                 </div>
                 <span asp-validation-for="MaKhuyenMai" class="text-danger"></span>
             </div>
 
+            <!-- GIÁ TRỊ -->
             <div class="col-md-6">
-                <label asp-for="GiaTri" class="form-label text-dark">Giá trị</label>
-                <input asp-for="GiaTri" class="form-control" />
+                <label asp-for="GiaTri" class="form-label text-dark">GIÁ TRỊ</label>
+                <input asp-for="GiaTri" class="form-control text-uppercase" />
                 <span asp-validation-for="GiaTri" class="text-danger"></span>
                 <span class="text-danger">@ViewData["GiaTri"]</span>
             </div>
 
+            <!-- LOẠI KHUYẾN MÃI -->
             <div class="col-md-6">
-                <label class="form-label text-dark">Loại khuyến mãi</label>
-                <div class="input-group">
-                    <div class="form-check me-3">
+                <label class="form-label text-dark">LOẠI KHUYẾN MÃI</label>
+                <div class="d-flex align-items-center gap-4">
+                    <div class="form-check">
                         <input class="form-check-input" type="radio" asp-for="TrangThai" value="1" checked />
-                        <label class="form-check-label">Phần trăm</label>
+                        <label class="form-check-label">PHẦN TRĂM</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" asp-for="TrangThai" value="0" />
-                        <label class="form-check-label">Tiền mặt</label>
+                        <label class="form-check-label">TIỀN MẶT</label>
                     </div>
                 </div>
             </div>
 
+            <!-- NGÀY ÁP DỤNG -->
             <div class="col-md-6">
-                <label asp-for="NgayApDung" class="form-label text-dark">Ngày áp dụng</label>
-                <input asp-for="NgayApDung" type="datetime-local" class="form-control" />
+                <label asp-for="NgayApDung" class="form-label text-dark">NGÀY ÁP DỤNG</label>
+                <input asp-for="NgayApDung" type="datetime-local" class="form-control text-uppercase" />
                 <span asp-validation-for="NgayApDung" class="text-danger"></span>
                 <span class="text-danger">@ViewData["NgayApDung"]</span>
             </div>
 
+            <!-- NGÀY KẾT THÚC -->
             <div class="col-md-6">
-                <label asp-for="NgayKetThuc" class="form-label text-dark">Ngày kết thúc</label>
-                <input asp-for="NgayKetThuc" type="datetime-local" class="form-control" />
+                <label asp-for="NgayKetThuc" class="form-label text-dark">NGÀY KẾT THÚC</label>
+                <input asp-for="NgayKetThuc" type="datetime-local" class="form-control text-uppercase" />
                 <span asp-validation-for="NgayKetThuc" class="text-danger"></span>
                 <span class="text-danger">@ViewData["NgayKetThuc"]</span>
                 <span class="text-danger">@ViewData["Ngay"]</span>
             </div>
         </div>
 
+        <!-- NÚT SUBMIT -->
         <div class="mt-4 d-flex justify-content-end gap-2">
-            <a asp-action="GetAllKM" class="btn btn-secondary">Quay lại</a>
-            <button type="submit" class="btn btn-success">Thêm khuyến mãi</button>
+            <a asp-action="GetAllKM" class="btn btn-secondary text-uppercase">QUAY LẠI</a>
+            <button type="submit" class="btn btn-success text-uppercase">THÊM KHUYẾN MÃI</button>
         </div>
     </form>
 </div>
@@ -87,4 +96,24 @@
     </script>
 
     @await Html.PartialAsync("_ValidationScriptsPartial")
+
+}
+input.form-control,
+select.form-control {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+input.form-control:focus {
+    border-color: #212529;
+    box-shadow: 0 0 0 0.2rem rgba(33, 37, 41, 0.25);
+}
+
+.btn-dark:hover {
+    background-color: #343a40;
+    color: #fff;
+}
+
+.text-uppercase {
+    letter-spacing: 0.5px;
 }

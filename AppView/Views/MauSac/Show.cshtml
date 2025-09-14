@@ -11,19 +11,28 @@
 <h1>
     <b>Danh sách màu sắc </b>
 </h1>
-<div class="row align-items-center mb-3 px-2">
-    <div class="col-md-6">
-        <a class="btn btn-secondary text-white px-4 py-2" asp-action="Create">
-            <i class="fa fa-plus"></i> Thêm mới
-        </a>
-    </div>
-    <div class="col-md-6 d-flex justify-content-end">
+<div class="row mb-4" style="margin: 5px">
+    <!-- Thanh tìm kiếm bên trái -->
+    <div class="col-md-4 d-flex justify-content-start">
         <form asp-action="SearchTheoTen" asp-controller="MauSac" method="get" enctype="multipart/form-data" class="d-flex gap-2">
             <input class="form-control" type="text" name="Ten" placeholder="Tìm kiếm theo tên hoặc mã" autocomplete="off" />
             <input class="btn btn-secondary text-white" type="submit" value="Tìm kiếm" />
         </form>
     </div>
 
+    <!-- Bộ lọc trạng thái nằm ở giữa -->
+    <div class="col-md-4 d-flex justify-content-center">
+        <select class="form-control custom-select" id="statusFilter" onchange="filterByStatus()">
+            <option value="">Chọn trạng thái</option>
+            <option value="0">Hoạt động</option>
+            <option value="1">Không hoạt động</option>
+        </select>
+    </div>
+
+    <!-- Nút Thêm mới nằm bên phải -->
+    <div class="col-md-4 d-flex justify-content-end">
+        <a class="btn btn-dark text-white px-4 py-2 custom-hover" asp-action="Create">Thêm mới</a>
+    </div>
     <div id="searchErrorMessage"
          class="alert alert-warning mt-2"
          role="alert"
@@ -31,8 +40,9 @@
         @ViewData["SearchError"]
     </div>
 </div>
-<table class="table table-bordered table-hover">
-    <thead class="table table-bordered table-hover">
+
+<table class="table table-bordered table-hover" style="background-color: transparent;">
+    <thead class="table-light">
         <tr>
             <th>STT</th>
             <th>Tên</th>
@@ -128,14 +138,10 @@
         margin: 0 2px;
     }
 
-    .badge {
-        font-size: 0.75rem;
-        padding: 0.35em 0.65em;
-    }
-    /* Header table đen chữ trắng */
+    /* Header table màu trắng */
     .table thead th {
-        background-color: #000; /* nền đen */
-        color: #fff; /* chữ trắng */
+        background-color: #ffffff; /* nền trắng */
+        color: #000; /* chữ đen */
         text-align: center;
     }
 
@@ -192,5 +198,19 @@
             window.location.href = url;
         }
     });
+    function filterByStatus() {
+        var selected = document.getElementById("statusFilter").value;
+        var rows = document.querySelectorAll("table tbody tr");
 
+        rows.forEach(row => {
+            const statusCell = row.children[2].innerText.trim();
+            const isActive = statusCell === "Hoạt động" ? "1" : "0";
+
+            if (selected === "" || selected === isActive) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
 </script>

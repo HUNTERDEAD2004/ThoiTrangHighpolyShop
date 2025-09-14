@@ -33,16 +33,16 @@
             </div>
             <div class="form-group">
                 <label asp-for="Ma" class="control-label">Mã</label>
-                <input asp-for="Ma" type="color"class="form-control" />
+                <input asp-for="Ma" type="color" class="form-control" />
                 <div id="emptyNameError" class="invalid-feedback d-none">Vui lòng chọn mã màu sắc !</div>
             </div>
             <div class="form-group" hidden>
                 <label asp-for="TrangThai" class="control-label"></label>
-                <input asp-for="TrangThai" class="form-control" value="1"/>
+                <input asp-for="TrangThai" class="form-control" value="1" />
                 <span asp-validation-for="TrangThai" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Lưu" class="btn btn-primary" style="margin-top: 10px" />
+                <input type="submit" value="Lưu" class="btn btn-dark text-white px-4 py-2 custom-hover" style="margin-top: 10px" />
             </div>
         </form>
     </div>
@@ -64,5 +64,7 @@
     });
 </script>
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

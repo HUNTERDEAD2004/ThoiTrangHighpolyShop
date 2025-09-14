@@ -2,130 +2,515 @@
 @model AppView.PhanTrang.PhanTrangKhuyenMai
 
 @{
-    ViewData["Title"] = "Danh sách Khuyến Mãi";
+    ViewData["Title"] = "DANH SÁCH KHUYẾN MÃI";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
     int stt = 1;
 }
 
-<h2 class="text-center fw-bold mt-4 mb-4">Danh sách Khuyến Mãi</h2>
+<h2 class="text-center fw-bold mt-4 mb-4 text-uppercase">DANH SÁCH KHUYẾN MÃI</h2>
 
-
-
-<div class="row mb-3">
-    <!-- Cột trái: Nút tạo khuyến mãi -->
-    <div class="col-md-6 col-12">
-        <a asp-action="Create" class="btn btn-dark">
-            <i class="fa fa-plus"></i> Tạo khuyến mãi
-        </a>
-    </div>
-
-    <!-- Cột phải: Form tìm kiếm -->
-    <div class="col-md-6 col-12 mt-2 mt-md-0">
-        <form asp-action="TimKiemTenKM" asp-controller="QuanLyKM" method="get">
+<div class="row">
+    <div class="row mb-4" style="margin: 5px">
+    <!-- FORM TÌM KIẾM -->
+    <div class="col-md-4 d-flex justify-content-start">
+        <form asp-action="TimKiemTenKM" asp-controller="QuanLyKM" method="get" style="width: 100%;">
             <div class="input-group">
-                <input type="text" name="TenKM" class="form-control" placeholder="Tìm theo tên">
-                <button class="btn btn-secondary" type="submit">
-                    <i class="fa fa-search"></i>
+                <input class="form-control text-uppercase" type="text" name="TenKM" placeholder="TÌM THEO TÊN" autocomplete="off" />
+                <button type="submit" class="btn btn-secondary text-white text-uppercase">
+                    <i class="fas fa-search"></i> TÌM KIẾM
                 </button>
             </div>
         </form>
     </div>
+
+    <!-- BỘ LỌC TRẠNG THÁI -->
+    <div class="col-md-4 d-flex justify-content-center">
+        <select class="form-control custom-select text-uppercase" id="statusFilterKM" onchange="filterKMByStatus()">
+            <option value="">CHỌN TRẠNG THÁI</option>
+            <option value="0">HOẠT ĐỘNG</option>
+            <option value="2">ĐÃ HUỶ</option>
+        </select>
+    </div>
+
+    <!-- NÚT TẠO MỚI -->
+    <div class="col-md-4 d-flex justify-content-end">
+        <a class="btn btn-dark text-white px-4 py-2 custom-hover text-uppercase" asp-action="Create">
+            <i class="fa fa-plus me-2"></i> TẠO KHUYẾN MÃI
+        </a>
+    </div>
 </div>
-
-
-<table class="table table-bordered table-hover align-middle">
-    <thead class="table-dark text-center">
-        <tr>
-            <th>STT</th>
-            <th>Ma</th>
-      
-            <th>TÊN</th>
-            <th>GIÁ TRỊ</th>
-            <th>NGÀY BẮT ĐẦU</th>
-            <th>NGÀY KẾT THÚC</th>
-            <th>TÌNH TRẠNG</th>
-            <th>TRẠNG THÁI</th>
-            <th>THAO TÁC</th>
-        </tr>
-    </thead>
-    <tbody class="text-center">
-        @foreach (var item in Model.listkms)
-        {
-            <tr>
-                <td>@(stt++)</td>
-                <td><strong>@item.MaKhuyenMai</strong></td>
-                <td>@item.Ten</td>
-                <td>
-                    @if (item.TrangThai == 0 || item.TrangThai == 2)
-                    {
-                        <span>@item.GiaTri.ToString("n0") VND</span>
-                    }
-                    else
-                    {
-                        <span>@item.GiaTri %</span>
-                    }
-                </td>
-                <td>@item.NgayApDung.ToString("dd-MM-yyyy HH:mm")</td>
-                <td>@item.NgayKetThuc.ToString("dd-MM-yyyy HH:mm")</td>
-                <td>
-                    @if (item.NgayKetThuc < DateTime.Now)
-                    {
-                        <span class="badge bg-primary">Đã kết thúc</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-primary">Đang diễn ra</span>
-                    }
-                </td>
-                <td>
-                    @if (item.TrangThai == 0 || item.TrangThai == 1)
-                    {
-                        <span class="badge bg-primary">Hoạt động</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-primary">Đã huỷ</span>
-                    }
-                </td>
-                <td>
-                    <div class="d-flex justify-content-center gap-1">
-                        <a asp-action="Update" asp-route-id="@item.ID" class="btn btn-warning btn-sm" title="Sửa">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </a>
-                        <a asp-action="GetSPByIdKM" asp-route-id="@item.ID" class="btn btn-dark btn-sm" title="Xem chi tiết">
-                            <i class="fa-solid fa-eye"></i>
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-danger btn-sm" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa?');">
-                            <i class="fa-solid fa-trash"></i>
-                        </a>
-                    </div>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<div class="col-12">
-    <nav>
-        @if (TempData["AlertMessage"] != null)
-        {
-            <div class="alert alert-@TempData["AlertType"]">
-                @TempData["AlertMessage"]
+    <!-- LEFT FORM: DANH SÁCH KHUYẾN MÃI -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header text-uppercase fw-bold">
+                Danh sách khuyến mãi
             </div>
+            <div class="card-body p-2">
+                <!-- BẢNG KHUYẾN MÃI -->
+                <div class="table-responsive" style="max-height: 500px; overflow-y:auto;">
+                    <table class="table table-bordered table-hover align-middle text-uppercase mb-0">
+                        <thead class="table-light text-center">
+                            <tr>
+                                <th><input type="checkbox" id="checkAllKM" /></th> <!-- Thêm cột check all -->
+                                <th>STT</th>
+                                <th>MÃ</th>
+                                <th>TÊN</th>
+                                <th>GIÁ TRỊ</th>
+                                <th>NGÀY BẮT ĐẦU</th>
+                                <th>NGÀY KẾT THÚC</th>
+                                <th>TÌNH TRẠNG</th>
+                                <th>TRẠNG THÁI</th>
+                                <th>THAO TÁC</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center" id="kmTableBody">
+                            @foreach (var item in Model.listkms)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="km-checkbox" value="@item.ID" />
+                                    </td>
+                                    <td>@(stt++)</td>
+                                    <td><strong>@item.MaKhuyenMai</strong></td>
+                                    <td>@item.Ten</td>
+                                    <td>
+                                        @if (item.TrangThai == 0 || item.TrangThai == 2)
+                                        {
+                                            <span>@item.GiaTri.ToString("n0") VND</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@item.GiaTri %</span>
+                                        }
+                                    </td>
+                                    <td>@item.NgayApDung.ToString("dd-MM-yyyy HH:mm")</td>
+                                    <td>@item.NgayKetThuc.ToString("dd-MM-yyyy HH:mm")</td>
+                                    <td>
+                                        @if (item.NgayKetThuc < DateTime.Now)
+                                        {
+                                            <span class="badge bg-primary">ĐÃ KẾT THÚC</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-primary">ĐANG DIỄN RA</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.TrangThai == 0 || item.TrangThai == 1)
+                                        {
+                                            <span class="badge bg-primary">HOẠT ĐỘNG</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-primary">ĐÃ HUỶ</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Update" asp-route-id="@item.ID" class="btn btn-warning btn-sm text-uppercase" title="SỬA">
+                                                <i class="fa fa-edit"></i>
+                                            </a>
+                                            <a asp-action="GetSPByIdKM" asp-route-id="@item.ID"
+                                               class="btn btn-dark btn-sm text-uppercase text-warning"
+                                               style="color: #FFD700;" title="XEM CHI TIẾT">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.ID" class="btn btn-danger btn-sm text-uppercase" title="XÓA" onclick="return confirm('BẠN CÓ CHẮC CHẮN MUỐN XÓA?');">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-success btn-sm text-uppercase applyCodeBtn" data-km="@item.MaKhuyenMai">
+                                                ÁP MÃ
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <script>
-                setTimeout(() => {
-                    document.querySelector('.alert').style.display = 'none';
-                }, 4000); // Ẩn sau 4 giây
-            </script>
-        }
-        <ul class="pagination justify-content-center">
-            @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
-            {
-                <li class="page-item">
-                    <a class="page-link text-dark" href="/QuanLyKM/GetAllKM?ProductPage=@i">@i</a>
-                </li>
-            }
-        </ul>
-    </nav>
+    <!-- RIGHT FORM: DANH SÁCH SẢN PHẨM -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header text-uppercase fw-bold">Danh sách sản phẩm</div>
+            <div class="card-body p-2">
+                <div class="table-responsive" style="max-height: 600px; overflow-y:auto;">
+                    <table class="table table-bordered table-hover align-middle text-uppercase mb-0">
+                        <thead class="table-light text-center">
+                            <tr>
+                                <th><input type="checkbox" id="checkAllSP" /></th>
+                                <th>STT</th>
+                                <th>TÊN</th>
+                                <th>MÃ</th>
+                                <th>Ảnh</th>
+                                <th>GIÁ BÁN</th>
+                                <th>SỐ LƯỢNG</th>
+                                <th>LOẠI</th>
+                                <th>TRẠNG THÁI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="list_products">
+
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-2 d-flex justify-content-end">
+                    <button type="button" class="btn btn-info btn-sm text-uppercase" id="btnOpenCTSP">
+                        <i class="fa fa-tags"></i> Chọn chi tiết
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+<!-- Modal Chi Tiết Sản Phẩm -->
+<div class="modal fade" id="modalCTSP" tabindex="-1" aria-labelledby="modalCTSPLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalCTSPLabel">Chọn chi tiết sản phẩm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formCTSP">
+                <div class="modal-body">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th><input type="checkbox" id="checkAllCTSP" /></th>
+                                <th>#</th>
+                                <th>Tên SP</th>
+                                <th>Mã CTSP</th>
+                                <th>Thuộc tính</th>
+                                <th>Giá bán</th>
+                                <th>Số lượng</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ctspTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- THÔNG BÁO -->
+@if (TempData["AlertMessage"] != null)
+{
+    <div id="customAlert" class="alert alert-@TempData["AlertType"] alert-dismissible fade show custom-toast text-uppercase" role="alert">
+        <strong>THÔNG BÁO:</strong> @TempData["AlertMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            const alertBox = document.getElementById("customAlert");
+            if (alertBox) {
+                alertBox.style.opacity = "0";
+                setTimeout(() => alertBox.remove(), 600);
+            }
+        }, 4000);
+    </script>
+}
+<script src="/js/jquery-3.3.1.min.js"></script>     
+<!-- SCRIPT LỌC TRẠNG THÁI -->
+<script>
+    // Khi chọn khuyến mãi -> lưu Id vào Session
+    $(document).on('change', '.km-checkbox', function () {
+    // chỉ cho chọn 1 khuyến mãi duy nhất
+    $('.km-checkbox').not(this).prop('checked', false);
+
+    if (this.checked) {
+        let idKM = $(this).val();
+        $.get("/QuanLyKM/SetIdKhuyenMai?id=" + idKM, function (res) {
+            if (res.success) {
+                console.log("Đã set IdKhuyenMai vào session:", idKM);
+            } else {
+                alert(res.message);
+            }
+        });
+    }
+});
+
+    //
+    $(document).ready(function () {
+        loadProducts();
+
+        // ✅ Chọn / bỏ chọn tất cả sản phẩm
+        $('#checkAllSP').change(function () {
+            $('#list_products input[type="checkbox"]').prop('checked', this.checked);
+        });
+
+        // ✅ Nếu bỏ check 1 sản phẩm thì bỏ check ở "chọn tất cả"
+        $(document).on('change', '#list_products input[type="checkbox"]', function () {
+            if (!this.checked) {
+                $('#checkAllSP').prop('checked', false);
+            } else {
+                // Nếu tất cả sp đều được tick thì check luôn "chọn tất cả"
+                if ($('#list_products input[type="checkbox"]').length === $('#list_products input[type="checkbox"]:checked').length) {
+                    $('#checkAllSP').prop('checked', true);
+                }
+            }
+        });
+    });
+    //
+    function filterKMByStatus() {
+        var status = document.getElementById("statusFilterKM").value;
+        var rows = document.querySelectorAll("#kmTableBody tr");
+
+        rows.forEach(function (row) {
+            var statusCell = row.querySelector("td:nth-child(8)").innerText.trim();
+            if (status === "" ||
+                (status === "0" && statusCell === "HOẠT ĐỘNG") ||
+                (status === "2" && statusCell === "ĐÃ HUỶ")) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    // FILTER KHÁCH HÀNG GIỮ NGUYÊN LOGIC
+    function filterKMByStatus() {
+        var status = document.getElementById("statusFilterKM").value;
+        var rows = document.querySelectorAll("#kmTableBody tr");
+
+        rows.forEach(function (row) {
+            var statusCell = row.querySelector("td:nth-child(8)").innerText.trim();
+            if (status === "" ||
+                (status === "0" && statusCell === "HOẠT ĐỘNG") ||
+                (status === "2" && statusCell === "ĐÃ HUỶ")) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    // LOAD SẢN PHẨM AJAX
+    var pageIndex = 1;
+    var pageSize = 10;
+
+    $(document).ready(function () {
+        loadsp();
+
+        // Check/Uncheck all products
+        $('#checkAllSP').click(function () {
+            $('#list_products input[type="checkbox"]').prop('checked', this.checked);
+        });
+
+        // Áp mã từ nút "Áp mã" trên khuyến mãi
+        $('.applyCodeBtn').click(function () {
+            var code = $(this).data('km');
+            var selectedProducts = [];
+            $('#list_products input[type="checkbox"]:checked').each(function () {
+                selectedProducts.push($(this).val());
+            });
+
+            if (selectedProducts.length == 0) {
+                alert("Vui lòng chọn sản phẩm trước khi áp mã!");
+                return;
+            }
+
+            $.ajax({
+                url: '/Admin/ApplyPromotion',
+                type: 'POST',
+                data: { MaKM: code, ListSP: selectedProducts },
+                success: function (res) {
+                    alert(res.message);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            });
+        });
+    });
+    $(document).ready(function () {
+        loadProducts();
+    });
+
+    function loadProducts() {
+        $.ajax({
+            url: "/Admin/ShowProduct",
+            type: "GET",
+            data: {
+                page: 1,
+                pageSize: 1000,
+                sortSP: "1",
+                loaiSPCha: "all",
+                loaiSPCon: "all"
+            },
+            success: function (response) {
+                if (response.status) {
+                    $("#list_products").empty();
+                    $.each(response.data, function (i, item) {
+                        var anh = item.anh ? item.anh : "/img/product/default.jpg";
+                        var trangThai = item.trangThai == 1 ? "Hoạt động" : "Không hoạt động";
+                        var color = item.trangThai == 1 ? "green" : "red";
+
+                        $("#list_products").append(`
+                            <tr>
+                                <td><input type="checkbox" value="${item.id}" /></td>
+                                <td>${i + 1}</td>
+                                <td>${item.ten}</td>
+                                <td>${item.ma}</td>
+                                <td><img src="${anh}" style="width:70px;height:80px" /></td>
+                                <td>${item.giaBan}</td>
+                                <td>${item.soLuong}</td>
+                                    <td>${item.loaiSP ?? ""}</td>
+                                <td style="color:${color}">${trangThai}</td>
+                            </tr>
+                        `);
+                    });
+                } else {
+                    alert("Không lấy được dữ liệu sản phẩm!");
+                }
+            },
+            error: function (err) {
+                console.log(err);
+                alert("Có lỗi xảy ra khi load sản phẩm!");
+            }
+        });
+    }
+    //
+
+    // Click nút mở modal
+$('#btnOpenCTSP').click(function () {
+    let selectedKM = $('.km-checkbox:checked').val();
+    if (!selectedKM) {
+        alert("Vui lòng chọn một khuyến mãi trước!");
+        return;
+    }
+
+    let selectedProducts = [];
+    $('#list_products input[type="checkbox"]:checked').each(function () {
+        selectedProducts.push($(this).val());
+    });
+
+    if (selectedProducts.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 sản phẩm!");
+        return;
+    }
+
+    // Gọi API lấy CTSP theo list sản phẩm
+    $.ajax({
+        url: '/QuanLyKM/GetCTSPByListSP',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(selectedProducts),
+        success: function (res) {
+            $('#ctspTableBody').empty();
+            $.each(res, function (i, item) {
+                let trangThai = item.trangThai == 1 ? "Hoạt động" : "Không hoạt động";
+                let color = item.trangThai == 1 ? "green" : "red";
+                $('#ctspTableBody').append(`
+                    <tr>
+                        <td><input type="checkbox" class="ctsp-checkbox" value="${item.id}" /></td>
+                        <td>${i + 1}</td>
+                        <td>${item.tenSanPham}</td>
+                        <td>${item.maCTSP}</td>
+                        <td>${item.tenMauSac} - ${item.tenKichCo}</td>
+                        <td>${item.giaGoc}</td>
+                        <td>${item.soLuong}</td>
+                        <td style="color:${color}">${trangThai}</td>
+                    </tr>
+                `);
+            });
+               var modal = new bootstrap.Modal(document.getElementById('modalCTSP'));
+    modal.show();
+        },
+        error: function () {
+            alert("Không load được chi tiết sản phẩm!");
+        }
+    });
+});
+
+
+// Submit form (Lưu)
+$('#formCTSP').submit(function (e) {
+    e.preventDefault();
+
+    let selectedCTSP = [];
+    $('.ctsp-checkbox:checked').each(function () {
+        selectedCTSP.push($(this).val());
+    });
+
+    if (selectedCTSP.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 chi tiết sản phẩm!");
+        return;
+    }
+
+    $.ajax({
+        url: '/QuanLyKM/AddCTSPByIdKMLayTuSession',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(selectedCTSP),   // gửi list Guid
+        success: function (res) {
+            if (res.success) {
+                alert(res.message);
+                $('#modalCTSP').modal('hide');
+            } else {
+                alert(res.message);
+            }
+        },
+        error: function () {
+            alert("Có lỗi khi lưu!");
+        }
+    });
+});
+
+
+</script>
+
+<!-- STYLE TUỲ CHỈNH -->
+<style>
+    .table th, .table td {
+        vertical-align: middle;
+        font-size: 0.875rem;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .btn-group .btn {
+        margin: 0 2px;
+    }
+
+    .table thead th {
+        background-color: #ffffff;
+        color: #000;
+        text-align: center;
+    }
+
+    .table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .custom-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        min-width: 250px;
+        z-index: 1050;
+        transition: opacity 0.5s ease-in-out;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        text-transform: uppercase;
+    }
+
+    .custom-hover:hover {
+        background-color: #343a40 !important;
+        color: #fff !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+</style>
