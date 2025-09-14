@@ -316,10 +316,9 @@ namespace AppAPI.Services
 
         private HoaDon BuildHoaDonEntity(HoaDonViewModel vm, Guid lichSuId, string diaChi)
         {
-            return new HoaDon
+            var hoaDon = new HoaDon
             {
                 ID = Guid.NewGuid(),
-                // IDNhanVien = vm.IDNhanVien ?? Guid.Empty,
                 IDKhachHang = vm.IDKhachHang,
                 IDPhuongThucTT = vm.IDPhuongThucTT,
                 IDLichSuHD = lichSuId,
@@ -337,6 +336,18 @@ namespace AppAPI.Services
                 TrangThaiGiaoHang = 2,
                 LoaiHoaDon = 0
             };
+
+            hoaDon.IDPhuongThucTT = vm.PhuongThucThanhToan switch
+            {
+                "COD" => Guid.Parse("DD56B0D5-721D-4CD3-A20A-CEB190755E26"),
+                "VNPay" => Guid.Parse("761881CC-2324-4760-9628-6ED287A59AC7"),
+                _ => Guid.Empty
+            };
+
+            // Nếu là VNPay thì gán mặc định trạng thái = 11 (Đã xác nhận), còn lại = 2 (Chờ xác nhận)
+            hoaDon.TrangThaiGiaoHang = vm.PhuongThucThanhToan == "VNPay" ? 11 : 2;
+
+            return hoaDon;
         }
 
         private void ApplyVoucherIfAvailable(HoaDonViewModel vm, HoaDon hoaDonEntity, DonMuaSuccessViewModel result)
@@ -354,7 +365,11 @@ namespace AppAPI.Services
             }
         }
 
-        private List<GioHangRequest> ProcessChiTietHoaDon(List<ChiTietHoaDonViewModel> chiTietList, Guid hoaDonId, ref int subtotal, IDbContextTransaction transaction, DonMuaSuccessViewModel result, HoaDonViewModel hoaDon)
+        private List<GioHangRequest> ProcessChiTietHoaDon(List<ChiTietHoaDonViewModel> chiTietList,
+     Guid hoaDonId, ref int subtotal,
+     IDbContextTransaction transaction,
+     DonMuaSuccessViewModel result,
+     HoaDonViewModel hoaDon)
         {
             var gioHangList = new List<GioHangRequest>();
             var danhGiaList = new List<DanhGia>();
@@ -376,13 +391,6 @@ namespace AppAPI.Services
 
                 var chiTietId = Guid.NewGuid();
 
-                danhGiaList.Add(new DanhGia
-                {
-                    ID = chiTietId,
-                    TrangThai = 0,
-                    IDKhachHang = hoaDon.IDKhachHang,
-                });
-
                 chiTietListToAdd.Add(new ChiTietHoaDon
                 {
                     ID = chiTietId,
@@ -392,6 +400,15 @@ namespace AppAPI.Services
                     DonGia = item.DonGia,
                     TrangThai = 1
                 });
+
+                danhGiaList.Add(new DanhGia
+                {
+                    ID = Guid.NewGuid(), // khóa chính riêng của DanhGia
+                    IDChiTietHoaDon = chiTietId, // FK tham chiếu tới ChiTietHoaDon
+                    TrangThai = 0,
+                    IDKhachHang = hoaDon.IDKhachHang,
+                });
+
 
                 subtotal += item.SoLuong * item.DonGia;
 
@@ -414,6 +431,7 @@ namespace AppAPI.Services
 
             return gioHangList;
         }
+
 
         public bool DeleteHoaDon(Guid id)
         {

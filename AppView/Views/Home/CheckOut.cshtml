@@ -100,17 +100,17 @@
                                 <input type="text" class="form-control" id="address" placeholder="Nhập địa chỉ chi tiết" required>
                                 <div class="invalid-feedback">Vui lòng nhập địa chỉ</div>
                             </div>
-                          
+
                         </div>
-                          <div class="checkout__input">
-                                <label>Chọn địa chỉ đã lưu</label>
-                                <select id="savedAddress" class="custom-select d-block w-100">
-                                    <option value="">-- Chọn địa chỉ --</option>
-                                </select>
-                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-toggle="modal" data-target="#addAddressModal">
-                                    + Thêm địa chỉ mới
-                                </button>
-                            </div>
+                        <div class="checkout__input">
+                            <label>Chọn địa chỉ đã lưu</label>
+                            <select id="savedAddress" class="custom-select d-block w-100">
+                                <option value="">-- Chọn địa chỉ --</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-toggle="modal" data-target="#addAddressModal">
+                                + Thêm địa chỉ mới
+                            </button>
+                        </div>
                     </div>
                     <div class="modal fade" id="addAddressModal" tabindex="-1" role="dialog">
                         <div class="modal-dialog">
@@ -188,19 +188,7 @@
                             <datalist id="vouchers"></datalist>
                             <button onclick="usevoucher()">Áp dụng</button>
                         </div>
-                        @if (session != null)
-                        {
-                            <div style="position: relative;">
-                                <input type="number" id="diemTich" placeholder="Nhập số điểm">
-                                <button onclick="usediem()">Áp dụng</button>
-                                <span id="error-message" style="color: #dc3545; font-size: 12px;"></span>
-                                <p>Bạn hiện tại có: @loginInfor.DiemTich điểm</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <a asp-action="Login" asp-route-actionName="CheckOut">Đăng nhập để sử dụng tích điểm</a>
-                        }
+
                     </div>
                     <div class="checkout__order">
                         <h4 class="order__title">Đơn hàng của bạn</h4>
@@ -223,409 +211,372 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <script type="text/javascript">
-    var tienShip = 0;
-    var tienDiem = 0;
-    var tienVoucher = 0;
-    var tinh = "";
-    var huyen = "";
-    var xa = "";
-    var voucher = "";
-    var diemTich = 0;
+        var tienShip = 0;
+        var tienDiem = 0;
+        var tienVoucher = 0;
+        var tinh = "";
+        var huyen = "";
+        var xa = "";
+        var voucher = "";
+        var diemTich = 0;
 
-    $(document).ready(function () {
-        var tienHang = @tongtien;
-        document.getElementById("tienHang").innerHTML = tienHang.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
-        document.getElementById("total").innerHTML = tienHang.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
+        $(document).ready(function () {
+            var tienHang = @tongtien;
+            document.getElementById("tienHang").innerHTML = tienHang.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
+            document.getElementById("total").innerHTML = tienHang.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
 
-        // Load vouchers
-        $.ajax({
-            type: "GET",
-            url: "/Home/GetAllVoucherByTien",
-            dataType: "json",
-            data: { tongTien: tienHang },
-            success: function (response) {
-                $.each(response.ketQua, function (i, item) {
-                    if (item.hinhThucGiamGia == 1) {
-                        $("#vouchers").append(`<option value='${item.ten}'>(-${item.giaTri}%)</option>`);
-                    } else {
-                        $("#vouchers").append(`<option value='${item.ten}'>(-${item.giaTri.toLocaleString('it-IT', { style: 'currency', currency: 'VND' })})</option>`);
+            // Load vouchers
+            $.ajax({
+                type: "GET",
+                url: "/Home/GetAllVoucherByTien",
+                dataType: "json",
+                data: { tongTien: tienHang },
+                success: function (response) {
+                    $.each(response.ketQua, function (i, item) {
+                        if (item.hinhThucGiamGia == 1) {
+                            $("#vouchers").append(`<option value='${item.ten}'>(-${item.giaTri}%)</option>`);
+                        } else {
+                            $("#vouchers").append(`<option value='${item.ten}'>(-${item.giaTri.toLocaleString('it-IT', { style: 'currency', currency: 'VND' })})</option>`);
+                        }
+                    });
+                },
+                error: function (response) {
+                    console.log(response);
+                }
+            });
+
+            // Load provinces for both main form and modal
+            function loadProvinces() {
+                $.ajax({
+                    type: "GET",
+                    url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/province",
+                    headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        $('#province, #newProvince').empty().append('<option value="">-- Chọn tỉnh --</option>');
+                        for (var i = 0; i < data.data.length; i++) {
+                            var rows = `<option id="prov_${data.data[i].ProvinceID}" value="${data.data[i].ProvinceID}">${data.data[i].ProvinceName}</option>`;
+                            $('#province, #newProvince').append(rows);
+                        }
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
                     }
                 });
-            },
-            error: function (response) {
-                console.log(response);
             }
+            loadProvinces();
+
+            // Province change for main form
+            $("#province").change(function () {
+                var value = $(this).val();
+                tinh = $("#prov_" + value).text();
+                $.ajax({
+                    type: "GET",
+                    url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=" + value,
+                    headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        $('#district').empty().append('<option value="">-- Chọn huyện --</option>');
+                        for (var i = 0; i < data.data.length; i++) {
+                            var rows = `<option id="dist_${data.data[i].DistrictID}" value="${data.data[i].DistrictID}">${data.data[i].DistrictName}</option>`;
+                            $('#district').append(rows);
+                        }
+                        calculateShipping(value); // Calculate shipping when province changes
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
+                    }
+                });
+            });
+
+            // District change for main form
+            $("#district").change(function () {
+                var value = $(this).val();
+                huyen = $("#dist_" + value).text();
+                $.ajax({
+                    type: "GET",
+                    url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=" + value,
+                    headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        $('#ward').empty().append('<option value="">-- Chọn xã --</option>');
+                        for (var i = 0; i < data.data.length; i++) {
+                            var rows = `<option id="ward_${data.data[i].WardCode}" value="${data.data[i].WardCode}">${data.data[i].WardName}</option>`;
+                            $('#ward').append(rows);
+                        }
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
+                    }
+                });
+            });
+
+            // Ward change for main form
+            $("#ward").change(function () {
+                var value1 = $(this).val();
+                var value2 = $("#district").val();
+                xa = $("#ward_" + value1).text();
+                calculateShipping(value2, value1); // Recalculate shipping with ward
+            });
+
+            // Province change for modal
+            $("#newProvince").change(function () {
+                var value = $(this).val();
+                $.ajax({
+                    type: "GET",
+                    url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=" + value,
+                    headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        $('#newDistrict').empty().append('<option value="">-- Chọn huyện --</option>');
+                        for (var i = 0; i < data.data.length; i++) {
+                            var rows = `<option id="dist_${data.data[i].DistrictID}" value="${data.data[i].DistrictID}">${data.data[i].DistrictName}</option>`;
+                            $('#newDistrict').append(rows);
+                        }
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
+                    }
+                });
+            });
+
+            // District change for modal
+            $("#newDistrict").change(function () {
+                var value = $(this).val();
+                $.ajax({
+                    type: "GET",
+                    url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=" + value,
+                    headers: { token: '9f4e42e4-fde8-11ed-a281-3aa62a37e0a5' },
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        $('#newWard').empty().append('<option value="">-- Chọn xã --</option>');
+                        for (var i = 0; i < data.data.length; i++) {
+                            var rows = `<option id="ward_${data.data[i].WardCode}" value="${data.data[i].WardCode}">${data.data[i].WardName}</option>`;
+                            $('#newWard').append(rows);
+                        }
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
+                    }
+                });
+            });
+
+            $('.checkout__input input').on('input', function () {
+                $(this).removeClass('is-invalid');
+                $(this).next('.invalid-feedback').text('');
+            });
+            $('.checkout__input select').change(function () {
+                $(this).removeClass('is-invalid');
+                $(this).next('.invalid-feedback').text('');
+            });
+            $('input[name="pttt"]').change(function () {
+                $('#pttt-error').hide();
+            });
         });
 
-        // Load provinces for both main form and modal
-        function loadProvinces() {
+        const userId = '@loginInfor.Id';
+
+        function loadSavedAddresses() {
+            $("#savedAddress").empty().append('<option value="">-- Chọn địa chỉ --</option>');
             $.ajax({
-                type: "GET",
-                url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/province",
-                headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (data) {
-                    $('#province, #newProvince').empty().append('<option value="">-- Chọn tỉnh --</option>');
-                    for (var i = 0; i < data.data.length; i++) {
-                        var rows = `<option id="prov_${data.data[i].ProvinceID}" value="${data.data[i].ProvinceID}">${data.data[i].ProvinceName}</option>`;
-                        $('#province, #newProvince').append(rows);
+                url: `https://localhost:7095/api/DiaChi/khachhang/${userId}/diachi`,
+                method: 'GET',
+                success: function (list) {
+                    for (const item of list) {
+                        $("#savedAddress").append(`
+                            <option
+                                value="${item.idDiaChi}"
+                                data-tinh="${item.tinh}"
+                                data-huyen="${item.huyen}"
+                                data-xa="${item.xa}"
+                                data-chitiet="${item.diaChiChiTiet}">
+                                ${item.diaChiChiTiet}, ${item.xa}, ${item.huyen}, ${item.tinh}
+                            </option>
+                        `);
                     }
-                },
-                error: function (response) {
-                    alert(response.responseText);
                 }
             });
         }
-        loadProvinces();
 
-        // Province change for main form
-        $("#province").change(function () {
-            var value = $(this).val();
-            tinh = $("#prov_" + value).text();
-            $.ajax({
-                type: "GET",
-                url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=" + value,
-                headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (data) {
-                    $('#district').empty().append('<option value="">-- Chọn huyện --</option>');
-                    for (var i = 0; i < data.data.length; i++) {
-                        var rows = `<option id="dist_${data.data[i].DistrictID}" value="${data.data[i].DistrictID}">${data.data[i].DistrictName}</option>`;
-                        $('#district').append(rows);
-                    }
-                    calculateShipping(value); // Calculate shipping when province changes
-                },
-                error: function (response) {
-                    alert(response.responseText);
-                }
-            });
-        });
+        loadSavedAddresses();
+        $("#savedAddress").change(function () {
+            const selected = $(this).find("option:selected");
+            if (!selected.val()) return;
 
-        // District change for main form
-        $("#district").change(function () {
-            var value = $(this).val();
-            huyen = $("#dist_" + value).text();
-            $.ajax({
-                type: "GET",
-                url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=" + value,
-                headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (data) {
-                    $('#ward').empty().append('<option value="">-- Chọn xã --</option>');
-                    for (var i = 0; i < data.data.length; i++) {
-                        var rows = `<option id="ward_${data.data[i].WardCode}" value="${data.data[i].WardCode}">${data.data[i].WardName}</option>`;
-                        $('#ward').append(rows);
-                    }
-                },
-                error: function (response) {
-                    alert(response.responseText);
-                }
-            });
-        });
-
-        // Ward change for main form
-        $("#ward").change(function () {
-            var value1 = $(this).val();
-            var value2 = $("#district").val();
-            xa = $("#ward_" + value1).text();
-            calculateShipping(value2, value1); // Recalculate shipping with ward
-        });
-
-        // Province change for modal
-        $("#newProvince").change(function () {
-            var value = $(this).val();
-            $.ajax({
-                type: "GET",
-                url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=" + value,
-                headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (data) {
-                    $('#newDistrict').empty().append('<option value="">-- Chọn huyện --</option>');
-                    for (var i = 0; i < data.data.length; i++) {
-                        var rows = `<option id="dist_${data.data[i].DistrictID}" value="${data.data[i].DistrictID}">${data.data[i].DistrictName}</option>`;
-                        $('#newDistrict').append(rows);
-                    }
-                },
-                error: function (response) {
-                    alert(response.responseText);
-                }
-            });
-        });
-
-        // District change for modal
-        $("#newDistrict").change(function () {
-            var value = $(this).val();
-            $.ajax({
-                type: "GET",
-                url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=" + value,
-                headers: { token: '9f4e42e4-fde8-11ed-a281-3aa62a37e0a5' },
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (data) {
-                    $('#newWard').empty().append('<option value="">-- Chọn xã --</option>');
-                    for (var i = 0; i < data.data.length; i++) {
-                        var rows = `<option id="ward_${data.data[i].WardCode}" value="${data.data[i].WardCode}">${data.data[i].WardName}</option>`;
-                        $('#newWard').append(rows);
-                    }
-                },
-                error: function (response) {
-                    alert(response.responseText);
-                }
-            });
-        });
-
-        $('.checkout__input input').on('input', function () {
-            $(this).removeClass('is-invalid');
-            $(this).next('.invalid-feedback').text('');
-        });
-        $('.checkout__input select').change(function () {
-            $(this).removeClass('is-invalid');
-            $(this).next('.invalid-feedback').text('');
-        });
-        $('input[name="pttt"]').change(function () {
-            $('#pttt-error').hide();
-        });
-    });
-
-    const userId = '@loginInfor.Id';
-
-    function loadSavedAddresses() {
-        $("#savedAddress").empty().append('<option value="">-- Chọn địa chỉ --</option>');
-        $.ajax({
-            url: `https://localhost:7095/api/DiaChi/khachhang/${userId}/diachi`,
-            method: 'GET',
-            success: function (list) {
-                for (const item of list) {
-                    $("#savedAddress").append(`
-                        <option 
-                            value="${item.idDiaChi}" 
-                            data-tinh="${item.tinh}" 
-                            data-huyen="${item.huyen}" 
-                            data-xa="${item.xa}" 
-                            data-chitiet="${item.diaChiChiTiet}">
-                            ${item.diaChiChiTiet}, ${item.xa}, ${item.huyen}, ${item.tinh}
-                        </option>
-                    `);
-                }
-            }
-        });
-    }
-
-    loadSavedAddresses();
-    $("#savedAddress").change(function () {
-        const selected = $(this).find("option:selected");
-        if (!selected.val()) return;
-
-        $("#province option").filter(function () {
-            return $(this).text().trim() === selected.data("tinh");
-        }).prop("selected", true).trigger("change");
-
-        setTimeout(() => {
-            $("#district option").filter(function () {
-                return $(this).text().trim() === selected.data("huyen");
+            $("#province option").filter(function () {
+                return $(this).text().trim() === selected.data("tinh");
             }).prop("selected", true).trigger("change");
-        }, 300);
 
-        setTimeout(() => {
-            $("#ward option").filter(function () {
-                return $(this).text().trim() === selected.data("xa");
-            }).prop("selected", true).trigger("change");
-        }, 600);
+            setTimeout(() => {
+                $("#district option").filter(function () {
+                    return $(this).text().trim() === selected.data("huyen");
+                }).prop("selected", true).trigger("change");
+            }, 300);
 
-        $("#address").val(selected.data("chitiet"));
-        calculateShipping(); // Recalculate shipping when saved address is selected
-    });
+            setTimeout(() => {
+                $("#ward option").filter(function () {
+                    return $(this).text().trim() === selected.data("xa");
+                }).prop("selected", true).trigger("change");
+            }, 600);
 
-    function submitNewAddress() {
-        const diaChiMoi = {
-            tinh: $("#newProvince option:selected").text().trim(),
-            huyen: $("#newDistrict option:selected").text().trim(),
-            xa: $("#newWard option:selected").text().trim(),
-            diaChiChiTiet: $("#newChiTiet").val(),
-            isDefault: $("#isDefaultAddress").is(":checked")
-        };
-
-        if (!diaChiMoi.tinh || !diaChiMoi.huyen || !diaChiMoi.xa || !diaChiMoi.diaChiChiTiet) {
-            alert("Vui lòng điền đầy đủ thông tin địa chỉ!");
-            return;
-        }
-
-        $.ajax({
-            url: `https://localhost:7095/api/DiaChi/khachhang/${userId}/diachi`,
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(diaChiMoi),
-            success: function () {
-                alert("✅ Đã thêm địa chỉ mới");
-                $('#addAddressModal').modal('hide');
-                loadSavedAddresses(); // Update saved addresses without reloading page
-                // Optionally reload page if needed
-                // location.reload();
-            },
-            error: function () {
-                alert("❌ Không thể thêm địa chỉ");
-            }
+            $("#address").val(selected.data("chitiet"));
+            calculateShipping(); // Recalculate shipping when saved address is selected
         });
-    }
 
-    function createhoadon() {
-        var ten = $("#name").val();
-        var email = $("#email").val();
-        var sdt = $("#phone").val();
-        var tinh = $("#province option:selected").text().trim();
-        var huyen = $("#district option:selected").text().trim();
-        var xa = $("#ward option:selected").text().trim();
-        var diachi = $("#address").val();
-        var pttt = $('input[name="pttt"]:checked').val();
-        var ghiChu = $("#note").val();
-        $('.invalid-feedback').text('');
-        $('.is-invalid').removeClass('is-invalid');
-        var hasError = false;
-        if (ten.trim().length == 0) {
-            $('#name').addClass('is-invalid');
-            $('#name').next('.invalid-feedback').text('Không để trống tên');
-            hasError = true;
-        }
-        var phoneNumberRegex = /^\d{10}$/;
-        if (sdt.trim().length == 0) {
-            $('#phone').addClass('is-invalid');
-            $('#phone').next('.invalid-feedback').text('Không để trống sdt');
-            hasError = true;
-        } else if (!phoneNumberRegex.test(sdt)) {
-            $('#phone').addClass('is-invalid');
-            $('#phone').next('.invalid-feedback').text('Số điện thoại không hợp lệ');
-            hasError = true;
-        }
-       // var emailRegex = /^[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-       //  if (email.trim().length == 0) {
-       //      $('#email').addClass('is-invalid');
-       //      $('#email').next('.invalid-feedback').text('Không để trống email');
-       //      hasError = true;
-       //  } else if (!emailRegex.test(email)) {
-       //      $('#email').addClass('is-invalid');
-       //      $('#email').next('.invalid-feedback').text('Email không hợp lệ');
-       //      hasError = true;
-       //  }
-        if (tinh == "-- Chọn tỉnh --") {
-            $('#province').addClass('is-invalid');
-            $('#province').next('.invalid-feedback').text('Vui lòng chọn tỉnh');
-            hasError = true;
-        }
-        if (huyen.trim().length == 0 || huyen == "-- Chọn huyện --") {
-            $('#district').addClass('is-invalid');
-            $('#district').next('.invalid-feedback').text('Vui lòng chọn huyện');
-            hasError = true;
-        }
-        if (xa.trim().length == 0 || xa == "-- Chọn xã --") {
-            $('#ward').addClass('is-invalid');
-            $('#ward').next('.invalid-feedback').text('Vui lòng chọn xã');
-            hasError = true;
-        }
-        if (diachi.trim().length == 0) {
-            $('#address').addClass('is-invalid');
-            $('#address').next('.invalid-feedback').text('Không để trống địa chỉ');
-            hasError = true;
-        }
-        if (pttt == undefined) {
-            $('#pttt-error').show();
-            hasError = true;
-        } else {
-            $('#pttt-error').hide();
-        }
-        if (hasError) {
-            alert("Vui lòng điền đầy đủ thông tin");
-        } else {
-            var objHoaDon = {
-                Ten: ten,
-                Email: email,
-                SDT: sdt,
-                DiaChi: diachi + ", " + xa + ", " + huyen + ", " + tinh,
-                TienShip: tienShip,
-                PhuongThucThanhToan: pttt,
-                TongTien: tienShip + @tongtien - tienVoucher - tienDiem,
-                TenVoucher: voucher,
-                Diem: diemTich,
-                GhiChu: ghiChu,
-                NgayNhanHang: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+        function submitNewAddress() {
+            const diaChiMoi = {
+                tinh: $("#newProvince option:selected").text().trim(),
+                huyen: $("#newDistrict option:selected").text().trim(),
+                xa: $("#newWard option:selected").text().trim(),
+                diaChiChiTiet: $("#newChiTiet").val(),
+                isDefault: $("#isDefaultAddress").is(":checked")
             };
 
+            if (!diaChiMoi.tinh || !diaChiMoi.huyen || !diaChiMoi.xa || !diaChiMoi.diaChiChiTiet) {
+                alert("Vui lòng điền đầy đủ thông tin địa chỉ!");
+                return;
+            }
+
             $.ajax({
+                url: `https://localhost:7095/api/DiaChi/khachhang/${userId}/diachi`,
                 type: 'POST',
-                url: '/Home/Order',
-                data: JSON.stringify(objHoaDon),
                 contentType: 'application/json',
-                dataType: 'text',
-                success: function (response) {
-                    location.href = response;
+                data: JSON.stringify(diaChiMoi),
+                success: function () {
+                    alert("✅ Đã thêm địa chỉ mới");
+                    $('#addAddressModal').modal('hide');
+                    loadSavedAddresses(); // Update saved addresses without reloading page
+                    // Optionally reload page if needed
+                    // location.reload();
                 },
-                error: function (xhr) {
-                    console.log("❌ Lỗi gửi đơn hàng:", xhr.responseText);
-                    alert("Không thể gửi đơn hàng: " + xhr.status);
+                error: function () {
+                    alert("❌ Không thể thêm địa chỉ");
                 }
             });
         }
-    }
 
-    function usevoucher() {
-        var value = $("#voucher").val();
-        $.ajax({
-            async: true,
-            type: 'GET',
-            dataType: 'json',
-            url: '/Home/UseVoucher',
-            data: { ma: value, tongTien: @tongtien },
-            success: function (response) {
-                if (response.trangThai == true) {
-                    voucher = value;
-                    if (response.hinhThuc == 1) {
-                        tienVoucher = (@tongtien * response.giaTri) / 100;
-                    } else if (response.hinhThuc == 0) {
-                        tienVoucher = response.giaTri;
-                    }
-                    var ipVoucher = document.getElementById("moneyvoucher");
-                    ipVoucher.hidden = false;
-                    ipVoucher.innerHTML = "Số tiền giảm (Voucher)<span>" + tienVoucher.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }) + "</span>";
-                    var total = tienShip + @tongtien - tienVoucher - tienDiem;
-                    if (total < 0) {
-                        total = 0;
-                    }
-                    document.getElementById("total").innerHTML = total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
-                } else {
-                    alert(response.loi);
-                }
-            },
-            error: function (response) {
-                alert("Error");
+        function createhoadon() {
+            var ten = $("#name").val();
+            var email = $("#email").val();
+            var sdt = $("#phone").val();
+            var tinh = $("#province option:selected").text().trim();
+            var huyen = $("#district option:selected").text().trim();
+            var xa = $("#ward option:selected").text().trim();
+            var diachi = $("#address").val();
+            var pttt = $('input[name="pttt"]:checked').val();
+            var ghiChu = $("#note").val();
+            $('.invalid-feedback').text('');
+            $('.is-invalid').removeClass('is-invalid');
+            var hasError = false;
+            if (ten.trim().length == 0) {
+                $('#name').addClass('is-invalid');
+                $('#name').next('.invalid-feedback').text('Không để trống tên');
+                hasError = true;
             }
-        });
-    }
+            var phoneNumberRegex = /^\d{10}$/;
+            if (sdt.trim().length == 0) {
+                $('#phone').addClass('is-invalid');
+                $('#phone').next('.invalid-feedback').text('Không để trống sdt');
+                hasError = true;
+            } else if (!phoneNumberRegex.test(sdt)) {
+                $('#phone').addClass('is-invalid');
+                $('#phone').next('.invalid-feedback').text('Số điện thoại không hợp lệ');
+                hasError = true;
+            }
+           // var emailRegex = /^[a-zA-Z0-9._%+-]+[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+           //  if (email.trim().length == 0) {
+           //      $('#email').addClass('is-invalid');
+           //      $('#email').next('.invalid-feedback').text('Không để trống email');
+           //      hasError = true;
+           //  } else if (!emailRegex.test(email)) {
+           //      $('#email').addClass('is-invalid');
+           //      $('#email').next('.invalid-feedback').text('Email không hợp lệ');
+           //      hasError = true;
+           //  }
+            if (tinh == "-- Chọn tỉnh --") {
+                $('#province').addClass('is-invalid');
+                $('#province').next('.invalid-feedback').text('Vui lòng chọn tỉnh');
+                hasError = true;
+            }
+            if (huyen.trim().length == 0 || huyen == "-- Chọn huyện --") {
+                $('#district').addClass('is-invalid');
+                $('#district').next('.invalid-feedback').text('Vui lòng chọn huyện');
+                hasError = true;
+            }
+            if (xa.trim().length == 0 || xa == "-- Chọn xã --") {
+                $('#ward').addClass('is-invalid');
+                $('#ward').next('.invalid-feedback').text('Vui lòng chọn xã');
+                hasError = true;
+            }
+            if (diachi.trim().length == 0) {
+                $('#address').addClass('is-invalid');
+                $('#address').next('.invalid-feedback').text('Không để trống địa chỉ');
+                hasError = true;
+            }
+            if (pttt == undefined) {
+                $('#pttt-error').show();
+                hasError = true;
+            } else {
+                $('#pttt-error').hide();
+            }
+            if (hasError) {
+                alert("Vui lòng điền đầy đủ thông tin");
+            } else {
+                var objHoaDon = {
+                    Ten: ten,
+                    Email: email,
+                    SDT: sdt,
+                    DiaChi: diachi + ", " + xa + ", " + huyen + ", " + tinh,
+                    TienShip: tienShip,
+                    PhuongThucThanhToan: pttt,
+                    TongTien: tienShip + @tongtien - tienVoucher - tienDiem,
+                    TenVoucher: voucher,
+                    Diem: diemTich,
+                    GhiChu: ghiChu,
+                    NgayNhanHang: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+                };
 
-    function usediem() {
-        var value = $("#diemTich").val();
-        if (value > @(loginInfor.DiemTich == null ? 0 : loginInfor.DiemTich)) {
-            alert("Số điểm của bạn không đủ");
-        } else if (value < 0) {
-            alert("Số điểm không thể âm");
-        } else if (isNaN(value)) {
-            alert("Giá trị không hợp lệ");
-        } else {
+                $.ajax({
+                    type: 'POST',
+                    url: '/Home/Order',
+                    data: JSON.stringify(objHoaDon),
+                    contentType: 'application/json',
+                    dataType: 'text',
+                    success: function (response) {
+                        location.href = response;
+                    },
+                    error: function (xhr) {
+                        console.log("❌ Lỗi gửi đơn hàng:", xhr.responseText);
+                        alert("Không thể gửi đơn hàng: " + xhr.status);
+                    }
+                });
+            }
+        }
+
+        function usevoucher() {
+            var value = $("#voucher").val();
             $.ajax({
                 async: true,
                 type: 'GET',
                 dataType: 'json',
-                url: '/Home/UseDiemTich',
-                data: { diem: value, id: '@loginInfor.Id', tongTien: @tongtien },
+                url: '/Home/UseVoucher',
+                data: { ma: value, tongTien: @tongtien },
                 success: function (response) {
                     if (response.trangThai == true) {
-                        diemTich = value;
-                        var ipDiem = document.getElementById("moneyscore");
-                        ipDiem.hidden = false;
-                        tienDiem = response.soTienGiam;
-                        ipDiem.innerHTML = "Số tiền giảm (Điểm)<span>" + tienDiem.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }) + "</span>";
+                        voucher = value;
+                        if (response.hinhThuc == 1) {
+                            tienVoucher = (@tongtien * response.giaTri) / 100;
+                        } else if (response.hinhThuc == 0) {
+                            tienVoucher = response.giaTri;
+                        }
+                        var ipVoucher = document.getElementById("moneyvoucher");
+                        ipVoucher.hidden = false;
+                        ipVoucher.innerHTML = "Số tiền giảm (Voucher)<span>" + tienVoucher.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }) + "</span>";
                         var total = tienShip + @tongtien - tienVoucher - tienDiem;
                         if (total < 0) {
                             total = 0;
@@ -640,55 +591,92 @@
                 }
             });
         }
-    }
 
-    // Function to calculate shipping based on province, district, and ward
-  
-    function calculateShipping(districtId, wardCode) {
-    const provinceId = $("#province").val() || $("#newProvince").val();
-    districtId = districtId || $("#district").val() || $("#newDistrict").val();
-    wardCode = wardCode || $("#ward").val() || $("#newWard").val();
+        function usediem() {
+            var value = $("#diemTich").val();
+            if (value > @(loginInfor.DiemTich == null ? 0 : loginInfor.DiemTich)) {
+                alert("Số điểm của bạn không đủ");
+            } else if (value < 0) {
+                alert("Số điểm không thể âm");
+            } else if (isNaN(value)) {
+                alert("Giá trị không hợp lệ");
+            } else {
+                $.ajax({
+                    async: true,
+                    type: 'GET',
+                    dataType: 'json',
+                    url: '/Home/UseDiemTich',
+                    data: { diem: value, id: '@loginInfor.Id', tongTien: @tongtien },
+                    success: function (response) {
+                        if (response.trangThai == true) {
+                            diemTich = value;
+                            var ipDiem = document.getElementById("moneyscore");
+                            ipDiem.hidden = false;
+                            tienDiem = response.soTienGiam;
+                            ipDiem.innerHTML = "Số tiền giảm (Điểm)<span>" + tienDiem.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }) + "</span>";
+                            var total = tienShip + @tongtien - tienVoucher - tienDiem;
+                            if (total < 0) {
+                                total = 0;
+                            }
+                            document.getElementById("total").innerHTML = total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
+                        } else {
+                            alert(response.loi);
+                        }
+                    },
+                    error: function (response) {
+                        alert("Error");
+                    }
+                });
+            }
+        }
 
-    if (!provinceId || !districtId || !wardCode) {
-        tienShip = 0;
-        $("#fee").text("0 VND");
-        updateTotal();
-        return;
-    }
+        // Function to calculate shipping based on province, district, and ward
 
-    $.ajax({
-        type: "GET",
-        url: "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee",
-        headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c', "Content-Type": "application/json" },
-        data: {
-            shop_id: 4839851,
-            to_district_id: districtId,
-            to_ward_code: wardCode,
-            weight: 500 * (@soLuong || 1),
-            service_type_id: 2
-        },
-        dataType: "json",
-        success: (data) => {
-                tienShip = data.code === 200 && data.data?.total ? Math.floor(data.data.total / 1000) * 1000
-        : 0;
+        function calculateShipping(districtId, wardCode) {
+        const provinceId = $("#province").val() || $("#newProvince").val();
+        districtId = districtId || $("#district").val() || $("#newDistrict").val();
+        wardCode = wardCode || $("#ward").val() || $("#newWard").val();
 
-            $("#fee").text(tienShip.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }));
-            updateTotal();
-        },
-        error: (response) => {
-            console.log("Lỗi API GHN:", response.responseText);
+        if (!provinceId || !districtId || !wardCode) {
             tienShip = 0;
             $("#fee").text("0 VND");
             updateTotal();
+            return;
         }
-    });
-}
 
-// Hàm cập nhật tổng tiền
-function updateTotal() {
-    var total = tienShip + @tongtien - tienVoucher - tienDiem;
-    if (total < 0) total = 0;
-    document.getElementById("total").innerHTML = total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
-}
-    
+        $.ajax({
+            type: "GET",
+            url: "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee",
+            headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c', "Content-Type": "application/json" },
+            data: {
+                shop_id: 4839851,
+                to_district_id: districtId,
+                to_ward_code: wardCode,
+                weight: 500 * (@soLuong || 1),
+                service_type_id: 2
+            },
+            dataType: "json",
+            success: (data) => {
+                    tienShip = data.code === 200 && data.data?.total ? Math.floor(data.data.total / 1000) * 1000
+            : 0;
+
+                $("#fee").text(tienShip.toLocaleString('it-IT', { style: 'currency', currency: 'VND' }));
+                updateTotal();
+            },
+            error: (response) => {
+                console.log("Lỗi API GHN:", response.responseText);
+                tienShip = 0;
+                $("#fee").text("0 VND");
+                updateTotal();
+            }
+        });
+    }
+
+    // Hàm cập nhật tổng tiền
+    function updateTotal() {
+        var total = tienShip + @tongtien - tienVoucher - tienDiem;
+        if (total < 0) total = 0;
+        document.getElementById("total").innerHTML = total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
+    }
+
 </script>
