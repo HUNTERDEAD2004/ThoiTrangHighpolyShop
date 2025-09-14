@@ -20,9 +20,7 @@
         6 => "Hoàn thành",
         7 => "Đơn hủy",
         8 => "Chờ xác nhận hủy",
-        9 => "Chờ xác nhận hoàn hàng",
-        4 => "Đang hoàn hàng",
-        5 => "Hoàn hàng thành công",
+        12 => "Giao Hàng thất bại",
         _ => "Không xác định"
     };
 
@@ -30,8 +28,8 @@
     int tienShip = firstItem.TienShip;
     int? giaTriGiam = firstItem.GiaTri;
     int? hinhThucGiamGia = firstItem.HinhThucGiamGia;
-    int diemSudung = firstItem.lichSuTichDiems.FirstOrDefault(x => x.TrangThai == 0)?.Diem ?? 0;
-    int diemTich = firstItem.lichSuTichDiems.FirstOrDefault(x => x.TrangThai == 1)?.Diem ?? 0;
+   // int diemSudung = firstItem.lichSuTichDiems.FirstOrDefault(x => x.TrangThai == 0)?.Diem ?? 0;
+   // int diemTich = firstItem.lichSuTichDiems.FirstOrDefault(x => x.TrangThai == 1)?.Diem ?? 0;
     int tileTieuDiem = firstItem.TiLeTieuDiem;
     int tileTichDiem = firstItem.TiLeTichDiem;
 
@@ -39,8 +37,8 @@
     if (hinhThucGiamGia == 1) tienGiam = (int)(tongTienHang * (double)(giaTriGiam ?? 0) / 100);
     else if (hinhThucGiamGia == 0) tienGiam = giaTriGiam ?? 0;
 
-    int tienTruDiem = diemSudung * tileTieuDiem;
-    int tongThanhToan = tongTienHang + tienShip - tienGiam - tienTruDiem;
+   // int tienTruDiem = diemSudung * tileTieuDiem;
+    int tongThanhToan = tongTienHang + tienShip - tienGiam ;
 
     bool choHuy = firstItem.TrangThaiGiaoHang == 2;
     bool choHoan = firstItem.TrangThaiGiaoHang == 6 && DateTime.Now.Subtract(Convert.ToDateTime(firstItem.NgayThanhToan)).TotalDays < 3 && Model.All(x => x.TrangThaiDanhGia == 0);
@@ -113,10 +111,7 @@
                 {
                     <li>Voucher: <strong>-@FormatVND(tienGiam)</strong></li>
                 }
-                @if (tienTruDiem > 0)
-                {
-                    <li>Điểm sử dụng: <strong>-@FormatVND(tienTruDiem)</strong></li>
-                }
+            
                 <li><strong>Tổng thanh toán: @FormatVND(tongThanhToan)</strong></li>
             </ul>
         </div>
@@ -136,10 +131,7 @@
                 <div class="bg-light p-3 rounded">
                     <h5>Thông tin khác</h5>
                     <p class="mb-1">Phương thức thanh toán: <strong>@firstItem.PhuongThucThanhToan</strong></p>
-                    @if (diemTich > 0)
-                    {
-                        <p class="mb-0">Điểm tích lũy: <strong>@(diemTich.ToString("n0"))</strong></p>
-                    }
+                  
                 </div>
             </div>
         </div>

@@ -197,19 +197,6 @@
                     @Model.listsp.Sum(c=>c.SoLuong * c.GiaLuu).ToString("n0")
                 </td>
             </tr>
-            @if (@Model.lstlstd.Count != 0)
-            {
-                <tr class="p-0 m-0">
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td colspan="2">
-                        Trừ tiêu điểm
-                    </td>
-                    <td>
-                        @Model.TruTieuDiem?.ToString("n0")
-                    </td>
-                </tr>
-            }
 
             @if (@Model.voucher != null)
             {

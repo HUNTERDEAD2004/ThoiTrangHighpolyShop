@@ -188,19 +188,7 @@
                             <datalist id="vouchers"></datalist>
                             <button onclick="usevoucher()">Áp dụng</button>
                         </div>
-                        @if (session != null)
-                        {
-                            <div style="position: relative;">
-                                <input type="number" id="diemTich" placeholder="Nhập số điểm">
-                                <button onclick="usediem()">Áp dụng</button>
-                                <span id="error-message" style="color: #dc3545; font-size: 12px;"></span>
-                                <p>Bạn hiện tại có: @loginInfor.DiemTich điểm</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <a asp-action="Login" asp-route-actionName="CheckOut">Đăng nhập để sử dụng tích điểm</a>
-                        }
+                     
                     </div>
                     <div class="checkout__order">
                         <h4 class="order__title">Đơn hàng của bạn</h4>

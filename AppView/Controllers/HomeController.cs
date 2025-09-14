@@ -1923,7 +1923,7 @@ namespace AppView.Controllers
                             TempData.Remove("Quantity");
                             var hoaDon = JsonConvert.DeserializeObject<HoaDonViewModel>(TempData["HoaDon"].ToString());
                             hoaDon.NgayThanhToan = DateTime.Now;
-                            hoaDon.TrangThaiGiaoHang = 3;
+                            hoaDon.TrangThaiGiaoHang = 11;
                             HttpResponseMessage response = _httpClient.PostAsJsonAsync("HoaDon", hoaDon).Result;
                             if (response.IsSuccessStatusCode)
                             {
