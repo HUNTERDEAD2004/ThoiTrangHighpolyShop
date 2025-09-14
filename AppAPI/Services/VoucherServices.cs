@@ -4,6 +4,7 @@ using AppData.Models;
 using AppData.Repositories;
 using AppData.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace AppAPI.Services
 {
@@ -76,30 +77,31 @@ namespace AppAPI.Services
 
         public bool Update(Guid id, VoucherView voucherview)
         {
-            var voucher = _allRepository.GetAll().FirstOrDefault(x => x.ID == id);
-            if (voucher != null)
+            try
             {
-                voucher.Ten = voucherview.Ten?.Trim();
-                voucher.MaVoucher = voucherview.MaVoucher?.Trim();
+                var voucher = context.Vouchers.FirstOrDefault(x => x.ID == id);
+                if (voucher == null) return false;
+
+                // Map từ ViewModel sang Entity
+                voucher.MaVoucher = voucherview.MaVoucher;
+                voucher.Ten = voucherview.Ten;
+                voucher.MoTa = voucherview.MoTa;
+                voucher.GiaTri = voucherview.GiaTri;
                 voucher.HinhThucGiamGia = voucherview.HinhThucGiamGia;
+                voucher.SoLuong = voucherview.SoLuong;
                 voucher.GiaTriToiThieu = voucherview.GiaTriToiThieu;
                 voucher.GiaTriToiDa = voucherview.GiaTriToiDa;
-                voucher.GiaTri = voucherview.GiaTri;
-
-                if (voucherview.NgayApDung > voucherview.NgayKetThuc)
-                {
-                    return false;
-                }
                 voucher.NgayApDung = voucherview.NgayApDung;
                 voucher.NgayKetThuc = voucherview.NgayKetThuc;
-                voucher.SoLuong = voucherview.SoLuong;
-                voucher.MoTa = voucherview.MoTa?.Trim();
-                voucher.TrangThai = voucherview.TrangThai;
-                voucher.IsPublic = voucherview.IsPublic;
 
-                return _allRepository.Update(voucher);
+                context.Vouchers.Update(voucher);
+                context.SaveChanges();
+                return true;
             }
-            return false;
+            catch
+            {
+                return false;
+            }
         }
         public Voucher? GetVoucherByMa(string ma)
         {
@@ -121,24 +123,5 @@ namespace AppAPI.Services
         //{
         //    return _allRepository.GetAll().Where(x=>x.NgayApDung<DateTime.Now && x.NgayKetThuc>DateTime.Now && x.SoTienCan<tongTien && x.TrangThai>0 && x.SoLuong>0).ToList();
         //}
-
-        public Voucher ApplyVoucher(string code, int totalAmount)
-        {
-            var voucher = _allRepository.GetAll().FirstOrDefault(v => v.Ten == code);
-            if (voucher == null) return null;
-
-            if (voucher.SoLuong > 0 &&
-                totalAmount >= voucher.GiaTriToiThieu &&
-                totalAmount <= voucher.GiaTriToiDa &&
-                voucher.NgayApDung <= DateTime.Now &&
-                voucher.NgayKetThuc >= DateTime.Now)
-            {
-                voucher.SoLuong--;
-                _allRepository.Update(voucher);
-                return voucher;
-            }
-
-            return null;
-        }
     }
 }

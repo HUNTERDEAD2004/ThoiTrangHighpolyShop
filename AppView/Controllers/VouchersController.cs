@@ -15,10 +15,10 @@ namespace AppView.Controllers
         public VouchersController()
         {
             _httpClient = new HttpClient();
-            dBContext=new AssignmentDBContext();
+            dBContext = new AssignmentDBContext();
         }
         public int PageSize = 8;
-        
+
         // Two-column: Create voucher + customer list
         [HttpGet]
         public async Task<IActionResult> CreateWithCustomers()
@@ -49,7 +49,7 @@ namespace AppView.Controllers
             {
                 ModelState.AddModelError("VoucherForm.MaVoucher", "Mã voucher không được để trống");
             }
-            
+
             if (string.IsNullOrEmpty(vm.VoucherForm.Ten))
             {
                 ModelState.AddModelError("VoucherForm.Ten", "Tên voucher không được để trống");
@@ -129,7 +129,7 @@ namespace AppView.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var voucherId = vm.VoucherForm.Id;
-                
+
                 // Xử lý logic phân phối voucher dựa trên loại hiển thị
                 if (Visibility == "public")
                 {
@@ -137,7 +137,7 @@ namespace AppView.Controllers
                     var allCustomersRes = await _httpClient.GetAsync("https://localhost:7095/api/KhachHang/get-view-all");
                     var allCustomersJson = await allCustomersRes.Content.ReadAsStringAsync();
                     var allCustomers = JsonConvert.DeserializeObject<List<KhachHangViewModel>>(allCustomersJson) ?? new List<KhachHangViewModel>();
-                    
+
                     if (allCustomers.Any())
                     {
                         var allCustomerIds = allCustomers.Select(c => c.Id).ToList();
@@ -160,7 +160,8 @@ namespace AppView.Controllers
                         });
                     }
                 }
-                
+
+                TempData["Success"] = "Tạo voucher thành công!";
                 return RedirectToAction("GetAllVoucher");
             }
 
@@ -177,44 +178,147 @@ namespace AppView.Controllers
             string apiURL = $"https://localhost:7095/api/Voucher";
             var response = await _httpClient.GetAsync(apiURL);
             var apiData = await response.Content.ReadAsStringAsync();
-            var roles = JsonConvert.DeserializeObject<List<VoucherView>>(apiData);
-            return View(new PhanTrangVouchers
+            var roles = JsonConvert.DeserializeObject<List<VoucherView>>(apiData) ?? new List<VoucherView>();
+
+            // 🔹 Sắp xếp mới nhất lên đầu
+            var sortedRoles = roles.OrderByDescending(v => v.NgayApDung).ToList();
+
+            int PageSize = 5; // số item trên 1 trang
+
+            var model = new PhanTrangVouchers
             {
-                listvouchers = roles
-                        .Skip((ProductPage - 1) * PageSize).Take(PageSize),
+                listvouchers = sortedRoles
+                    .Skip((ProductPage - 1) * PageSize)
+                    .Take(PageSize)
+                    .ToList(), // ép về List để dùng được Count trong View
                 PagingInfo = new PagingInfo
                 {
                     ItemsPerPage = PageSize,
                     CurrentPage = ProductPage,
-                    TotalItems = roles.Count()
+                    TotalItems = sortedRoles.Count
+                }
+            };
+
+            return View(model);
+        }
+        // Lọc voucher theo giá trị và ngày
+        [HttpGet]
+        public async Task<IActionResult> FilterVouchers(decimal? MinValue, decimal? MaxValue, DateTime? StartDate, DateTime? EndDate, int ProductPage = 1)
+        {
+            try
+            {
+                string apiURL = $"https://localhost:7095/api/Voucher";
+                var response = await _httpClient.GetAsync(apiURL);
+                var apiData = await response.Content.ReadAsStringAsync();
+                var allVouchers = JsonConvert.DeserializeObject<List<VoucherView>>(apiData) ?? new List<VoucherView>();
+
+                // Áp dụng các bộ lọc
+                var filteredVouchers = allVouchers.AsQueryable();
+
+                // Lọc theo giá trị tối thiểu
+                if (MinValue.HasValue)
+                {
+                    filteredVouchers = filteredVouchers.Where(x => x.GiaTri >= MinValue.Value);
                 }
 
-            }
-                );
+                // Lọc theo giá trị tối đa
+                if (MaxValue.HasValue)
+                {
+                    filteredVouchers = filteredVouchers.Where(x => x.GiaTri <= MaxValue.Value);
+                }
 
+                // Lọc theo ngày bắt đầu
+                if (StartDate.HasValue)
+                {
+                    filteredVouchers = filteredVouchers.Where(x => x.NgayApDung >= StartDate.Value);
+                }
+
+                // Lọc theo ngày kết thúc
+                if (EndDate.HasValue)
+                {
+                    filteredVouchers = filteredVouchers.Where(x => x.NgayKetThuc <= EndDate.Value);
+                }
+
+                var totalItems = filteredVouchers.Count();
+                var pagedVouchers = filteredVouchers
+                    .Skip((ProductPage - 1) * PageSize)
+                    .Take(PageSize)
+                    .ToList();
+
+                // Lưu thông tin lọc vào ViewBag để hiển thị lại
+                ViewBag.MinValue = MinValue;
+                ViewBag.MaxValue = MaxValue;
+                ViewBag.StartDate = StartDate?.ToString("yyyy-MM-dd");
+                ViewBag.EndDate = EndDate?.ToString("yyyy-MM-dd");
+                ViewBag.IsFiltered = true;
+
+                return View("GetAllVoucher", new PhanTrangVouchers
+                {
+                    listvouchers = pagedVouchers,
+                    PagingInfo = new PagingInfo
+                    {
+                        ItemsPerPage = PageSize,
+                        CurrentPage = ProductPage,
+                        TotalItems = totalItems
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra khi lọc voucher: " + ex.Message;
+                return RedirectToAction("GetAllVoucher");
+            }
         }
-        // tim kiem ten
+
+        // Tìm kiếm theo tên hoặc mã voucher
         [HttpGet]
         public async Task<IActionResult> TimKiemTenVC(string Ten, int ProductPage = 1)
         {
-            string apiURL = $"https://localhost:7095/api/Voucher";
-            var response = await _httpClient.GetAsync(apiURL);
-            var apiData = await response.Content.ReadAsStringAsync();
-            var roles = JsonConvert.DeserializeObject<List<VoucherView>>(apiData);
-            return View("GetAllVoucher", new PhanTrangVouchers
+            try
             {
-                listvouchers = roles.Where(x => x.Ten.Contains(Ten.Trim()))
-                        .Skip((ProductPage - 1) * PageSize).Take(PageSize),
-                PagingInfo = new PagingInfo
+                if (string.IsNullOrWhiteSpace(Ten))
                 {
-                    ItemsPerPage = PageSize,
-                    CurrentPage = ProductPage,
-                    TotalItems = roles.Count()
+                    return RedirectToAction("GetAllVoucher");
                 }
 
-            }
-                );
+                string apiURL = $"https://localhost:7095/api/Voucher";
+                var response = await _httpClient.GetAsync(apiURL);
+                var apiData = await response.Content.ReadAsStringAsync();
+                var allVouchers = JsonConvert.DeserializeObject<List<VoucherView>>(apiData) ?? new List<VoucherView>();
 
+                // Tìm kiếm theo tên hoặc mã voucher (không phân biệt hoa thường)
+                var searchTerm = Ten.Trim().ToLower();
+                var filteredVouchers = allVouchers.Where(x =>
+                    (x.Ten?.ToLower().Contains(searchTerm) == true) ||
+                    (x.MaVoucher?.ToLower().Contains(searchTerm) == true)
+                ).ToList();
+
+                var totalItems = filteredVouchers.Count();
+                var pagedVouchers = filteredVouchers
+                    .Skip((ProductPage - 1) * PageSize)
+                    .Take(PageSize)
+                    .ToList();
+
+                // Lưu thông tin tìm kiếm vào ViewBag
+                ViewBag.SearchTerm = Ten;
+                ViewBag.IsSearching = true;
+
+                return View("GetAllVoucher", new PhanTrangVouchers
+                {
+                    listvouchers = pagedVouchers,
+                    PagingInfo = new PagingInfo
+                    {
+                        ItemsPerPage = PageSize,
+                        CurrentPage = ProductPage,
+                        TotalItems = totalItems
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi xảy ra khi tìm kiếm voucher: " + ex.Message;
+                return RedirectToAction("GetAllVoucher");
+            }
         }
         // create
         public IActionResult Create()
@@ -253,7 +357,7 @@ namespace AppView.Controllers
                         ViewData["Ngay"] = "Ngày kết thúc phải lớn hơn ngày áp dụng";
                     }
                     var timkiem = roles.FirstOrDefault(x => x.Ten == voucher.Ten.Trim());
-                   
+
                     if (timkiem != null)
                     {
                         ViewData["Ma"] = "Mã này đã tồn tại";
@@ -511,7 +615,7 @@ namespace AppView.Controllers
             {
                 return View();
             }
-           
+
         }
         public async Task<IActionResult> KoSuDung(Guid id)
         {
@@ -534,7 +638,7 @@ namespace AppView.Controllers
             {
                 return View();
             }
-            
+
         }
     }
 }
