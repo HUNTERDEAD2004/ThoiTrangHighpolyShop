@@ -537,6 +537,7 @@ namespace AppView.Controllers
                 return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> PaymentCallBack()
         {
@@ -615,6 +616,7 @@ namespace AppView.Controllers
                 return Content("Lỗi callback: " + ex.Message);
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> GetVouchers(decimal tongTien)
         {

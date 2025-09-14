@@ -44,10 +44,10 @@
             font-size: 0.9rem;
         }
 
-            .tab:hover,
-            .tab.active {
-                background-color: #cde1ff;
-            }
+        .tab:hover,
+        .tab.active {
+            background-color: #cde1ff;
+        }
 
         .form-control, .form-select {
             font-size: 0.9rem;
@@ -131,13 +131,13 @@
             border-radius: 5px;
         }
 
-            .product-item:hover {
+        .product-item:hover {
                 background-color: #f8f9fa;
-            }
+        }
 
-            .product-item img {
+        .product-item img {
                 object-fit: cover;
-            }
+        }
 
         .modal {
             backdrop-filter: blur(3px);
@@ -177,9 +177,9 @@
             font-size: 0.85rem;
         }
 
-            .voucher-detail a {
+        .voucher-detail a {
                 font-size: 0.8rem;
-            }
+        }
 
         #voucherSelect optgroup {
             font-weight: bold;
@@ -200,10 +200,10 @@
             border-color: #dc3545;
         }
 
-            .btn-danger:hover {
+        .btn-danger:hover {
                 background-color: #bb2d3b;
                 border-color: #b02a37;
-            }
+        }
 
         /* Thêm vào phần CSS */
         .input-group-sm {
@@ -221,22 +221,22 @@
             padding: 0.25rem 0.5rem;
         }
 
-            /* Đảm bảo input number không hiện mũi tên */
-            .so-luong-sp::-webkit-outer-spin-button,
-            .so-luong-sp::-webkit-inner-spin-button {
+        /* Đảm bảo input number không hiện mũi tên */
+        .so-luong-sp::-webkit-outer-spin-button,
+        .so-luong-sp::-webkit-inner-spin-button {
                 -webkit-appearance: none;
                 margin: 0;
-            }
+        }
 
         .so-luong-sp {
             -moz-appearance: textfield;
         }
 
-            /* Hiệu ứng khi disabled */
-            .so-luong-sp:disabled {
+        /* Hiệu ứng khi disabled */
+        .so-luong-sp:disabled {
                 background-color: #f8f9fa;
                 opacity: 0.7;
-            }
+        }
 
         /* Đảm bảo các phần tử ẩn hoàn toàn khi cần */
         .d-none {
@@ -1831,17 +1831,16 @@
         }
 
         // Thu thập dữ liệu thanh toán - ĐẢM BẢO KHỚP VỚI C# REQUEST
-        
         const thanhToanData = {
             Id: idHoaDon,
             IdNhanVien: idNhanVien,
             IdKhachHang: $("#khachHangId").val(),
-            IDPhuongThucThanhToan: idPhuongThucTT, // ĐÚNG: IDPhuongThucThanhToan (viết hoa)
+            IDPhuongThucThanhToan: idPhuongThucTT,
             IdVoucher: currentVoucher && currentVoucher.id
-            ? currentVoucher.id
-            : "00000000-0000-0000-0000-000000000000",
+                ? currentVoucher.id
+                : "00000000-0000-0000-0000-000000000000",
             TongTien: thanhTien,
-            TienShip: phiShip, // ĐÚNG: TienShip (viết hoa)
+            TienShip: phiShip,
             GhiChu: $("#note").val(),
             tenNguoiNhan: $("#tenNguoiNhan").val(),
             sdtNguoiNhan: $("#sdtNguoiNhan").val(),
@@ -2261,4 +2260,269 @@
             setTimeout(tuDongTaiVoucher, 300);
         });
     });
+
+        // ===== PHÂN TRANG SẢN PHẨM =====
+    function pagingsp(totalItem, callback) {
+        const totalPage = Math.ceil(totalItem / pageSizesp);
+        let paging = '<nav><ul class="pagination pagination-sm justify-content-center mt-3">';
+
+        // Nút Previous
+        if (pageIndexsp > 1) {
+            paging += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${pageIndexsp - 1}, callback)">Trước</a></li>`;
+        }
+
+        // Các trang
+        for (let i = 1; i <= totalPage; i++) {
+            paging += `<li class="page-item ${i === pageIndexsp ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i}, callback)">${i}</a>
+            </li>`;
+        }
+
+        // Nút Next
+        if (pageIndexsp < totalPage) {
+            paging += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${pageIndexsp + 1}, callback)">Sau</a></li>`;
+        }
+
+        paging += '</ul></nav>';
+
+        $(".product-list").after(paging);
+    }
+
+    function changePage(page, callback) {
+        pageIndexsp = page;
+        if (typeof callback === 'function') {
+            callback();
+        }
+    }
+
+    // ===== TÌM KIẾM SẢN PHẨM =====
+    $(document).on('input', '#searchProduct', function() {
+        const searchTerm = $(this).val().trim().toLowerCase();
+
+        if (searchTerm.length < 2) {
+            loadsp();
+            return;
+        }
+
+        // Hiển thị trạng thái tìm kiếm
+        $(".product-list").html('<li class="text-center py-4"><div class="spinner-border spinner-border-sm" role="status"></div><p class="mt-2">Đang tìm kiếm...</p></li>');
+
+        // Gọi API tìm kiếm
+        $.ajax({
+            url: "/BanHangTaiQuay/TimKiemSanPham",
+            type: "GET",
+            data: { keyword: searchTerm },
+            success: function(response) {
+                $(".product-list").empty();
+
+                if (response.data && response.data.length > 0) {
+                    response.data.forEach(product => {
+                        $(".product-list").append(`
+                            <li class="product-item d-flex flex-row" onclick="moModalChiTietSanPham('${product.id}')">
+                                <div class="product-img">
+                                    <img src="${product.anh}" class="img-fluid rounded-start" alt="..." style="width:70px;height:80px">
+                                </div>
+                                <div class="product-detail d-flex flex-column flex-grow-1">
+                                    <span class="product-name mt-1">${product.ten}</span>
+                                    <div class="product-infor mt-auto">
+                                        <span style="flex-basis:100%"><b style="color:blue;font-size:14px; font-weight:700">${Intl.NumberFormat().format(product.giaBan)}</b></span>
+                                    </div>
+                                </div>
+                            </li>
+                        `);
+                    });
+                } else {
+                    $(".product-list").html('<li class="text-center py-4 text-muted"><i class="bi bi-search display-4"></i><p class="mt-2">Không tìm thấy sản phẩm nào</p></li>');
+                }
+            },
+            error: function() {
+                $(".product-list").html('<li class="text-center py-4 text-muted"><i class="bi bi-exclamation-triangle display-4"></i><p class="mt-2">Lỗi khi tìm kiếm</p></li>');
+            }
+        });
+    });
+
+    // ===== CẢI THIỆN TÍNH PHÍ SHIP =====
+    function tinhPhiShipTuDong() {
+        if (!$("#giaoHang").is(":checked")) {
+            phiShip = 0;
+            $('#phiShip').text('0 đ');
+            $('#phiShipRow').addClass('d-none');
+            capNhatTongTien();
+            return;
+        }
+
+        // Validate địa chỉ giao hàng
+        if (!validateDiaChiGiaoHang()) {
+            phiShip = 0;
+            $('#phiShip').text('0 đ');
+            $('#phiShipRow').addClass('d-none');
+            capNhatTongTien();
+            return;
+        }
+
+        const wardCode = $("#xaPhuong").val();
+        const districtId = $("#quanHuyen").val();
+
+        if (!wardCode || !districtId) {
+            phiShip = 0;
+            $('#phiShip').text('0 đ');
+            $('#phiShipRow').addClass('d-none');
+            capNhatTongTien();
+            return;
+        }
+
+        // Tính trọng lượng dựa trên sản phẩm trong giỏ hàng
+        const activeTab = $(".tabs-box .tab.active");
+        if (!activeTab.length) {
+            phiShip = 0;
+            $('#phiShip').text('0 đ');
+            $('#phiShipRow').addClass('d-none');
+            capNhatTongTien();
+            return;
+        }
+
+        const idHoaDon = activeTab.find("span").attr("value");
+        const totalWeight = tinhTrongLuongGioHang(idHoaDon);
+
+        // Hiển thị trạng thái đang tính phí
+        $('#phiShip').html('<i class="bi bi-arrow-repeat spinner"></i> Đang tính...');
+        $('#phiShipRow').removeClass('d-none');
+
+        $.ajax({
+            type: "GET",
+            url: "https://online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee",
+            headers: {
+                token: GHN_TOKEN,
+                "Content-Type": "application/json"
+            },
+            data: {
+                from_district_id: 1454, // ID quận của cửa hàng
+                service_type_id: 2,
+                to_district_id: districtId,
+                to_ward_code: wardCode,
+                weight: totalWeight,
+                length: 20,
+                width: 15,
+                height: 10,
+                insurance_value: 0,
+                coupon: null
+            },
+            success: function (data) {
+                if (data.code === 200) {
+                    phiShip = data.data.total;
+                    $('#phiShip').text(phiShip.toLocaleString('vi-VN') + ' đ');
+                    $('#phiShipRow').removeClass('d-none');
+                    capNhatTongTien();
+                    toastr.success("Đã tính phí ship thành công", "Thông báo", { timeOut: 2000 });
+                } else {
+                    console.error("Lỗi tính phí ship:", data.message);
+                    hienThiLoiPhiShip();
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Lỗi khi tính phí ship:", error);
+                hienThiLoiPhiShip();
+            }
+        });
+    }
+
+    function tinhTrongLuongGioHang(idHoaDon) {
+        let totalWeight = 0;
+        const gioHangElement = $(`.gioHangContent[data-id="${idHoaDon}"]`);
+
+        if (gioHangElement.length === 0) {
+            return 1000; // 1kg mặc định nếu không có giỏ hàng
+        }
+
+        // Tính trọng lượng dựa trên số lượng sản phẩm
+        $(gioHangElement).find('tr').each(function() {
+            const soLuong = parseInt($(this).find('.so-luong-sp').val()) || 0;
+            totalWeight += soLuong * 500; // Mỗi sản phẩm 500g
+        });
+
+        return totalWeight > 0 ? totalWeight : 1000; // Tối thiểu 1kg
+    }
+
+    function hienThiLoiPhiShip() {
+        $('#phiShip').text('0 đ');
+        phiShip = 0;
+        $('#phiShipRow').removeClass('d-none');
+        capNhatTongTien();
+        toastr.error("Không thể tính phí ship", "Lỗi", { timeOut: 3000 });
+    }
+
+    function validateDiaChiGiaoHang() {
+        return $('#tinhThanh').val() && $('#quanHuyen').val() &&
+               $('#xaPhuong').val() && $('#diaChiChiTiet').val().trim();
+    }
+
+    // ===== XỬ LÝ SỰ KIỆN KHI THAY ĐỔI SỐ LƯỢNG SẢN PHẨM =====
+    $(document).on('change', '.so-luong-sp', function() {
+        // Tính lại phí ship sau khi thay đổi số lượng
+        if ($("#giaoHang").is(":checked")) {
+            setTimeout(tinhPhiShipTuDong, 500);
+        }
+    });
+
+    // ===== CẢI THIỆN HIỂN THỊ TRẠNG THÁI LOADING =====
+    function showLoading(selector, message = "Đang tải...") {
+        $(selector).html(`
+            <div class="text-center py-3">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+                <p class="mt-2">${message}</p>
+            </div>
+        `);
+    }
+
+    // ===== KHỞI TẠO SỰ KIỆN KHI TRANG TẢI XONG =====
+    $(document).ready(function() {
+        // Tự động tải voucher
+        setTimeout(tuDongTaiVoucher, 1000);
+
+        // Thiết lập sự kiện cho các trường địa chỉ
+        $('#tinhThanh, #quanHuyen, #xaPhuong, #diaChiChiTiet').change(function() {
+            if ($("#giaoHang").is(":checked")) {
+                setTimeout(tinhPhiShipTuDong, 500);
+            }
+        });
+
+        // Theo dõi thay đổi trong giỏ hàng để cập nhật tổng tiền
+        const observer = new MutationObserver(function(mutations) {
+            capNhatTongTien();
+        });
+
+        // Theo dõi tất cả các giỏ hàng
+        $('.gioHangContent').each(function() {
+            observer.observe(this, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        });
+    });
+
+    // ===== CẢI THIỆN HIỂN THỊ THÔNG BÁO =====
+    function showSuccess(message) {
+        toastr.success(message, "Thành công", {
+            timeOut: 2000,
+            closeButton: true,
+            progressBar: true
+        });
+    }
+
+    function showError(message) {
+        toastr.error(message, "Lỗi", {
+            timeOut: 3000,
+            closeButton: true,
+            progressBar: true
+        });
+    }
+
+    function showWarning(message) {
+        toastr.warning(message, "Cảnh báo", {
+            timeOut: 2500,
+            closeButton: true,
+            progressBar: true
+        });
+    }
 </script>
