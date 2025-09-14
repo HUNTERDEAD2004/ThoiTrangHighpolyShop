@@ -4,6 +4,24 @@
     int stt = 1;
     var now = DateTime.Now;
 }
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa fa-check-circle me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa fa-exclamation-circle me-2"></i>
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 <style>
     body, table, .form-label, .btn, .badge, .page-link, h2, h5, label, th, td {
         text-transform: uppercase !important;
@@ -14,24 +32,30 @@
     <form asp-action="FilterVouchers" method="get" class="col-10 row g-3">
         <div class="col-md-3">
             <label class="form-label fw-semibold">Tối thiểu:</label>
-            <input type="number" name="MinValue" class="form-control form-control-sm" placeholder="Nhập giảm giá tối thiểu" />
+            <input type="number" name="MinValue" class="form-control form-control-sm" placeholder="Nhập giảm giá tối thiểu" value="@ViewBag.MinValue" />
         </div>
         <div class="col-md-3">
             <label class="form-label fw-semibold">Tối đa:</label>
-            <input type="number" name="MaxValue" class="form-control form-control-sm" placeholder="Nhập giảm giá tối đa" />
+            <input type="number" name="MaxValue" class="form-control form-control-sm" placeholder="Nhập giảm giá tối đa" value="@ViewBag.MaxValue" />
         </div>
         <div class="col-md-3">
             <label class="form-label fw-semibold">Ngày bắt đầu:</label>
-            <input type="date" name="StartDate" class="form-control form-control-sm" />
+            <input type="date" name="StartDate" class="form-control form-control-sm" value="@ViewBag.StartDate" />
         </div>
         <div class="col-md-3 d-flex align-items-end">
             <div class="w-100">
                 <label class="form-label fw-semibold">Ngày kết thúc:</label>
                 <div class="input-group">
-                    <input type="date" name="EndDate" class="form-control form-control-sm" />
+                    <input type="date" name="EndDate" class="form-control form-control-sm" value="@ViewBag.EndDate" />
                     <button type="submit" class="btn btn-dark btn-sm">
                         <i class="fa fa-filter"></i> Lọc
                     </button>
+                    @if (ViewBag.IsFiltered == true)
+                    {
+                        <a href="@Url.Action("GetAllVoucher")" class="btn btn-outline-secondary btn-sm" title="Xóa bộ lọc">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    }
                 </div>
             </div>
         </div>
@@ -39,7 +63,7 @@
 
     <!-- Nút Thêm -->
     <div class="col-2 text-end">
-        <a class="btn btn-dark btn-sm" asp-action="CreateWithCustomers">
+        <a class="btn btn-dark btn-sm text-white" asp-action="CreateWithCustomers">
             <i class="fa fa-plus"></i> Thêm mới
         </a>
     </div>
@@ -51,297 +75,424 @@
     <div class="col-md-6 d-flex align-items-center">
         <h5 class="fw-bold text-dark mb-0">
             <i class="fa fa-tags text-primary me-2"></i> Danh sách phiếu giảm giá
+            @if (ViewBag.IsFiltered == true)
+            {
+                <span class="badge bg-info ms-2">Đã lọc</span>
+            }
+            @if (ViewBag.IsSearching == true)
+            {
+                <span class="badge bg-warning ms-2">Tìm kiếm: "@ViewBag.SearchTerm"</span>
+            }
         </h5>
     </div>
 
     <!-- Form tìm kiếm bên phải -->
     <div class="col-md-6 d-flex justify-content-end">
         <form asp-action="TimKiemTenVC" asp-controller="Vouchers" method="get" class="input-group input-group-sm w-auto">
-            <input type="text" name="Ten" class="form-control" placeholder="Tìm mã Voucher">
+            <input type="text" name="Ten" class="form-control" placeholder="Tìm tên hoặc mã voucher" value="@ViewBag.SearchTerm">
             <button type="submit" class="btn btn-outline-primary">
                 <i class="fa fa-search"></i>
             </button>
-        </form>
-    </div>
-</div>
-
-    <!-- Nút thêm mới -->
-   
-
-<div class="table-responsive">
-    <table class="table table-bordered table-hover text-center align-middle">
-        <thead class="table-dark text-center">
-            <tr>
-                <th>STT</th>
-                <th>Mã Voucher</th>
-                <th>Tên </th>
-
-
-                <th>Hình thức</th>
-                <th>Giá trị Giảm</th>
-                <th>Đơn hàng tối thiểu</th>
-                <th>Giảm tối đa</th>
-            
-                <th>Ngày áp dụng</th>
-                <th>Ngày kết thúc</th>
-                <th>Số lượng</th>
-                <th>Mô tả</th>
-                <th>Chế độ</th>
-                <th>Trạng thái</th>
-                <th>Tình trạng</th>
-                <th>Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.listvouchers
-            .Where(x => x.GiaTri <= x.GiaTriToiDa
-            && x.GiaTriToiThieu >= x.GiaTri
-            && x.GiaTriToiThieu > x.GiaTriToiDa))
+            @if (ViewBag.IsSearching == true)
             {
-                <tr>
-                    <td>@(stt++)</td>
-                    <td><strong>@item.MaVoucher</strong></td>
-                    <td>@item.Ten</td>
-                    <td>@(item.HinhThucGiamGia == 0 ? "Tiền mặt" : "Phần trăm")</td>
-                    <td>
-                        @(item.HinhThucGiamGia == 0
-                            ? item.GiaTri.ToString("n0") + " VND"
-                            : item.GiaTri + " %")
-                    </td>
-                    <td>@item.GiaTriToiThieu.ToString("n0") VND</td>
-                    <td>@item.GiaTriToiDa.ToString("n0") VND</td>
-                    <td>@item.NgayApDung.ToString("dd/MM/yyyy")</td>
-                    <td>@item.NgayKetThuc.ToString("dd/MM/yyyy")</td>
-                    <td>@item.SoLuong</td>
-                    <td>@item.MoTa</td>
-                    <td>@(item.IsPublic ? "Công khai" : "Riêng tư")</td>
-                   
-
-                    @* Trạng thái (không lưu DB) - có badge màu khi Hoạt động *@
-                    <td>
-                        @* Trạng thái: hoạt động khi Sắp diễn ra hoặc Đang diễn ra *@
-                        @{
-                            string trangThaiText = "";
-                            string trangThaiColor = "";
-
-                            if (item.NgayKetThuc < now)
-                            {
-                                trangThaiText = "Không hoạt động";
-                                trangThaiColor = "badge bg-primary";
-                            }
-                            else if (now >= item.NgayApDung && now <= item.NgayKetThuc)
-                            {
-                                trangThaiText = "Hoạt động";
-                                trangThaiColor = "badge bg-primary";
-                            }
-                            else if (now < item.NgayApDung)
-                            {
-                                trangThaiText = "Hoạt động";
-                                trangThaiColor = "badge bg-primary";
-                            }
-                            else
-                            {
-                                trangThaiText = "Không xác định";
-                                trangThaiColor = "badge bg-primary";
-                            }
-                        }
-                        <span class="badge bg-@trangThaiColor">@trangThaiText</span>
-                    </td>
-
-                    <td>
-                        @{
-                            string tinhTrangText = "";
-                            string tinhTrangColor = "";
-
-                            if (item.NgayKetThuc < now)
-                            {
-                                tinhTrangText = "Đã kết thúc";
-                                tinhTrangColor = "badge bg-primary";
-                            }
-                            else if (now >= item.NgayApDung && now <= item.NgayKetThuc)
-                            {
-                                tinhTrangText = "Đang diễn ra";
-                                tinhTrangColor = "badge bg-primary";
-                            }
-                            else if (now < item.NgayApDung)
-                            {
-                                tinhTrangText = "Sắp diễn ra";
-                                tinhTrangColor = "badge bg-primary ";
-                            }
-                            else
-                            {
-                                tinhTrangText = "Không xác định";
-                                tinhTrangColor = "badge bg-primary";
-                            }
-                        }
-
-                        <span class="badge bg-@tinhTrangColor">@tinhTrangText</span>
-                    </td>
-
-                    <td>
-                         <div class="btn-group" role="group">
-                            <!-- Chỉnh sửa -->
-                            <a class="btn btn-warning btn-sm" asp-action="Updates" asp-route-id="@item.Id" title="Chỉnh sửa">
-                                <i class="fa fa-edit"></i>
-                            </a>
-        <!-- Xem chi tiết -->
-                            <a class="btn btn-dark btn-sm" asp-action="Details" asp-route-id="@item.Id" title="Chi tiết">
-            <i class="fa fa-eye"></i>
-        </a>
-
-        <!-- Gán khách hàng -->
-        <button type="button" class="btn btn-primary btn-sm" title="Thêm cho khách hàng" onclick="openAssignModal('@item.Id')">
-            <i class="fa fa-user-plus"></i>
-        </button>
-       
-
-        <!-- Xóa -->
-        <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa?')" style="display:inline;">
-            <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
-                <i class="fa fa-trash"></i>
-            </button>
+                <a href="@Url.Action("GetAllVoucher")" class="btn btn-outline-secondary">
+                    <i class="fa fa-times"></i>
+                </a>
+            }
         </form>
     </div>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
 </div>
+
+<!-- Nút thêm mới -->
+@if (Model.listvouchers.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover text-center align-middle">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>STT</th>
+                    <th>Mã Voucher</th>
+                    <th>Tên </th>
+                    <th>Hình thức</th>
+                    <th>Giá trị Giảm</th>
+                    <th>Đơn hàng tối thiểu</th>
+                    <th>Giảm tối đa</th>
+                    <th>Ngày áp dụng</th>
+                    <th>Ngày kết thúc</th>
+                    <th>Số lượng</th>
+                    <th>Mô tả</th>
+                    <th>Chế độ</th>
+                    <th>Trạng thái</th>
+                    <th>Tình trạng</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int index = 1;
+                    var currentTime = DateTime.Now;
+                }
+                @foreach (var item in Model.listvouchers
+               .Where(x => x.GiaTri <= x.GiaTriToiDa
+               && x.GiaTriToiThieu >= x.GiaTri
+               && x.GiaTriToiThieu > x.GiaTriToiDa))
+                {
+                    <tr>
+                        <td>@(stt++)</td>
+                        <td><strong>@item.MaVoucher</strong></td>
+                        <td>@item.Ten</td>
+                        <td>@(item.HinhThucGiamGia == 0 ? "Tiền mặt" : "Phần trăm")</td>
+                        <td>
+                            @(item.HinhThucGiamGia == 0
+                                ? item.GiaTri.ToString("n0") + " VND"
+                                : item.GiaTri + " %")
+                        </td>
+                        <td>@item.GiaTriToiThieu.ToString("n0") VND</td>
+                        <td>@item.GiaTriToiDa.ToString("n0") VND</td>
+                        <td>@item.NgayApDung.ToString("dd/MM/yyyy")</td>
+                        <td>@item.NgayKetThuc.ToString("dd/MM/yyyy")</td>
+                        <td>@item.SoLuong</td>
+                        <td>@item.MoTa</td>
+                        <td>@(item.IsPublic ? "Công khai" : "Riêng tư")</td>
+
+
+                        @* Trạng thái (không lưu DB) - có badge màu khi Hoạt động *@
+                        <td>
+                            @* Trạng thái: hoạt động khi Sắp diễn ra hoặc Đang diễn ra *@
+                            @{
+                                string trangThaiText = "";
+                                string trangThaiColor = "";
+
+                                if (item.NgayKetThuc < now)
+                                {
+                                    trangThaiText = "Không hoạt động";
+                                    trangThaiColor = "badge bg-primary";
+                                }
+                                else if (now >= item.NgayApDung && now <= item.NgayKetThuc)
+                                {
+                                    trangThaiText = "Hoạt động";
+                                    trangThaiColor = "badge bg-primary";
+                                }
+                                else if (now < item.NgayApDung)
+                                {
+                                    trangThaiText = "Hoạt động";
+                                    trangThaiColor = "badge bg-primary";
+                                }
+                                else
+                                {
+                                    trangThaiText = "Không xác định";
+                                    trangThaiColor = "badge bg-primary";
+                                }
+                            }
+                            <span class="badge bg-@trangThaiColor">@trangThaiText</span>
+                        </td>
+
+                        <td>
+                            @{
+                                string tinhTrangText = "";
+                                string tinhTrangColor = "";
+
+                                if (item.NgayKetThuc < now)
+                                {
+                                    tinhTrangText = "Đã kết thúc";
+                                    tinhTrangColor = "badge bg-primary";
+                                }
+                                else if (now >= item.NgayApDung && now <= item.NgayKetThuc)
+                                {
+                                    tinhTrangText = "Đang diễn ra";
+                                    tinhTrangColor = "badge bg-primary";
+                                }
+                                else if (now < item.NgayApDung)
+                                {
+                                    tinhTrangText = "Sắp diễn ra";
+                                    tinhTrangColor = "badge bg-primary ";
+                                }
+                                else
+                                {
+                                    tinhTrangText = "Không xác định";
+                                    tinhTrangColor = "badge bg-primary";
+                                }
+                            }
+
+                            <span class="badge bg-@tinhTrangColor">@tinhTrangText</span>
+                        </td>
+
+                        <td>
+                            <div class="btn-group" role="group">
+                                <!-- Chỉnh sửa -->
+                                <a class="btn btn-warning btn-sm" asp-action="Updates" asp-route-id="@item.Id" title="Chỉnh sửa">
+                                    <i class="fa fa-edit"></i>
+                                </a>
+                                <!-- Xem chi tiết -->
+                                <a class="btn btn-dark btn-sm text-white" asp-action="Details" asp-route-id="@item.Id" title="Chi tiết">
+                                    <i class="fa fa-eye"></i>
+                                </a>
+
+                                <!-- Gán khách hàng -->
+                                <button type="button" class="btn btn-primary btn-sm" title="Thêm cho khách hàng" onclick="openAssignModal('@item.Id')">
+                                    <i class="fa fa-user-plus"></i>
+                                </button>
+
+
+                                <!-- Xóa -->
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa?')" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <div class="alert alert-info">
+            <i class="fa fa-info-circle fa-3x mb-3"></i>
+            <h4>Không tìm thấy voucher nào</h4>
+            @if (ViewBag.IsSearching == true)
+            {
+                <p>Không có voucher nào phù hợp với từ khóa "<strong>@ViewBag.SearchTerm</strong>"</p>
+            }
+            else if (ViewBag.IsFiltered == true)
+            {
+                <p>Không có voucher nào phù hợp với bộ lọc đã chọn</p>
+            }
+            else
+            {
+                <p>Chưa có voucher nào trong hệ thống</p>
+            }
+            <a href="@Url.Action("GetAllVoucher")" class="btn btn-primary mt-3">
+                <i class="fa fa-refresh"></i> Xem tất cả voucher
+            </a>
+        </div>
+    </div>
+}
 
 <!-- Modal gán voucher cho khách hàng -->
 <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Thêm voucher cho khách hàng</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div id="assignModalBody">
-            <div class="text-center py-5">Đang tải...</div>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm voucher cho khách hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="assignModalBody">
+                    <div class="text-center py-5">Đang tải...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="assignSubmitBtn">Gán</button>
+            </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-        <button type="button" class="btn btn-primary" id="assignSubmitBtn">Gán</button>
-      </div>
     </div>
-  </div>
-  </div>
+</div>
 
-<nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
-        @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
-        {
-            <li class="page-item @(i == Model.PagingInfo.CurrentPage ? "active" : "")">
-                <a class="page-link" href="/Vouchers/GetAllVoucher?ProductPage=@i">@i</a>
+@if (Model.PagingInfo.TotalPages > 1)
+{
+    <nav aria-label="Page navigation" class="mt-3">
+        <ul class="pagination justify-content-center">
+
+            <!-- Prev -->
+            <li class="page-item @(Model.PagingInfo.CurrentPage == 1 ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("GetAllVoucher", new { ProductPage = Model.PagingInfo.CurrentPage - 1 })">Prev</a>
             </li>
-        }
-    </ul>
-</nav>
+
+            <!-- Số trang -->
+            @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PagingInfo.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("GetAllVoucher", new { ProductPage = i })">@i</a>
+                </li>
+            }
+
+            <!-- Next -->
+            <li class="page-item @(Model.PagingInfo.CurrentPage == Model.PagingInfo.TotalPages ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("GetAllVoucher", new { ProductPage = Model.PagingInfo.CurrentPage + 1 })">Next</a>
+            </li>
+        </ul>
+    </nav>
+}
 
 <script>
-let currentVoucherId = null;
+    let currentVoucherId = null;
 
-async function openAssignModal(voucherId) {
-    currentVoucherId = voucherId;
-    const modal = new bootstrap.Modal(document.getElementById('assignModal'));
-    document.getElementById('assignModalBody').innerHTML = '<div class="text-center py-5">Đang tải...</div>';
-    modal.show();
+    // Cải thiện trải nghiệm lọc và tìm kiếm
+    $(document).ready(function () {
+        // Tự động submit form lọc khi thay đổi giá trị (chỉ cho ngày)
+        $('input[name="StartDate"], input[name="EndDate"]').on('change', function () {
+            // Delay để người dùng có thể nhập xong
+            setTimeout(function () {
+                if ($(this).val() !== '') {
+                    $(this).closest('form').submit();
+                }
+            }.bind(this), 500);
+        });
 
-    try {
-        // Lấy thông tin voucher để biết công khai/riêng tư
-        const voucherRes = await fetch(`https://localhost:7095/api/Voucher/${voucherId}`);
-        const voucher = await voucherRes.json();
+        // Submit form lọc khi nhấn Enter trong input số
+        $('input[name="MinValue"], input[name="MaxValue"]').on('keypress', function (e) {
+            if (e.which === 13) { // Enter key
+                $(this).closest('form').submit();
+            }
+        });
 
-        // Nếu voucher công khai, hiển thị thông báo và không cho gán thủ công
-        if (voucher && (voucher.isPublic === true || voucher.IsPublic === true)) {
+        // Validation cho form lọc
+        $('form[asp-action="FilterVouchers"]').on('submit', function (e) {
+            const minValue = parseFloat($('input[name="MinValue"]').val()) || 0;
+            const maxValue = parseFloat($('input[name="MaxValue"]').val()) || 0;
+            const startDate = $('input[name="StartDate"]').val();
+            const endDate = $('input[name="EndDate"]').val();
+
+            // Kiểm tra giá trị tối thiểu không được lớn hơn tối đa
+            if (minValue > 0 && maxValue > 0 && minValue > maxValue) {
+                e.preventDefault();
+                alert('Giá trị tối thiểu không được lớn hơn giá trị tối đa');
+                return false;
+            }
+
+            // Kiểm tra ngày bắt đầu không được sau ngày kết thúc
+            if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                e.preventDefault();
+                alert('Ngày bắt đầu không được sau ngày kết thúc');
+                return false;
+            }
+
+            // Hiển thị loading
+            $('button[type="submit"]').html('<i class="fa fa-spinner fa-spin"></i> Đang lọc...');
+        });
+
+        // Validation cho form tìm kiếm
+        $('form[asp-action="TimKiemTenVC"]').on('submit', function (e) {
+            const searchTerm = $('input[name="Ten"]').val().trim();
+            if (searchTerm.length < 2) {
+                e.preventDefault();
+                alert('Vui lòng nhập ít nhất 2 ký tự để tìm kiếm');
+                return false;
+            }
+
+            // Hiển thị loading
+            $('button[type="submit"]').html('<i class="fa fa-spinner fa-spin"></i>');
+        });
+
+        // Xóa bộ lọc và tìm kiếm
+        $('.btn-outline-secondary').on('click', function () {
+            // Reset form lọc
+            $('form[asp-action="FilterVouchers"]')[0].reset();
+            // Reset form tìm kiếm
+            $('input[name="Ten"]').val('');
+        });
+
+        // Hiệu ứng hover cho các nút
+        $('.btn').hover(
+            function () { $(this).addClass('shadow-sm'); },
+            function () { $(this).removeClass('shadow-sm'); }
+        );
+    });
+
+    async function openAssignModal(voucherId) {
+        currentVoucherId = voucherId;
+        const modal = new bootstrap.Modal(document.getElementById('assignModal'));
+        document.getElementById('assignModalBody').innerHTML = '<div class="text-center py-5">Đang tải...</div>';
+        modal.show();
+
+        try {
+            // Lấy thông tin voucher để biết công khai/riêng tư
+            const voucherRes = await fetch(`https://localhost:7095/api/Voucher/${voucherId}`);
+            const voucher = await voucherRes.json();
+
+            // Nếu voucher công khai, hiển thị thông báo và không cho gán thủ công
+            if (voucher && (voucher.isPublic === true || voucher.IsPublic === true)) {
+                document.getElementById('assignModalBody').innerHTML = `
+                    <div class="alert alert-info">
+                        <strong>Mã:</strong> ${voucher.maVoucher || voucher.MaVoucher} - <strong>Chế độ:</strong> Công khai
+                    </div>
+                    <p>Voucher này đang ở chế độ Công khai và đã được áp dụng cho tất cả khách hàng đủ điều kiện. Không cần thêm thủ công.</p>`;
+                // Ẩn nút Gán
+                document.getElementById('assignSubmitBtn').style.display = 'none';
+                return;
+            } else {
+                // Hiện nút Gán nếu là riêng tư
+                document.getElementById('assignSubmitBtn').style.display = '';
+            }
+
+            const [customersRes, assignedIdsRes] = await Promise.all([
+                fetch('https://localhost:7095/api/KhachHang/get-view-all'),
+                fetch(`https://localhost:7095/api/UserVoucher/assigned-ids?voucherId=${voucherId}`)
+            ]);
+
+            const customers = await customersRes.json();
+            const assignedIds = new Set(await assignedIdsRes.json());
+
+            const rows = customers.map(c => {
+                const disabled = assignedIds.has(c.id || c.Id);
+                const id = c.id || c.Id;
+                const name = c.ten || c.Ten;
+                const phone = c.sdt || c.SDT;
+                const email = c.email || c.Email;
+                return `<tr>
+                    <td><input type="checkbox" class="assign-cb" value="${id}" ${disabled ? 'disabled' : ''}></td>
+                    <td>${name ?? ''}</td>
+                    <td>${phone ?? ''}</td>
+                    <td>${email ?? ''}</td>
+                    <td>${disabled ? '<span class="badge bg-secondary">Đã có</span>' : ''}</td>
+                </tr>`;
+            }).join('');
+
             document.getElementById('assignModalBody').innerHTML = `
-                <div class="alert alert-info">
-                    <strong>Mã:</strong> ${voucher.maVoucher || voucher.MaVoucher} - <strong>Chế độ:</strong> Công khai
+                <div class="mb-2">
+                    <span class="badge bg-secondary">Mã: ${voucher.maVoucher || voucher.MaVoucher}</span>
+                    <span class="badge bg-info text-dark ms-1">Chế độ: Riêng tư</span>
                 </div>
-                <p>Voucher này đang ở chế độ Công khai và đã được áp dụng cho tất cả khách hàng đủ điều kiện. Không cần thêm thủ công.</p>`;
-            // Ẩn nút Gán
-            document.getElementById('assignSubmitBtn').style.display = 'none';
-            return;
-        } else {
-            // Hiện nút Gán nếu là riêng tư
-            document.getElementById('assignSubmitBtn').style.display = '';
+                <div class="mb-2 d-flex justify-content-between">
+                    <input id="assignSearch" class="form-control form-control-sm w-50" placeholder="Tìm khách hàng..." oninput="filterAssignTable()" />
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm" onclick="checkAllAssign(false)">Bỏ chọn</button>
+                        <button class="btn btn-outline-success btn-sm" onclick="checkAllAssign(true)">Chọn tất</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle text-center" id="assignTable">
+                        <thead class="table-light"><tr>
+                            <th>Chọn</th><th>Họ tên</th><th>SĐT</th><th>Email</th><th>Trạng thái</th>
+                        </tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>`;
+
+        } catch (e) {
+            document.getElementById('assignModalBody').innerHTML = '<div class="text-danger">Không thể tải dữ liệu</div>';
         }
-
-        const [customersRes, assignedIdsRes] = await Promise.all([
-            fetch('https://localhost:7095/api/KhachHang/get-view-all'),
-            fetch(`https://localhost:7095/api/UserVoucher/assigned-ids?voucherId=${voucherId}`)
-        ]);
-
-        const customers = await customersRes.json();
-        const assignedIds = new Set(await assignedIdsRes.json());
-
-        const rows = customers.map(c => {
-            const disabled = assignedIds.has(c.id || c.Id);
-            const id = c.id || c.Id;
-            const name = c.ten || c.Ten;
-            const phone = c.sdt || c.SDT;
-            const email = c.email || c.Email;
-            return `<tr>
-                <td><input type="checkbox" class="assign-cb" value="${id}" ${disabled ? 'disabled' : ''}></td>
-                <td>${name ?? ''}</td>
-                <td>${phone ?? ''}</td>
-                <td>${email ?? ''}</td>
-                <td>${disabled ? '<span class="badge bg-secondary">Đã có</span>' : ''}</td>
-            </tr>`;
-        }).join('');
-
-        document.getElementById('assignModalBody').innerHTML = `
-            <div class="mb-2">
-                <span class="badge bg-secondary">Mã: ${voucher.maVoucher || voucher.MaVoucher}</span>
-                <span class="badge bg-info text-dark ms-1">Chế độ: Riêng tư</span>
-            </div>
-            <div class="mb-2 d-flex justify-content-between">
-                <input id="assignSearch" class="form-control form-control-sm w-50" placeholder="Tìm khách hàng..." oninput="filterAssignTable()" />
-                <div>
-                    <button class="btn btn-outline-primary btn-sm" onclick="checkAllAssign(false)">Bỏ chọn</button>
-                    <button class="btn btn-outline-success btn-sm" onclick="checkAllAssign(true)">Chọn tất</button>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-sm table-bordered align-middle text-center" id="assignTable">
-                    <thead class="table-light"><tr>
-                        <th>Chọn</th><th>Họ tên</th><th>SĐT</th><th>Email</th><th>Trạng thái</th>
-                    </tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>`;
-
-    } catch (e) {
-        document.getElementById('assignModalBody').innerHTML = '<div class="text-danger">Không thể tải dữ liệu</div>';
     }
-}
 
-function filterAssignTable(){
-    const q = (document.getElementById('assignSearch').value || '').toLowerCase();
-    document.querySelectorAll('#assignTable tbody tr').forEach(tr => {
-        tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    function filterAssignTable() {
+        const q = (document.getElementById('assignSearch').value || '').toLowerCase();
+        document.querySelectorAll('#assignTable tbody tr').forEach(tr => {
+            tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    }
+
+    function checkAllAssign(flag) {
+        document.querySelectorAll('#assignTable .assign-cb:not(:disabled)').forEach(cb => cb.checked = flag);
+    }
+
+    document.getElementById('assignSubmitBtn').addEventListener('click', async () => {
+        const selected = Array.from(document.querySelectorAll('#assignTable .assign-cb:checked')).map(cb => cb.value);
+        if (!currentVoucherId || selected.length === 0) {
+            return;
+        }
+        const res = await fetch('https://localhost:7095/api/UserVoucher/assign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ VoucherId: currentVoucherId, CustomerIds: selected })
+        });
+        if (res.ok) {
+            location.reload();
+        }
     });
-}
-
-function checkAllAssign(flag){
-    document.querySelectorAll('#assignTable .assign-cb:not(:disabled)').forEach(cb => cb.checked = flag);
-}
-
-document.getElementById('assignSubmitBtn').addEventListener('click', async () => {
-    const selected = Array.from(document.querySelectorAll('#assignTable .assign-cb:checked')).map(cb => cb.value);
-    if (!currentVoucherId || selected.length === 0){
-        return;
-    }
-    const res = await fetch('https://localhost:7095/api/UserVoucher/assign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ VoucherId: currentVoucherId, CustomerIds: selected })
-    });
-    if (res.ok){
-        location.reload();
-    }
-});
 </script>

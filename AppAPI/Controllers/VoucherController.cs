@@ -11,7 +11,7 @@ namespace AppAPI.Controllers
     [ApiController]
     public class VoucherController : ControllerBase
     {
-        private  readonly IVoucherServices _services;
+        private readonly IVoucherServices _services;
         public VoucherController(IVoucherServices services)
         {
             _services = services;
@@ -45,17 +45,22 @@ namespace AppAPI.Controllers
 
         // PUT api/<VoucherController>/5
         [HttpPut("{id}")]
-        public bool Put(Guid id, VoucherView voucherview)
+        public IActionResult Put(Guid id, VoucherView view)
         {
-            var voucher= _services.GetById(id);
-            if(voucher != null)
+            var voucher = _services.GetById(id);
+            if (voucher == null)
             {
-                return _services.Update(voucher.ID,voucherview);
+                return NotFound("Không tìm thấy voucher");
             }
-            else
+
+            var result = _services.Update(id, view);
+
+            if (!result)
             {
-                return false;   
+                return BadRequest("Cập nhật voucher thất bại");
             }
+
+            return Ok("Cập nhật voucher thành công");
         }
 
         // DELETE api/<VoucherController>/5
