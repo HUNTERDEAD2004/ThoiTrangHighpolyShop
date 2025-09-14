@@ -1,5 +1,7 @@
 ﻿@{
     ViewData["Title"] = "ProductManager";
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
 }
 
 <h1>Quản lý sản phẩm</h1>
@@ -161,12 +163,12 @@
                                     <td>${item.soLuong}</td>
                                     <td>${item.chatLieu}</td>
                                     <td>${item.loaiSP}</td>
-                                    <td id='hoatDong_${item.id}' style="width:228px"><span style="color:green">Hoạt động</span></td>
-                                    <td style="width:250px" id='xoa_${item.id}'>
-                                        <a href='/Admin/ProductDetail?idSanPham=${item.id}' class="btn-dark-gray">Chi tiết</a>
-                                        <a href='/Admin/UpdateSanPham?id=${item.id}' class="btn-dark-gray">Sửa</a>
-                                        <button type='button' onclick="xoa('${item.id}',0)" class="btn-dark-gray">Xóa</button>
-                                    </td>
+                                    <td id='hoatDong_${item.id}'<span style="color:green">Hoạt động</span></td>
+                                    <td id='xoa_${item.id}'>
+                                        <a href='/Admin/ProductDetail?idSanPham=${item.id}' class="btn btn-info btn-sm"  title="Chi tiết"><i class="fas fa-info-circle"></i></a>
+                                        <a href='/Admin/UpdateSanPham?id=${item.id}' class="btn btn-warning btn-sm" title="Sửa"><i class="fas fa-edit"></i></a>
+                                    <button type='button' onclick="xoa('${item.id}',0)" class="btn btn-danger btn-sm"  title="Xóa"><i class="fas fa-trash-alt"></i></button>
+                                </td>
                                 </tr>`);
                     } else {
                         $("#list_products").append(`
@@ -180,12 +182,12 @@
                                     <td>${item.soLuong}</td>
                                     <td>${item.chatLieu}</td>
                                     <td>${item.loaiSP}</td>
-                                    <td id='hoatDong_${item.id}' style="width:228px"><span style="color:red">Không hoạt động</span></td>
-                                    <td style="width:250px" id='xoa_${item.id}'>
-                                        <a href='/Admin/ProductDetail?idSanPham=${item.id}' class="btn-dark-gray">Chi tiết</a>
-                                        <a href='/Admin/UpdateSanPham?id=${item.id}' class="btn-dark-gray">Sửa</a>
-                                        <button type='button' onclick="xoa('${item.id}',1)" class="btn-dark-gray">Hoàn tác</button>
-                                    </td>
+                                    <td id='hoatDong_${item.id}'<span style="color:red">Không hoạt động</span></td>
+                                    <td id='xoa_${item.id}'>
+                                        <a href='/Admin/ProductDetail?idSanPham=${item.id}' class="btn btn-info btn-sm" title="Chi tiết"><i class="fas fa-info-circle"></i></a>
+                                        <a href='/Admin/UpdateSanPham?id=${item.id}' class="btn btn-warning btn-sm" title="Sửa"><i class="fas fa-edit"></i></a>
+                                    <button type='button' onclick="xoa('${item.id}',1)" class="btn btn-success btn-sm" title="Hoàn tác"><i class="fas fa-undo-alt"></i></button>
+                                </td>
                                 </tr>`);
                     }
                 });
@@ -231,12 +233,12 @@
                         document.getElementById("hoatDong_" + id).innerHTML = '<span style="color:red">Không hoạt động</span>';
                         var ip = document.getElementById("xoa_" + id);
                         ip.removeChild(ip.children[2]);
-                        $("#xoa_" + id).append("<button type='button' class='btn-dark-gray' onclick=\"xoa('" + id + "',1)\">Hoàn tác</button>");
+                        $("#xoa_" + id).append("<button type='button' class='btn btn-success btn-sm' title='Hoàn tác' onclick=\"xoa('" + id + "',1)\">" + "<i class='fas fa-undo-alt'></i></button>");
                     } else if (response.ketQua == 1) {
                         document.getElementById("hoatDong_" + id).innerHTML = '<span style="color:green">Hoạt động</span>';
                         var ip = document.getElementById("xoa_" + id);
                         ip.removeChild(ip.children[2]);
-                        $("#xoa_" + id).append("<button type='button' class='btn-dark-gray' onclick=\"xoa('" + id + "',0)\">Xóa</button>");
+                        $("#xoa_" + id).append("<button type='button' class='btn btn-danger btn-sm' title='Xóa' onclick=\"xoa('" + id + "',0)\">" + "<i class='fas fa-trash-alt'></i></button>");
                     }
                 } else {
                     alert('Error');

@@ -1,4 +1,5 @@
-﻿@using AppData.ViewModels.ThongKe
+﻿@using Newtonsoft.Json
+@using AppData.ViewModels.ThongKe
 @model ThongKeViewModel
 @{
     ViewData["Title"] = "ThongKe";
@@ -41,124 +42,123 @@
 <!-- Responsive.css-->
 <link rel="stylesheet" type="text/css" href="~/ThongKe/assets/css/responsive.css">
 
-<div class="row">
-    <div class="main-header">
-        <h4>Thống Kê</h4>
+<div class="row mb-4">
+    <div class="main-header col-12">
+        <h4>Thống Kê Dashboard</h4>
     </div>
 </div>
-<div class="row dashboard-header">
-    <div class="col-lg-4 col-md-6">
-        <div class="card dashboard-product">
-            <span>Số lượng thành viên</span>
-            <h2 class="dashboard-total-products">@Model.SoLuongThanhVien</h2>
-            <span class="label label-warning">Sales</span>Arriving Today
-            <div class="side-box">
-                <i class="ti-signal text-warning-color"></i>
-            </div>
+
+<!-- Tổng quan -->
+<div class="row dashboard-header mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="card dashboard-product p-3">
+            <span>Tổng thành viên</span>
+            <h2>@Model.SoLuongThanhVien</h2>
+            <i class="ti-user text-warning-color float-right" style="font-size:28px"></i>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6">
-        <div class="card dashboard-product">
-            <span>Số đơn hàng chờ</span>
-            <h2 class="dashboard-total-products">@Model.SoLuongDonHang</h2>
-            <span class="label label-primary">Views</span>View Today
-            <div class="side-box ">
-                <i class="ti-gift text-primary-color"></i>
-            </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card dashboard-product p-3">
+            <span>Tổng đơn hàng</span>
+            <h2>@Model.SoLuongDonHang</h2>
+            <i class="ti-shopping-cart text-primary-color float-right" style="font-size:28px"></i>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6">
-        <div class="card dashboard-product">
-            <span>Số lượng sản phẩm trong kho</span>
-            <h2 class="dashboard-total-products"><span>@Model.SoLuongSanPham</span></h2>
-            <span class="label label-success">Sales</span>Reviews
-            <div class="side-box">
-                <i class="ti-direction-alt text-success-color"></i>
-            </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card dashboard-product p-3">
+            <span>Tổng sản phẩm</span>
+            <h2>@Model.SoLuongSanPham</h2>
+            <i class="ti-package text-success-color float-right" style="font-size:28px"></i>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card dashboard-product p-3">
+            <span>Đơn hàng mới hôm nay</span>
+            <h2>@ViewBag.SoDonHangMoi ?? 0</h2>
+            <i class="ti-bolt text-danger-color float-right" style="font-size:28px"></i>
         </div>
     </div>
 </div>
-<div class="row">
-    <div class="d-flex justify-content-end" style="margin-right:10px;margin-bottom:10px">
-        <p style="margin-right:10px">Thời gian:</p><input type="text" id="daterange" value="12/01/2023 - 12/31/2023" class="form-control" style="width:30%;" />
+
+<!-- Lọc theo thời gian -->
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-end">
+        <p class="mr-2">Chọn thời gian:</p>
+        <input type="text" id="daterange" value="12/01/2023 - 12/31/2023" class="form-control" style="width:30%;" />
     </div>
-    <div class="col-lg-12">
+</div>
+
+<!-- Biểu đồ -->
+<!-- Biểu đồ doanh thu với tùy chọn ngày/tháng/năm -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5>Doanh thu</h5>
+                <div>
+                    <label><input type="radio" name="chartType" value="day" checked>Ngày</label>
+                    <label class="ml-2"><input type="radio" name="chartType" value="month">Tháng</label>
+                    <label class="ml-2"><input type="radio" name="chartType" value="year">Năm</label>
+                </div>
+            </div>
+            <canvas id="lineChart" style="height:300px;"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card p-3">
+            <canvas id="pieChart" style="height:300px;"></canvas>
+        </div>
+    </div>
+</div>
+<!-- Sản phẩm mới bán gần đây -->
+<div class="row mb-4">
+    <div class="col-12">
         <div class="card">
-            <div class="d-flex justify-content-end">
-                <a class="btn btn-success" asp-action="ExportExcel" style="margin-top:10px;margin-right:10px">Xuất file excel</a>
+            <div class="card-header">
+                <h5>Sản phẩm mới bán gần đây</h5>
             </div>
-            <div class="card-block">
-                <canvas id="barChart" class="ct-chart-line " style="width: 100%!important; height: 330px; margin: 0 auto"></canvas>
+            <div class="card-block table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tên sản phẩm</th>
+                            <th>Số lượng bán</th>
+                            <th>Doanh thu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.ThongKeSanPham != null)
+                        {
+                            foreach (var sp in ViewBag.ThongKeSanPham)
+                            {
+                                <tr>
+                                    <td>@sp.TenSP</td>
+                                    <td>@sp.SoLuong</td>
+                                    <td>@String.Format("{0:N0} VNĐ", sp.DoanhThu)</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" class="text-center">Không có dữ liệu</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
-<div class="row">
-    <div class="col-xl-8 col-lg-12">
-        <div class="card" style="height:300px">
-            <div class="card-block">
-                <canvas id="lineChart" style="min-width: 150px; height: 230px; margin: 0 auto"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-4 col-lg-12">
-        <div class="card" style="height:300px">
-            <div class="card-block">
-                <canvas id="pieChart" style="width: 250px; height: 250px; margin: 0 auto"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- 2-1 block end -->
+
+<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    var $window = $(window);
-    var nav = $('.fixed-button');
-    $window.scroll(function () {
-        if ($window.scrollTop() >= 200) {
-            nav.addClass('active');
-        }
-        else {
-            nav.removeClass('active');
-        }
-    });
-</script>
-<!-- Required Jqurey -->
-<script src="~/ThongKe/assets/plugins/Jquery/dist/jquery.min.js"></script>
-<script src="~/ThongKe/assets/plugins/jquery-ui/jquery-ui.min.js"></script>
-<script src="~/ThongKe/assets/plugins/tether/dist/js/tether.min.js"></script>
-
-<!-- Required Fremwork -->
 <script src="~/ThongKe/assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1/daterangepicker.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
-<!-- Scrollbar JS-->
-<script src="~/ThongKe/assets/plugins/jquery-slimscroll/jquery.slimscroll.js"></script>
-<script src="~/ThongKe/assets/plugins/jquery.nicescroll/jquery.nicescroll.min.js"></script>
-
-<!--classic JS-->
-<script src="~/ThongKe/assets/plugins/classie/classie.js"></script>
-
-<!-- notification -->
-<script src="~/ThongKe/assets/plugins/notification/js/bootstrap-growl.min.js"></script>
-
-<!-- Sparkline charts -->
-<script src="~/ThongKe/assets/plugins/jquery-sparkline/dist/jquery.sparkline.js"></script>
-
-<!-- Counter js  -->
-<script src="~/ThongKe/assets/plugins/waypoints/jquery.waypoints.min.js"></script>
-<script src="~/ThongKe/assets/plugins/countdown/js/jquery.counterup.js"></script>
-
-<!-- Echart js -->
-<script src="~/ThongKe/assets/plugins/charts/echarts/js/echarts-all.js"></script>
-
-<script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/modules/exporting.js"></script>
-<script src="https://code.highcharts.com/highcharts-3d.js"></script>
-
-<!-- custom js -->
-<script type="text/javascript" src="~/ThongKe/assets/pages/elements.js"></script>
-<script src="/js/site.js"></script>
-<script type="text/javascript">
+<script>
     $(function () {
         $('#daterange').daterangepicker({
             opens: 'left',
@@ -174,7 +174,7 @@
     var dataLines = [];
     var labelPies = [];
     var dataPies = [];
-    @{   
+    @{
         foreach (var x in @Model.BieuDoCot)
         {
             @:labelBars.push('@Html.Raw(x.TenSP)')
@@ -191,9 +191,131 @@
             @:dataPies.push(@x.PhanTram)
         }
     }
-        ChartJS.BarChart("barChart", labelBars, dataBars, "Biểu đồ thống kê sản phẩm bán chạy");
-    ChartJS.LineChart("lineChart", labelLines, dataLines, "Biểu đồ thống kê doanh thu ");
-    ChartJS.PieChart("pieChart", labelPies, dataPies, "Biểu đổ thống kê trạng thái hóa đơn");
+    // ======== Biểu đồ cột / đường (Doanh thu) =========
+    var dataDoanhThu = @Html.Raw(JsonConvert.SerializeObject(Model.BieuDoDuong ?? new List<ThongKeDuongViewModel>()));
+
+    var chartLine;
+
+    function groupData(type) {
+        let labels = [];
+        let values = [];
+
+        if (type === "day") {
+            dataDoanhThu.forEach(item => {
+                labels.push(moment(item.Ngay).format("DD/MM"));
+                values.push(item.DoanhThu);
+            });
+        } else if (type === "month") {
+            let grouped = {};
+            dataDoanhThu.forEach(item => {
+                let key = moment(item.Ngay).format("MM/YYYY");
+                if (!grouped[key]) grouped[key] = 0;
+                grouped[key] += item.DoanhThu;
+            });
+            labels = Object.keys(grouped);
+            values = Object.values(grouped);
+        } else if (type === "year") {
+            let grouped = {};
+            dataDoanhThu.forEach(item => {
+                let key = moment(item.Ngay).format("YYYY");
+                if (!grouped[key]) grouped[key] = 0;
+                grouped[key] += item.DoanhThu;
+            });
+            labels = Object.keys(grouped);
+            values = Object.values(grouped);
+        }
+
+        return { labels: labels, data: values };
+    }
+
+    function initLineChart() {
+        var ctx = document.getElementById("lineChart").getContext("2d");
+        var g = groupData("day");
+
+        chartLine = new Chart(ctx, {
+            type: 'bar', // có thể đổi thành 'line' nếu bạn muốn
+            data: {
+                labels: g.labels,
+                datasets: [{
+                    label: "Doanh thu",
+                    data: g.data,
+                    backgroundColor: '#4CAF50'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: "Doanh thu theo ngày" }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return value.toLocaleString('vi-VN') + ' VNĐ';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateLineChart(type) {
+        var g = groupData(type);
+
+        chartLine.data.labels = g.labels;
+        chartLine.data.datasets[0].data = g.data;
+
+        if (type === "day") chartLine.options.plugins.title.text = "Doanh thu theo ngày";
+        if (type === "month") chartLine.options.plugins.title.text = "Doanh thu theo tháng";
+        if (type === "year") chartLine.options.plugins.title.text = "Doanh thu theo năm";
+
+        chartLine.update();
+    }
+
+    // ======== Biểu đồ tròn (Trạng thái hóa đơn) =========
+    var dataTron = @Html.Raw(JsonConvert.SerializeObject(Model.BieuDoTron ?? new List<ThongKeTronViewModel>()));
+
+    var labelPies = dataTron.map(x => x.TrangThaiHoaDon);
+    var dataPies = dataTron.map(x => x.PhanTram);
+
+    function initPieChart() {
+        var ctxPie = document.getElementById("pieChart").getContext("2d");
+        new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: labelPies,
+                datasets: [{
+                    data: dataPies,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#9C27B0'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    title: {
+                        display: true,
+                        text: "Biểu đồ trạng thái hóa đơn"
+                    }
+                }
+            }
+        });
+    }
+
+    // ======== Khởi chạy =========
+    $(document).ready(function () {
+        initLineChart();
+        initPieChart();
+
+        $('input[name="chartType"]').change(function () {
+            var type = $(this).val();
+            updateLineChart(type);
+        });
+    });
 </script>
 
 

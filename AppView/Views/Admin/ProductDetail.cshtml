@@ -73,6 +73,7 @@
 </div>
 
 <div class="d-flex justify-content-end mb-3">
+    <a asp-action="ProductManager" asp-controller="Admin" class="btn btn-outline-orange me-2"> <i class="fas fa-arrow-left"></i> Quay lại</a>
     <a asp-action="QuanLyAnhChiTiet" asp-route-idSanPham="@idSanPham" class="btn btn-outline-success me-2">Quản lý ảnh</a>
     <a asp-action="AddChiTietSanPham" asp-route-idSanPham="@idSanPham" class="btn btn-primary">Thêm chi tiết</a>
 </div>
@@ -119,7 +120,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <!-- ✅ sửa tên hàm cho đúng -->
+                <!-- sửa tên hàm cho đúng -->
                 <button type="button" class="btn btn-primary" onclick="updateMultipleProductDetails()">Cập nhật</button>
             </div>
         </div>
@@ -238,7 +239,7 @@
         loadProductDetails(true);
     }
 
-    function changeSoLuong(idSP) {
+        function changeSoLuong(idSP) {
         let ip = document.getElementById("soLuong_" + idSP);
         let value = parseInt(ip.value);
         if (value < 0) {
@@ -247,13 +248,18 @@
             return;
         }
         $.post('/Admin/UpdateSoluongChiTietSanPham', { id: idSP, soLuong: value }, function (res) {
-        if (!res.success) {
-            alert("Cập nhật số lượng thất bại.");
-        }
+            // Kiểm tra các field khác nhau, phòng khi backend đặt tên khác
+            if (res.success === true || res.trangThai === true || res.status === true) {
+                alert("Cập nhật số lượng thành công.");
+            } else {
+                alert("Cập nhật số lượng thất bại.\n" + (res.message || res.loi || ""));
+            }
         }).fail(function () {
             alert("Có lỗi xảy ra khi cập nhật số lượng.");
         });
     }
+
+
 
     function changeGiaBan(idSP) {
         let ip = document.getElementById("giaGoc_" + idSP);
@@ -409,6 +415,19 @@
     }
 
 </script>
+<style>
+    .btn-outline-orange {
+        background-color: #fff;
+        color: #000 !important;
+        border: 1px solid #ff6600;
+        transition: 0.3s;
+    }
 
+    .btn-outline-orange:hover {
+        background-color: #ff6600;
+        color: #fff !important;
+    }
+
+</style>
 
 
