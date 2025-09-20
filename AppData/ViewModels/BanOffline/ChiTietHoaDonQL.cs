@@ -17,7 +17,7 @@ namespace AppData.ViewModels.BanOffline
         public string? NhanVien { get; set; }
         public string KhachHang { get; set; }
         public string? NguoiNhan { get; set; }
-        public string? SĐT { get; set; }
+        public string? SDT { get; set; }
         public string? Email { get; set; }
         public string? DiaChi { get; set; }
         public decimal? TienShip { get; set; }

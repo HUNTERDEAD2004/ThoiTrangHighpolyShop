@@ -319,7 +319,10 @@ namespace AppAPI.Services
             var hoaDon = new HoaDon
             {
                 ID = Guid.NewGuid(),
-                IDKhachHang = vm.IDKhachHang,
+                IDKhachHang = vm.IDKhachHang != null && vm.IDKhachHang != Guid.Empty
+                    ? vm.IDKhachHang
+                    : Guid.Parse("00000000-0000-0000-0000-000000000001"), // GUEST fallback
+               
                 IDPhuongThucTT = vm.IDPhuongThucTT,
                 IDLichSuHD = lichSuId,
                 NgayTao = DateTime.Now,
@@ -530,6 +533,7 @@ namespace AppAPI.Services
                               KhachCanTra = hd.TongTien,
                               LoaiHD = hd.LoaiHoaDon,
                               TrangThai = hd.TrangThaiGiaoHang,
+
                           }).Distinct().ToList();
 
             return result;
@@ -592,7 +596,7 @@ namespace AppAPI.Services
                                   KhachHang = kh == null ? "Khách lẻ" : kh.Ten,
                                   NguoiNhan = hd.TenNguoiNhan != null ? hd.TenNguoiNhan : null,
                                   DiaChi = hd.DiaChi != null ? hd.DiaChi : null,
-                                  SĐT = hd.SDT != null ? hd.SDT : null,
+                                  SDT = hd.SDT != null ? hd.SDT : null,
                                   Email = hd.Email != null ? hd.Email : null,
                                   TienShip = hd.TienShip != null ? hd.TienShip : null,
                                   TrangThai = hd.TrangThaiGiaoHang,

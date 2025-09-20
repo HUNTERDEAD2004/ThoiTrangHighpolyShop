@@ -12,235 +12,235 @@
     }
     <style>
         .box-section {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 16px;
-            background-color: #fff;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            margin-bottom: 16px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 16px;
+        background-color: #fff;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        margin-bottom: 16px;
         }
 
         .section-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: block;
-            font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 0.9rem;
         }
 
         .tabs-box {
-            overflow-x: auto;
-            display: flex;
-            gap: 10px;
-            padding: 8px 10px;
-            list-style: none;
+        overflow-x: auto;
+        display: flex;
+        gap: 10px;
+        padding: 8px 10px;
+        list-style: none;
         }
 
         .tab {
-            background-color: #f1f3f5;
-            border-radius: 5px;
-            padding: 6px 12px;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            font-size: 0.9rem;
+        background-color: #f1f3f5;
+        border-radius: 5px;
+        padding: 6px 12px;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        font-size: 0.9rem;
         }
 
-            .tab:hover,
-            .tab.active {
-                background-color: #cde1ff;
-            }
+        .tab:hover,
+        .tab.active {
+        background-color: #cde1ff;
+        }
 
         .form-control, .form-select {
-            font-size: 0.9rem;
-            padding: 0.4rem 0.75rem;
-            height: 38px;
+        font-size: 0.9rem;
+        padding: 0.4rem 0.75rem;
+        height: 38px;
         }
 
         .invalid-feedback {
-            font-size: 0.75rem;
+        font-size: 0.75rem;
         }
 
         .is-invalid {
-            border-color: #dc3545 !important;
+        border-color: #dc3545 !important;
         }
 
         .address-section {
-            background-color: #f8f9fa;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 12px;
+        background-color: #f8f9fa;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 12px;
         }
 
         .address-section-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #4154f1;
-            font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #4154f1;
+        font-size: 0.9rem;
         }
 
         .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
         }
 
         /* Modal styling */
         .modal-content {
-            border-radius: 12px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        border-radius: 12px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.15);
         }
 
         .modal-header {
-            background-color: #4154f1;
-            color: white;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-            padding: 12px 20px;
+        background-color: #4154f1;
+        color: white;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        padding: 12px 20px;
         }
 
         .modal-title {
-            font-size: 1.1rem;
-            font-weight: 600;
+        font-size: 1.1rem;
+        font-weight: 600;
         }
 
         .btn-close {
-            filter: invert(1);
+        filter: invert(1);
         }
 
         .form-check-input:checked {
-            background-color: #4154f1;
-            border-color: #4154f1;
+        background-color: #4154f1;
+        border-color: #4154f1;
         }
 
         /* Compact form layout */
         .compact-form .row {
-            margin-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
         }
 
         .compact-form .form-label {
-            margin-bottom: 0.3rem;
-            font-size: 0.85rem;
+        margin-bottom: 0.3rem;
+        font-size: 0.85rem;
         }
 
         .product-list-container {
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
         }
 
         .product-item {
-            transition: background-color 0.2s;
-            padding: 10px;
-            border-radius: 5px;
+        transition: background-color 0.2s;
+        padding: 10px;
+        border-radius: 5px;
         }
 
-            .product-item:hover {
-                background-color: #f8f9fa;
-            }
+        .product-item:hover {
+        background-color: #f8f9fa;
+        }
 
-            .product-item img {
-                object-fit: cover;
-            }
+        .product-item img {
+        object-fit: cover;
+        }
 
         .modal {
-            backdrop-filter: blur(3px);
+        backdrop-filter: blur(3px);
         }
 
         .modal-content {
-            border: none;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        border: none;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.15);
         }
 
         @@keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
+        0% {
+        transform: rotate(0deg);
+        }
 
-            100% {
-                transform: rotate(360deg);
-            }
+        100% {
+        transform: rotate(360deg);
+        }
         }
 
         .spinner {
-            animation: spin 1s linear infinite;
+        animation: spin 1s linear infinite;
         }
 
         /* Tùy chỉnh thêm cho voucher */
         #voucherCount {
-            font-size: 0.7rem;
-            padding: 0.25em 0.4em;
+        font-size: 0.7rem;
+        padding: 0.25em 0.4em;
         }
 
         .voucher-detail {
-            background-color: #f8fff8;
-            border: 1px solid #d4edda;
-            border-radius: 4px;
-            padding: 8px;
-            margin-top: 5px;
-            font-size: 0.85rem;
+        background-color: #f8fff8;
+        border: 1px solid #d4edda;
+        border-radius: 4px;
+        padding: 8px;
+        margin-top: 5px;
+        font-size: 0.85rem;
         }
 
-            .voucher-detail a {
-                font-size: 0.8rem;
-            }
+        .voucher-detail a {
+        font-size: 0.8rem;
+        }
 
         #voucherSelect optgroup {
-            font-weight: bold;
-            font-style: normal;
+        font-weight: bold;
+        font-style: normal;
         }
 
         #voucherSelect option {
-            padding: 4px 8px;
+        padding: 4px 8px;
         }
 
         .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
         }
 
         .btn-danger {
-            background-color: #dc3545;
-            border-color: #dc3545;
+        background-color: #dc3545;
+        border-color: #dc3545;
         }
 
-            .btn-danger:hover {
-                background-color: #bb2d3b;
-                border-color: #b02a37;
-            }
+        .btn-danger:hover {
+        background-color: #bb2d3b;
+        border-color: #b02a37;
+        }
 
         /* Thêm vào phần CSS */
         .input-group-sm {
-            width: 120px;
+        width: 120px;
         }
 
         .btn-minus, .btn-plus {
-            width: 30px;
-            padding: 0.25rem 0.5rem;
+        width: 30px;
+        padding: 0.25rem 0.5rem;
         }
 
         .so-luong-sp {
-            width: 40px;
-            text-align: center;
-            padding: 0.25rem 0.5rem;
+        width: 40px;
+        text-align: center;
+        padding: 0.25rem 0.5rem;
         }
 
-            /* Đảm bảo input number không hiện mũi tên */
-            .so-luong-sp::-webkit-outer-spin-button,
-            .so-luong-sp::-webkit-inner-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }
+        /* Đảm bảo input number không hiện mũi tên */
+        .so-luong-sp::-webkit-outer-spin-button,
+        .so-luong-sp::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+        }
 
         .so-luong-sp {
-            -moz-appearance: textfield;
+        -moz-appearance: textfield;
         }
 
-            /* Hiệu ứng khi disabled */
-            .so-luong-sp:disabled {
-                background-color: #f8f9fa;
-                opacity: 0.7;
-            }
+        /* Hiệu ứng khi disabled */
+        .so-luong-sp:disabled {
+        background-color: #f8f9fa;
+        opacity: 0.7;
+        }
 
         /* Đảm bảo các phần tử ẩn hoàn toàn khi cần */
         .d-none {
-            display: none !important;
+        display: none !important;
         }
     </style>
 }
@@ -309,89 +309,93 @@
 
     <div class="row g-2 mt-2">
         <!-- Cột: Giao hàng -->
-        <div class="col-md-4">
-            <div class="box-section">
-                <div class="mb-2">
-                    <label class="section-title">Khách Hàng</label>
-                    <div class="input-group input-group-sm">
-                        <input type="text" class="form-control form-control-sm" id="khachHangDisplay"
-                               placeholder="Chọn khách hàng" readonly value="khachle">
-                        <input type="hidden" id="khachHangId" value="e106c66d-f18d-4609-8a38-08e09d68e78c">
-                        <button class="btn btn-outline-secondary" type="button" onclick="moModalKhachHang()">
-                            <i class="bi bi-person"></i>
-                        </button>
-                        <button class="btn btn-outline-secondary" type="button" onclick="taoKhachHangNhanh()">
-                            <i class="bi bi-plus"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="fw-bold">Giao hàng</div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="giaoHang" onchange="toggleGiaoHangForm()">
-                    </div>
-                </div>
-
-                <!-- Form giao hàng (ẩn mặc định) -->
-                <div id="formGiaoHang" style="display: none;" class="compact-form">
-                    <div class="address-section">
-                        <div class="address-section-title">Thông tin người nhận</div>
-
-                        <div class="mb-2">
-                            <input type="text" class="form-control form-control-sm" id="tenNguoiNhan" placeholder="Tên người nhận">
-                            <div class="invalid-feedback">Vui lòng nhập tên</div>
-                        </div>
-
-                        <div class="mb-2">
-                            <input type="text" class="form-control form-control-sm" id="sdtNguoiNhan" placeholder="Số điện thoại">
-                            <div class="invalid-feedback">Số điện thoại không hợp lệ</div>
+      
+            <div class="col-md-4">
+                <div class="box-section">
+                    <div class="mb-2">
+                        <label class="section-title">Khách Hàng</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control form-control-sm" id="khachHangDisplay"
+                                   placeholder="Chọn khách hàng" readonly value="khachle">
+                            <input type="hidden" id="khachHangId" value="e106c66d-f18d-4609-8a38-08e09d68e78c">
+                            <button class="btn btn-outline-secondary" type="button" onclick="moModalKhachHang()">
+                                <i class="bi bi-person"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary" type="button" onclick="taoKhachHangNhanh()">
+                                <i class="bi bi-plus"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="address-section">
-                        <div class="address-section-title">Địa chỉ giao hàng</div>
-
-                        <div class="mb-2">
-                            <select class="form-select form-select-sm" id="selectDiaChi" onchange="chonDiaChiTuDanhSach()">
-                                <option value="">-- Chọn địa chỉ có sẵn --</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-2">
-                            <select class="form-select form-select-sm" id="tinhThanh" onchange="loadQuanHuyen()">
-                                <option value="">Tỉnh/Thành phố</option>
-                            </select>
-                            <div class="invalid-feedback">Vui lòng chọn tỉnh/thành phố</div>
-                        </div>
-
-                        <div class="mb-2">
-                            <select class="form-select form-select-sm" id="quanHuyen" onchange="loadXaPhuong()">
-                                <option value="">Quận/Huyện</option>
-                            </select>
-                            <div class="invalid-feedback">Vui lòng chọn quận/huyện</div>
-                        </div>
-
-                        <div class="mb-2">
-                            <select class="form-select form-select-sm" id="xaPhuong">
-                                <option value="">Xã/Phường</option>
-                            </select>
-                            <div class="invalid-feedback">Vui lòng chọn xã/phường</div>
-                        </div>
-
-                        <div class="mb-2">
-                            <input type="text" class="form-control form-control-sm" id="diaChiChiTiet" placeholder="Địa chỉ chi tiết">
-                            <div class="invalid-feedback">Vui lòng nhập địa chỉ</div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="fw-bold">Giao hàng</div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="giaoHang" onchange="toggleGiaoHangForm()">
                         </div>
                     </div>
-                    @* 
+
+                    <!-- Form giao hàng (ẩn mặc định) -->
+                    <div id="formGiaoHang" style="display: none;" class="compact-form">
+                        <div class="address-section">
+                            <div class="address-section-title">Thông tin người nhận</div>
+
+                            <div class="mb-2">
+                                <input type="text" class="form-control form-control-sm" id="tenNguoiNhan" placeholder="Tên người nhận">
+                                <div class="invalid-feedback">Vui lòng nhập tên</div>
+                            </div>
+
+                            <div class="mb-2">
+                                <input type="text" class="form-control form-control-sm" id="sdtNguoiNhan" placeholder="Số điện thoại">
+                                <div class="invalid-feedback">Số điện thoại không hợp lệ</div>
+                            </div>
+                        </div>
+
+                        <div class="address-section">
+                            <div class="address-section-title">Địa chỉ giao hàng</div>
+
+                            <div class="mb-2">
+                                <select class="form-select form-select-sm" id="selectDiaChi" onchange="chonDiaChiTuDanhSach()">
+                                    <option value="">-- Chọn địa chỉ có sẵn --</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2">
+                                <select class="form-select form-select-sm" id="tinhThanh" onchange="loadQuanHuyen()">
+                                    <option value="">Tỉnh/Thành phố</option>
+                                </select>
+                                <div class="invalid-feedback">Vui lòng chọn tỉnh/thành phố</div>
+                            </div>
+
+                            <div class="mb-2">
+                                <select class="form-select form-select-sm" id="quanHuyen" onchange="loadXaPhuong()">
+                                    <option value="">Quận/Huyện</option>
+                                </select>
+                                <div class="invalid-feedback">Vui lòng chọn quận/huyện</div>
+                            </div>
+
+                            <div class="mb-2">
+                                <select class="form-select form-select-sm" id="xaPhuong">
+                                    <option value="">Xã/Phường</option>
+                                </select>
+                                <div class="invalid-feedback">Vui lòng chọn xã/phường</div>
+                            </div>
+
+                            <div class="mb-2">
+                                <input type="text" class="form-control form-control-sm" id="diaChiChiTiet" placeholder="Địa chỉ chi tiết">
+                                <div class="invalid-feedback">Vui lòng nhập địa chỉ</div>
+                            </div>
+                        </div>
+                        @* 
                     <div class="alert alert-info mt-2 py-2" id="phiShipResult" style="display: none;">
                         <small>Phí ship: <span id="phiShipValue">0</span> VNĐ</small>
                     </div> *@
+                    </div>
                 </div>
             </div>
-        </div>
 
+            
+        
+        
         <!-- Form Thanh toán -->
         <div class="col-md-8">
             <div class="box-section">

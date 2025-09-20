@@ -1795,6 +1795,12 @@ namespace AppView.Controllers
                 {
                     hoaDon.IDKhachHang = JsonConvert.DeserializeObject<LoginViewModel>(session).Id;
                 }
+                else
+                {
+
+                    hoaDon.IDKhachHang = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+                }
                 TempData.Remove("TongTien");
                 TempData.Remove("Quantity");
                 // 3. Gán ID phương thức thanh toán

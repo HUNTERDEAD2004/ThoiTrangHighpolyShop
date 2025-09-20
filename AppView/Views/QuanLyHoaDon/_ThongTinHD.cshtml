@@ -298,33 +298,36 @@
             </div>
         </div>
 
-        @if (Model.LoaiHD == 0)
-        {
-            <!--Thông tin giao hàng-->
-            <div class="tab-pane fade" id="ttgh" role="tabpanel" aria-labelledby="profile-tab">
-                <div class="d-flex mt-2">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th scope="col">Tên người nhận</th>
-                                <th scope="col">SĐT</th>
-                                <th scope="col">Địa chỉ</th>
-                                <th scope="col">Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <th scope="row">@Model.NguoiNhan</th>
-                                <td>@Model.SĐT</td>
-                                <td>@Model.DiaChi</td>
-                                <td>@Model.Email</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        }
+       
     </div>
+    @if (Model.LoaiHD == 0)
+    {
+        <!--Thông tin giao hàng-->
+        <div class="tab-pane fade show active" id="ttgh" role="tabpanel" aria-labelledby="profile-tab">
+            <div class="d-flex mt-2">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">Tên người nhận</th>
+                            <th scope="col">SĐT</th>
+                            <th scope="col">Địa chỉ</th>
+                            <th scope="col">Email</th>
+                        </tr>
+                    </thead>
+
+
+                    <tbody>
+                        <tr>
+                            <th scope="row">@Model.NguoiNhan</th>
+                            <td>@Model.SDT</td>
+                            <td>@Model.DiaChi</td>
+                            <td>@Model.Email</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
     <script>
             $("#save").click(function(){
                 var inputValue = $("#ghiChuinTTHD").val();
