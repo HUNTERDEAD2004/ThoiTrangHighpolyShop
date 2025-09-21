@@ -31,6 +31,9 @@ namespace AppAPI.Controllers
         {
             return _iHoaDonService.GetHoaDonById(idhd);
         }
+
+        [HttpGet("Get-CTHD-ByMa")]
+        public ChiTietHoaDonQL GetCTHoaDonByMa(string maHoaDon) => _iHoaDonService.GetCTHDByMa(maHoaDon);
         [HttpGet("TimKiem")]
         public List<HoaDon> TimKiemVaLoc(string ten, int? loc)
         {
@@ -162,6 +165,10 @@ namespace AppAPI.Controllers
             var result = _iHoaDonService.TraCuuHoaDon(maHoaDon, TrangThaiGiaoHang, page, pageSize);
             return Ok(result);
         }
+
+      
+
+
         //[HttpGet("PhuongThucThanhToan")]
         //public List<PhuongThucThanhToan> GetAllPTTT()
         //{

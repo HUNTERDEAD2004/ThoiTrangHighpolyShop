@@ -10,6 +10,8 @@ namespace AppData.ViewModels
     public class DonMuaChiTietViewModel
     {
         public Guid ID { get; set; }
+
+        public string? MaHoaDon { get; set; }
         public DateTime NgayTao { get; set; }
         public DateTime? NgayThanhToan { get; set; }
         public string? TenNguoiNhan { get; set; }

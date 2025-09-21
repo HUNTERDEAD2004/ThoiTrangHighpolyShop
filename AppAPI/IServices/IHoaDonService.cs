@@ -33,11 +33,15 @@ namespace AppAPI.IServices
         public HoaDonViewModelBanHang GetHDBanHang(Guid id);
         public List<HoaDonQL> GetAllHDQly();
         public ChiTietHoaDonQL GetCTHDByID(Guid idhd);
+
+        public ChiTietHoaDonQL GetCTHDByMa(string maHoaDon);
         public bool CheckCusUseVoucher (Guid idkh, Guid idvoucher);
 
         public TraCuuDonHangViewModel? TraCuuDonHang(string maHoaDon);
 
         object TraCuuHoaDon(string? maHoaDon, int trangThai, int page, int pageSize);
+
+       
 
     }
 }

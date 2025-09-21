@@ -135,6 +135,15 @@
                             <li><a asp-controller="TrangChu" asp-action="Index">Trang chủ</a></li>
                             <li><a asp-controller="Home" asp-action="Shop">Cửa hàng</a></li>
                             <li><a asp-controller="Home" asp-action="Contacts">Liên lạc </a></li>
+                            <li>
+                                <form asp-controller="Home" asp-action="TraCuuDonHang" method="post" style="position: relative; display:inline-block;">
+                                    <input type="text" name="maHoaDon" placeholder="Tra Cứu"
+                                           style="padding:6px 30px 6px 12px; border:1px solid #ccc; border-radius:20px; width:180px;" required />
+                                    <button type="submit" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); border:none; background:none; cursor:pointer;">
+                                        <i class="fa fa-search" style="color:#333; font-size:16px;"></i>
+                                    </button>
+                                </form>
+                            </li>
 
                         </ul>
                     </nav>

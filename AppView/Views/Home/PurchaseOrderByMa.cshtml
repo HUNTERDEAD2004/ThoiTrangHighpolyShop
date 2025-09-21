@@ -1,0 +1,138 @@
+﻿@model AppData.ViewModels.BanOffline.ChiTietHoaDonQL
+
+@{
+    Layout = "_Layout";
+
+    string GetTrangThai(int status) => status switch
+    {
+        2 => "Chờ xác nhận",
+        11 => "Đã xác nhận",
+        10 => "Chờ đóng hàng",
+        3 => "Đang giao hàng",
+        6 => "Hoàn thành",
+        7 => "Đã hủy",
+        8 => "Chờ xác nhận hủy",
+        _ => "Không xác định"
+    };
+
+    string FormatVND(decimal? number) => number.HasValue
+        ? number.Value.ToString("n0").Replace(',', '.') + " VNĐ"
+        : "0 VNĐ";
+
+    var tongTienHang = Model.listsp?.Sum(x => x.GiaLuu * x.SoLuong) ?? 0;
+    var tienShip = Model.TienShip ?? 0;
+    var giaTriGiam = Model.voucher?.GiaTri ?? 0;
+    var hinhThuc = Model.voucher?.HinhThucGiamGia ?? -1;
+
+    var tienGiam = hinhThuc == 1
+        ? (int)(tongTienHang * giaTriGiam / 100)
+        : (hinhThuc == 0 ? giaTriGiam : 0);
+
+    var tongThanhToan = tongTienHang + tienShip - tienGiam;
+}
+
+<section style="background-color: #f8f9fa; min-height:100vh;">
+    <div class="container py-4">
+
+        <!-- Breadcrumb -->
+        <nav class="bg-white rounded shadow-sm p-3 mb-4">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="PurchaseOrder" class="text-decoration-none">Đơn mua</a></li>
+                <li class="breadcrumb-item active fw-bold">@GetTrangThai(Model.TrangThai)</li>
+            </ol>
+        </nav>
+
+        <!-- Thông tin chung -->
+        <div class="bg-white rounded shadow-sm p-4 mb-4">
+            <h4 class="fw-bold mb-3">Thông tin đơn hàng</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Mã đơn hàng:</strong> @Model.MaHD</li>
+                        <li><strong>Ngày tạo:</strong> @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</li>
+                        <li><strong>Trạng thái:</strong> <span class="badge bg-info text-dark">@GetTrangThai(Model.TrangThai)</span></li>
+                        <li><strong>Phương thức thanh toán:</strong> @Model.PTTT</li>
+                        @if (!string.IsNullOrEmpty(Model.GhiChu))
+                        {
+                            <li><strong>Ghi chú:</strong> @Model.GhiChu</li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Địa chỉ nhận hàng</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Người nhận:</strong> @Model.NguoiNhan</li>
+                        <li><strong>Địa chỉ:</strong> @Model.DiaChi</li>
+                        <li><strong>Số điện thoại:</strong> @Model.SDT</li>
+                        <li><strong>Email:</strong> @Model.Email</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Danh sách sản phẩm -->
+        <div class="bg-white rounded shadow-sm p-4 mb-4">
+            <h4 class="fw-bold mb-3">Sản phẩm trong đơn</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 45%;">Sản phẩm</th>
+                            <th style="width: 15%;">Đơn giá</th>
+                            <th style="width: 10%;">SL</th>
+                            <th style="width: 15%;">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sp in Model.listsp)
+                        {
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>@sp.Ten</strong><br />
+                                        <small class="text-muted">@sp.PhanLoai</small>
+                                    </div>
+                                </td>
+                                <td>@FormatVND(sp.GiaLuu)</td>
+                                <td>@sp.SoLuong</td>
+                                <td>@FormatVND(sp.GiaLuu * sp.SoLuong)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Thanh toán -->
+        <div class="bg-white rounded shadow-sm p-4">
+            <h4 class="fw-bold mb-3">Thanh toán</h4>
+            <ul class="list-unstyled mb-0">
+                <li>Giá sản phẩm: <strong>@FormatVND(tongTienHang)</strong></li>
+                <li>Phí vận chuyển: <strong>@FormatVND(tienShip)</strong></li>
+                @if (tienGiam > 0)
+                {
+                    <li>Voucher: <strong class="text-danger">-@FormatVND(tienGiam)</strong></li>
+                }
+                <li class="mt-2 fs-5"><strong>Tổng thanh toán: @FormatVND(tongThanhToan)</strong></li>
+            </ul>
+        </div>
+
+        <!-- Nút hành động -->
+        <div class="mt-4 text-end">
+            @if (Model.TrangThai == 2)
+            {
+                <a class="btn btn-outline-danger px-4" asp-controller="Home" asp-action="HuyDonHang" asp-route-idHoaDon="@Model.Id">Hủy đơn hàng</a>
+            }
+            else if (Model.TrangThai == 8)
+            {
+                <a class="btn btn-outline-secondary px-4" asp-controller="Home" asp-action="HoanTacHuyDonHang" asp-route-idHoaDon="@Model.Id">Hoàn tác hủy đơn</a>
+            }
+            else if (Model.TrangThai == 3)
+            {
+                <a class="btn btn-success px-4" asp-controller="Home" asp-action="XacNhanGHTC" asp-route-idHoaDon="@Model.Id">Xác nhận đã nhận hàng</a>
+            }
+        </div>
+    </div>
+</section>
