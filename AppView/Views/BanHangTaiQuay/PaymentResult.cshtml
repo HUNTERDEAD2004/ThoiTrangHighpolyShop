@@ -1,0 +1,48 @@
+﻿@using AppData.ViewModels
+@model PaymentResultViewModel
+@{
+    ViewData["Title"] = "Kết quả thanh toán";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    @if (Model.Success)
+                    {
+                        <div class="text-success mb-3">
+                            <i class="bi bi-check-circle-fill" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="text-success">Thanh toán thành công!</h3>
+                    }
+                    else
+                    {
+                        <div class="text-danger mb-3">
+                            <i class="bi bi-x-circle-fill" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="text-danger">Thanh toán thất bại</h3>
+                    }
+
+                    <div class="mt-4">
+                        @if (!string.IsNullOrEmpty(Model.OrderId))
+                        {
+                            <p><strong>Mã đơn hàng:</strong> @Model.OrderId</p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Amount))
+                        {
+                            <p><strong>Số tiền:</strong> @Model.Amount</p>
+                        }
+                        <p>@Model.Message</p>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="/BanHangTaiQuay" class="btn btn-primary">
+                            <i class="bi bi-arrow-left"></i> Quay lại bán hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

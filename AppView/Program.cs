@@ -1,11 +1,16 @@
 using AppData.Models;
 using AppView.IServices;
+using AppView.Models.Momo;
 using AppView.Services;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//Momo API Payment
+builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoAPI"));
+builder.Services.AddScoped<IMomoService, MomoService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

@@ -119,9 +119,29 @@ namespace AppAPI.Services
             return true;
         }
 
-        //public List<Voucher> GetAllVoucherByTien(int tongTien) 
-        //{
-        //    return _allRepository.GetAll().Where(x=>x.NgayApDung<DateTime.Now && x.NgayKetThuc>DateTime.Now && x.SoTienCan<tongTien && x.TrangThai>0 && x.SoLuong>0).ToList();
-        //}
+        public List<Voucher> GetAllVoucherByTien(decimal tongTien, Guid? userId = null)
+        {
+            var now = DateTime.Now;
+
+            var query = _allRepository.GetAll()
+                .Where(x =>
+                    x.TrangThai == 1 &&
+                    x.SoLuong > 0 &&
+                    x.NgayApDung <= now &&
+                    x.NgayKetThuc >= now &&
+                    tongTien >= x.GiaTriToiThieu
+                );
+
+            query = query.Where(x =>
+                x.IsPublic == true ||
+                (x.IsPublic == false && userId != null &&
+                 x.UserVouchers.Any(vu => vu.IDKhachHang == userId))
+            );
+
+            // ✅ Sắp xếp voucher có giá trị giảm cao nhất lên đầu
+            return query
+                .OrderByDescending(x => x.GiaTri)
+                .ToList();
+        }
     }
 }

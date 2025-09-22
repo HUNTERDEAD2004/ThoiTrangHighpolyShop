@@ -78,4 +78,4 @@ artifacts/
 /DuAnTotNghiep.sln
 /AppAPI/appsettings.json
 /AppView/appsettings.json
-
+*.webp

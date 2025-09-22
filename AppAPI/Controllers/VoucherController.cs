@@ -115,10 +115,12 @@ namespace AppAPI.Controllers
             return Ok(new { exists = existingVoucher != null });
         }
 
-        //[HttpGet("GetAllVoucherByTien")]
-        ////public List<Voucher> GetAllVoucherByTien(int tongTien)
-        ////{
-        ////    return _services.GetAllVoucherByTien(tongTien);
-        ////}
+        [HttpGet("GetAllVoucherByTien")]
+        public ActionResult<List<Voucher>> GetAllVoucherByTien(decimal tongTien, Guid? userId = null)
+        {
+            var result = _services.GetAllVoucherByTien(tongTien, userId);
+            return Ok(result);
+        }
+
     }
 }

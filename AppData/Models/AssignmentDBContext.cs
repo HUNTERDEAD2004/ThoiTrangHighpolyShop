@@ -43,7 +43,7 @@ namespace AppData.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Server=DESKTOP-FGOR6QB;Database=AppBanQuanAoThoiTrangNam;Trusted_Connection=True;TrustServerCertificate=True");
+                optionsBuilder.UseSqlServer("Server=MSI;Database=AppBanQuanAoThoiTrangNam;Trusted_Connection=True;TrustServerCertificate=True");
             }
         }
         //"Server=DESKTOP-NQ6KMAG\SQLEXPRESS;Database=AppBanQuanAoThoiTrangNam;Trusted_Connection=True;TrustServerCertificate=True"
@@ -63,6 +63,16 @@ namespace AppData.Models
                 {
                     IDPTTT = Guid.Parse("f29cd85d-0251-4b50-8867-6a88891417f6"),
                     TenPTTT = "Banking"
+                },
+                new PhuongThucThanhToan
+                {
+                    IDPTTT = Guid.Parse("DD56B0D5-721D-4CD3-A20A-CEB190755E26"),
+                    TenPTTT = "COD"
+                },
+                new PhuongThucThanhToan
+                {
+                    IDPTTT = Guid.Parse("761881CC-2324-4760-9628-6ED287A59AC7"),
+                    TenPTTT = "VNPAY"
                 });
             // 👉 Seeding Gio Hang
             modelBuilder.Entity<GioHang>().HasData(
