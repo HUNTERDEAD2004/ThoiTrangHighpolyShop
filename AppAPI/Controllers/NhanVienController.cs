@@ -59,22 +59,8 @@ namespace AppAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Kiểm tra tuổi ≥ 15 nếu có ngày sinh
-            if (model.NgaySinh != null)
-            {
-                var today = DateOnly.FromDateTime(DateTime.Today);
-                var birthDate = model.NgaySinh.Value;
-
-                var age = today.Year - birthDate.Year;
-
-                // Nếu ngày sinh chưa đến trong năm nay thì giảm tuổi
-                if (birthDate > today.AddYears(-age))
-                    age--;
-
-                if (age < 15)
-                    return BadRequest("Nhân viên phải từ 15 tuổi trở lên.");
-            }
-
+           
+          
             var result = await _nhanVienService.Add(model);
 
             if (result == null)
@@ -114,13 +100,14 @@ namespace AppAPI.Controllers
 
         // DELETE api/<NhanVienController>/5
         [HttpDelete("{id}")]
-        public bool Delete(Guid id)
+        public IActionResult Delete(Guid id)
         {
-            if (_nhanVienService.Delete(id))
+            var result = _nhanVienService.Delete(id);
+            if (result)
             {
-                return true;
+                return Ok(new { success = true, message = "Xóa thành công" });
             }
-            return false;
+            return NotFound(new { success = false, message = "Không tìm thấy nhân viên" });
         }
 
     }

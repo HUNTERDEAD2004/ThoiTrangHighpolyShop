@@ -1,4 +1,5 @@
 ﻿using AppData.Models;
+using AppData.ViewModels.DTO;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -41,7 +42,7 @@ namespace AppData.ViewModels
         public string? Xa { get; set; }
         public string? DiaChiChiTiet { get; set; }
 
-       
+        public List<DiaChiDTO>? DiaChiList { get; set; } = new List<DiaChiDTO>();
         public string? Password { get; set; }
       
         public string? ConfirmPassword { get; set; }

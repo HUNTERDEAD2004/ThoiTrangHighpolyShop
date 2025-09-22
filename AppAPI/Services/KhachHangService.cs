@@ -264,37 +264,47 @@ namespace AppAPI.Services
 
         public async Task<List<KhachHangViewModel>> GetAll()
         {
-            var model = await (from kh in _dbContext.KhachHangs
-                               join dc in _dbContext.DiaChis
-                                   .Where(x => x.IsDefault == true)
-                                   on kh.IDKhachHang equals dc.IDKhachHang into gj
-                               from dc in gj.DefaultIfEmpty() // left join
-                               orderby kh.MaKhachHang descending
-                               select new KhachHangViewModel
-                               {
-                                   Id = kh.IDKhachHang,
-                                   MaKhachHang = kh.MaKhachHang,
-                                   Ten = kh.Ten,
-                                   Email = kh.Email,
-                                   SDT = kh.SDT,
-                                   NgaySinh = kh.NgaySinh.HasValue
-                                        ? kh.NgaySinh.Value.ToString("yyyy-MM-dd")
-                                        : null,
-                                   GioiTinh = kh.GioiTinh,
-                                   TrangThai = kh.TrangThai,
-                                   DiemTich = kh.DiemTich,
-                                   Xa = dc != null ? dc.Xa : null,
-                                   Quan = dc != null ? dc.Quan : null,
-                                   Huyen = dc != null ? dc.Huyen : null,
-                                   Tinh = dc != null ? dc.Tinh : null,
-                                   DiaChiChiTiet = dc != null ? dc.DiaChiChiTiet : null,
-                                   DiaChi = dc != null
-                                        ? $"{dc.DiaChiChiTiet}, {dc.Xa}, {dc.Quan}, {dc.Huyen}, {dc.Tinh}"
-                                        : null
-                               }).ToListAsync();
+            var hiddenIds = new List<Guid>
+    {
+        Guid.Parse("00000000-0000-0000-0000-000000000001"),
+        Guid.Parse("e106c66d-f18d-4609-8a38-08e09d68e78c")
+    };
+
+            var model = await _dbContext.KhachHangs
+                .Where(kh => !hiddenIds.Contains(kh.IDKhachHang)) // 👈 loại bỏ 2 khách hàng
+                .Include(kh => kh.DiaChi)
+                .OrderByDescending(kh => kh.MaKhachHang)
+                .Select(kh => new KhachHangViewModel
+                {
+                    Id = kh.IDKhachHang,
+                    MaKhachHang = kh.MaKhachHang,
+                    Ten = kh.Ten,
+                    Email = kh.Email,
+                    SDT = kh.SDT,
+                    NgaySinh = kh.NgaySinh.HasValue
+                        ? kh.NgaySinh.Value.ToString("yyyy-MM-dd")
+                        : null,
+                    GioiTinh = kh.GioiTinh,
+                    TrangThai = kh.TrangThai,
+                    DiemTich = kh.DiemTich,
+
+                    DiaChiList = kh.DiaChi.Select(d => new DiaChiDTO
+                    {
+                        Id = d.Id,
+                        Tinh = d.Tinh,
+                        Huyen = d.Huyen,
+                        Xa = d.Xa,
+                        DiaChiChiTiet = d.DiaChiChiTiet,
+                        IsDefault = d.IsDefault
+                    }).ToList()
+
+                })
+                .ToListAsync();
 
             return model;
         }
+
+
 
 
         public async Task<List<HoaDon>> GetAllHDKH(Guid idkh)

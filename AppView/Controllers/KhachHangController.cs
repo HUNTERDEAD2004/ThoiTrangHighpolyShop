@@ -1,5 +1,6 @@
 ﻿using AppData.Models;
 using AppData.ViewModels;
+using AppData.ViewModels.DTO;
 using AppView.PhanTrang;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -315,6 +316,75 @@ namespace AppView.Controllers
                 return View(kh);
             }
         }
+        // GET: Danh sách địa chỉ của khách hàng
+        [HttpGet]
+        public async Task<IActionResult> Indexx()
+        {
+            var session = HttpContext.Session.GetString("LoginInfor");
+            if (string.IsNullOrEmpty(session)) return RedirectToAction("Login", "Home");
+
+            var khachHang = JsonConvert.DeserializeObject<LoginViewModel>(session);
+            var response = await httpClients.GetAsync($"khachhang/{khachHang.Id}/diachi");
+
+            if (!response.IsSuccessStatusCode) return View(new List<DiaChiDTO>());
+
+            var json = await response.Content.ReadAsStringAsync();
+            var list = JsonConvert.DeserializeObject<List<DiaChiDTO>>(json);
+            return View(list);
+        }
+
+        // POST: Thêm địa chỉ
+        [HttpGet]
+        public IActionResult Add()
+        {
+            var session = HttpContext.Session.GetString("LoginInfor");
+            if (string.IsNullOrEmpty(session))
+                return RedirectToAction("Login", "Home");
+
+            var khachHang = JsonConvert.DeserializeObject<LoginViewModel>(session);
+
+            return View(khachHang);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Add(DiaChiDTO diaChi)
+        {
+            var session = HttpContext.Session.GetString("LoginInfor");
+            if (string.IsNullOrEmpty(session)) return RedirectToAction("Login", "Home");
+
+            var khachHang = JsonConvert.DeserializeObject<LoginViewModel>(session);
+
+            var response = await httpClients.PostAsJsonAsync($"khachhang/{khachHang.Id}/diachi", diaChi);
+            return RedirectToAction("Index");
+        }
+
+        // GET: Sửa địa chỉ
+        [HttpGet]
+        public async Task<IActionResult> Edit(Guid id)
+        {
+            var res = await httpClients.GetAsync($"https://localhost:7095/api/DiaChi/get-one/{id}");
+            if (!res.IsSuccessStatusCode) return NotFound();
+
+            var json = await res.Content.ReadAsStringAsync();
+            var diaChi = JsonConvert.DeserializeObject<DiaChiDTO>(json);
+            return View(diaChi);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Edit(Guid id, DiaChiDTO diaChi)
+        {
+            var res = await httpClients.PutAsJsonAsync($"https://localhost:7095/api/DiaChi/diachi/{id}", diaChi);
+            return RedirectToAction("Index");
+        }
+
+
+        // GET: Xoá địa chỉ
+        public async Task<IActionResult> Deletee(Guid id)
+        {
+            await httpClients.DeleteAsync($"diachi/{id}");
+            return RedirectToAction("Index");
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)

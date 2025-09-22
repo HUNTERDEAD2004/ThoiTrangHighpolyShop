@@ -45,7 +45,7 @@ namespace AppAPI.Services
                 return _dbContext.NhanViens
                         .Include(u => u.VaiTro)
                         .Where(u => u.VaiTro.Ten == "Nhân viên")
-                        .OrderByDescending(u => u.TrangThai)
+                        .OrderByDescending(u => u.MaNhanVien)
                         .ToList();
             }
             catch (Exception)
@@ -145,6 +145,24 @@ namespace AppAPI.Services
                     return null; // Email hoặc SĐT đã tồn tại
                 }
 
+                // 🔥 Sinh mã NV tự động
+                var lastNhanVien = await _dbContext.NhanViens
+                    .OrderByDescending(x => x.MaNhanVien)
+                    .FirstOrDefaultAsync();
+
+                int nextNumber = 1;
+                if (lastNhanVien != null && !string.IsNullOrEmpty(lastNhanVien.MaNhanVien))
+                {
+                    // Ví dụ: "NV001" → lấy "001" → parse thành số
+                    string numberPart = lastNhanVien.MaNhanVien.Substring(2);
+                    if (int.TryParse(numberPart, out int currentNumber))
+                    {
+                        nextNumber = currentNumber + 1;
+                    }
+                }
+
+                string newMaNhanVien = "NV" + nextNumber.ToString("D3"); // NV001, NV002...
+
                 // Gán IDVaiTro cố định
                 Guid nhanVienRoleId = Guid.Parse("952C1A5D-74FF-4DAF-BA88-135C5440809C");
 
@@ -153,8 +171,10 @@ namespace AppAPI.Services
                     ID = Guid.NewGuid(),
                     Ten = model.Ten,
                     Email = model.Email.Trim(),
-                    MaNhanVien = model.MaNhanVien,
-                    NgaySinh = model.NgaySinh,
+                    MaNhanVien = newMaNhanVien, // 👈 auto gen
+                    NgaySinh = !string.IsNullOrEmpty(model.NgaySinh)
+                        ? DateOnly.ParseExact(model.NgaySinh, "yyyy-MM-dd", null)
+                        : null,
                     GioiTinh = model.GioiTinh ?? 1,
                     PassWord = MaHoaMatKhau(model.Password),
                     SDT = model.SDT.Trim(),
@@ -174,7 +194,6 @@ namespace AppAPI.Services
                 return null;
             }
         }
-
 
 
         public NhanVien GetById(Guid id)

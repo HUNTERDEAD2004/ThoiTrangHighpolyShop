@@ -2,8 +2,9 @@
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    using System.Linq;
-    using System.Text;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Text;
     using System.Threading.Tasks;
 
     namespace AppData.Models
@@ -20,5 +21,7 @@
             public string DiaChiChiTiet { get; set; }
             public bool IsDefault { get; set; } = false;
             public virtual KhachHang? KhachHang { get; set; }
-        }
+
+     
+    }
     }

@@ -1,6 +1,14 @@
 ﻿@model AppView.PhanTrang.PhanTrangKhachHang
-
+@using AppData.Models;
+@using AppData.ViewModels;
+@using Newtonsoft.Json;
 @{
+    LoginViewModel loginInfor = new LoginViewModel();
+    string session = Context.Session.GetString("LoginInfor");
+    if (session != null)
+    {
+        loginInfor = JsonConvert.DeserializeObject<LoginViewModel>(Context.Session.GetString("LoginInfor"));
+    }
     ViewData["Title"] = "Quản lý khách hàng";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
     int stt = 1;
@@ -55,7 +63,30 @@
                         <td class="align-middle"><small>@item.Email</small></td>
                         <td class="text-center align-middle">@item.NgaySinh</td>
                         <td class="align-middle">@item.SDT</td>
-                        <td class="align-middle"><small>@item.DiaChi</small></td>
+                        <td class="align-middle">
+                            @if (item.DiaChiList != null && item.DiaChiList.Any())
+                            {
+                                <ul class="list-unstyled mb-0 text-start">
+                                    @foreach (var dc in item.DiaChiList)
+                                    {
+                                        <li>
+                                            <small>
+                                                @dc.DiaChiChiTiet, @dc.Xa, @dc.Huyen, @dc.Tinh
+                                                @if (dc.IsDefault)
+                                                {
+                                                    <span class="badge bg-primary">Mặc định</span>
+                                                }
+                                            </small>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <small class="text-muted">Chưa có địa chỉ</small>
+                            }
+                        </td>
+
                         <td class="text-center align-middle">
                             @if (item.TrangThai == 0)
                             {
@@ -68,30 +99,27 @@
                         </td>
                         <td class="text-center align-middle">
                             <div class="btn-group" role="group">
-                                <!-- Nút Sửa: màu vàng -->
                                 <a asp-action="Updates" asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-warning text-white"
-                                   title="Sửa">
+                                   class="btn btn-sm btn-warning text-white" title="Sửa">
                                     <i class="fa fa-edit"></i>
                                 </a>
-
-                                <!-- Nút Lịch sử: giữ màu đen trắng -->
                                 <a asp-action="GetAllLSTDByIDKH" asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-dark text-white"
-                                   title="Lịch sử">
+                                   class="btn btn-sm btn-dark text-white" title="Lịch sử">
                                     <i class="fa fa-history"></i>
                                 </a>
-
-                                <!-- Nút Xóa: màu đỏ -->
                                 <a asp-action="Delete" asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-danger text-white"
-                                   title="Xóa"
+                                   class="btn btn-sm btn-danger text-white" title="Xóa"
                                    onclick="return confirm('Bạn có chắc muốn xóa khách hàng này?');">
                                     <i class="fa fa-trash"></i>
                                 </a>
+                                <!-- Nút Thêm địa chỉ -->
+                                <button type="button" class="btn btn-sm btn-primary text-white"
+                                        data-toggle="modal" data-target="#addAddressModal"
+                                        onclick="setCurrentKH('@item.Id')">
+                                    <i class="fa fa-map-marker-alt"></i>
+                                </button>
                             </div>
                         </td>
-
                     </tr>
                     stt++;
                 }
@@ -99,78 +127,128 @@
         </table>
     </div>
 
-    <div class="d-flex justify-content-center mt-4">
-        <nav aria-label="Page navigation">
-            <ul class="pagination pagination-sm">
-                @if (Model.PagingInfo.CurrentPage > 1)
-                {
-                    <li class="page-item">
-                        <a class="page-link" href="/KhachHang/GetAllKhachHang?ProductPage=@(Model.PagingInfo.CurrentPage - 1)" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                }
-
-                @for (int i = 1; i <= Model.PagingInfo.TotalPages; i++)
-                {
-                    <li class="page-item @(i == Model.PagingInfo.CurrentPage ? "active" : "")">
-                        <a class="page-link" href="/KhachHang/GetAllKhachHang?ProductPage=@i">@i</a>
-                    </li>
-                }
-
-                @if (Model.PagingInfo.CurrentPage < Model.PagingInfo.TotalPages)
-                {
-                    <li class="page-item">
-                        <a class="page-link" href="/KhachHang/GetAllKhachHang?ProductPage=@(Model.PagingInfo.CurrentPage + 1)" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                }
-            </ul>
-        </nav>
+    <!-- Modal Thêm địa chỉ khách hàng -->
+    <div class="modal fade" id="addAddressModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm địa chỉ mới</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <label>Tỉnh</label>
+                    <select id="newProvince" class="form-control">
+                        <option value="">-- Chọn tỉnh --</option>
+                    </select>
+                    <label>Huyện</label>
+                    <select id="newDistrict" class="form-control">
+                        <option value="">-- Chọn huyện --</option>
+                    </select>
+                    <label>Xã</label>
+                    <select id="newWard" class="form-control">
+                        <option value="">-- Chọn xã --</option>
+                    </select>
+                    <label>Địa chỉ chi tiết</label>
+                    <input type="text" class="form-control" id="newChiTiet" placeholder="Nhập địa chỉ chi tiết">
+                    <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" id="isDefaultAddress">
+                        <label class="form-check-label">Đặt làm mặc định</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-dismiss="modal">Huỷ</button>
+                    <button class="btn btn-primary" onclick="submitNewAddress()">Lưu địa chỉ</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<style>
-    .table th, .table td {
-        vertical-align: middle;
-        font-size: 0.875rem;
-    }
-
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-
-    .btn-group .btn {
-        margin: 0 2px;
-    }
-
-    .badge {
-        font-size: 0.75rem;
-        padding: 0.35em 0.65em;
-    }
-    /* Header table đen chữ trắng */
-    .table thead th {
-        background-color: #000; /* nền đen */
-        color: #fff; /* chữ trắng */
-        text-align: center;
-    }
-
-    /* Tô màu khi hover dòng */
-    .table tbody tr:hover {
-        background-color: #f2f2f2;
-    }
-
-    /* Căn giữa nội dung trong các cột trạng thái và thao tác */
-    .table td {
-        vertical-align: middle;
-        text-align: center;
-    }
-</style>
-    
+<script src="~/js/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+    var currentKHId = null;
+
+    function setCurrentKH(id) {
+        currentKHId = id;
+        loadProvinces();
+    }
+
+    function loadProvinces() {
+        $.ajax({
+            type: "GET",
+            url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/province",
+            headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
+            dataType: "json",
+            success: function (data) {
+                $('#newProvince').empty().append('<option value="">-- Chọn tỉnh --</option>');
+                data.data.forEach(p => {
+                    $('#newProvince').append(`<option value="${p.ProvinceID}">${p.ProvinceName}</option>`);
+                });
+            }
+        });
+    }
+
+    $("#newProvince").change(function () {
+        var provinceId = $(this).val();
+        $.ajax({
+            type: "GET",
+            url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=" + provinceId,
+            headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
+            dataType: "json",
+            success: function (data) {
+                $('#newDistrict').empty().append('<option value="">-- Chọn huyện --</option>');
+                data.data.forEach(d => {
+                    $('#newDistrict').append(`<option value="${d.DistrictID}">${d.DistrictName}</option>`);
+                });
+            }
+        });
     });
+
+    $("#newDistrict").change(function () {
+        var districtId = $(this).val();
+        $.ajax({
+            type: "GET",
+            url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=" + districtId,
+            headers: { token: '1ab503a2-5824-11f0-99f8-027692bb547c' },
+            dataType: "json",
+            success: function (data) {
+                $('#newWard').empty().append('<option value="">-- Chọn xã --</option>');
+                data.data.forEach(w => {
+                    $('#newWard').append(`<option value="${w.WardCode}">${w.WardName}</option>`);
+                });
+            }
+        });
+    });
+
+    function submitNewAddress() {
+        if (!currentKHId) return alert("Không xác định khách hàng!");
+
+        var diaChiMoi = {
+            tinh: $("#newProvince option:selected").text().trim(),
+            huyen: $("#newDistrict option:selected").text().trim(),
+            xa: $("#newWard option:selected").text().trim(),
+            diaChiChiTiet: $("#newChiTiet").val(),
+            isDefault: $("#isDefaultAddress").is(":checked")
+        };
+
+        if (!diaChiMoi.tinh || !diaChiMoi.huyen || !diaChiMoi.xa || !diaChiMoi.diaChiChiTiet) {
+            return alert("Vui lòng điền đầy đủ thông tin địa chỉ!");
+        }
+
+        $.ajax({
+            url: `https://localhost:7095/api/DiaChi/khachhang/${currentKHId}/diachi`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(diaChiMoi),
+            success: function () {
+                alert("✅ Đã thêm địa chỉ mới");
+                $('#addAddressModal').modal('hide');
+                location.reload(); // reload bảng để thấy địa chỉ mới
+            },
+            error: function () {
+                alert("❌ Không thể thêm địa chỉ");
+            }
+        });
+    }
 </script>
