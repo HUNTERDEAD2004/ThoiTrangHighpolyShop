@@ -65,7 +65,19 @@ namespace AppView.Controllers
             {
                 ModelState.AddModelError("VoucherForm.GiaTri", "Giá trị giảm theo % không được vượt quá 100%");
             }
-
+            if (DiscountUnit == "vnd")
+            {
+                if (vm.VoucherForm.GiaTri > vm.VoucherForm.GiaTriToiThieu * 4/10)
+                {
+                    ModelState.AddModelError("VoucherForm.GiaTri",
+                        "Giá trị giảm bằng VND không được vượt quá 25% đơn giá tối thiểu");
+                }
+                if (vm.VoucherForm.GiaTri <= 0)
+                {
+                    ModelState.AddModelError("VoucherForm.GiaTri",
+                        "Giá trị giảm phải lớn hơn 0");
+                }
+            }
             if (vm.VoucherForm.SoLuong <= 0)
             {
                 ModelState.AddModelError("VoucherForm.SoLuong", "Số lượng phải lớn hơn 0");

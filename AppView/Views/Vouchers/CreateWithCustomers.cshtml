@@ -271,7 +271,7 @@
                                     <div class="input-group">
                                         <input asp-for="VoucherForm.MaVoucher" class="form-control" id="voucherCode"
                                                placeholder="Nhập mã voucher" required
-                                               onblur="checkVoucherExists()" />
+                                               onblur="checkVoucherExists()"  />
                                         <button type="button" class="btn btn-outline-secondary" onclick="generateRandomCode()">
                                             TẠO NGẪU NHIÊN
                                         </button>
@@ -296,7 +296,8 @@
                             <div class="col-6">
                                 <div class="form-group">
                                     <label class="form-label">Giá trị giảm <span class="required-field">*</span></label>
-                                    <input asp-for="VoucherForm.GiaTri" type="number" class="form-control" placeholder="Nhập giá trị" required min="0" />
+                                    <input asp-for="VoucherForm.GiaTri" type="number" class="form-control"
+                                           id="giaTriGiam" placeholder="Nhập giá trị" required min="0" />
                                     <span asp-validation-for="VoucherForm.GiaTri" class="text-danger"></span>
                                 </div>
                             </div>
@@ -329,7 +330,8 @@
                             <div class="col-6">
                                 <div class="form-group">
                                     <label class="form-label">Đơn giá tối thiểu <span class="required-field">*</span></label>
-                                    <input asp-for="VoucherForm.GiaTriToiThieu" type="number" class="form-control" placeholder="Nhập giá tối thiểu" required min="0" />
+                                    <input asp-for="VoucherForm.GiaTriToiThieu" type="number" class="form-control"
+                                           id="donGiaToiThieu" placeholder="Nhập giá tối thiểu" required min="0" />
                                     <span asp-validation-for="VoucherForm.GiaTriToiThieu" class="text-danger"></span>
                                 </div>
                             </div>
@@ -337,7 +339,8 @@
 
                         <div class="form-group">
                             <label class="form-label">Giảm tối đa <span class="required-field">*</span></label>
-                            <input asp-for="VoucherForm.GiaTriToiDa" type="number" class="form-control" placeholder="Nhập giá tối đa" required min="0" />
+                            <input asp-for="VoucherForm.GiaTriToiDa" type="number" class="form-control"
+                                   id="giamToiDa" readonly />
                             <span asp-validation-for="VoucherForm.GiaTriToiDa" class="text-danger"></span>
                         </div>
 
@@ -418,10 +421,22 @@
         for (let i = 0; i < 8; i++) {
             result += chars.charAt(Math.floor(Math.random() * chars.length));
         }
-        document.getElementById('voucherCode').value = result;
+
+        let input = document.getElementById('voucherCode');
+        input.value = result;
+      
+
         // Kiểm tra ngay sau khi tạo
         checkVoucherExists();
     }
+
+    // Nếu muốn cho nhập tay lại thì mở khóa:
+    function enableVoucherEdit() {
+        let input = document.getElementById('voucherCode');
+        input.readOnly = false;
+        input.focus();
+    }
+
 
     // Kiểm tra mã voucher đã tồn tại
     async function checkVoucherExists() {
@@ -452,6 +467,31 @@
             statusDiv.innerHTML = '<div class="text-warning">Không thể kiểm tra mã voucher</div>';
         }
     }
+    function tinhGiamToiDa() {
+        let giaTriGiam = parseFloat(document.getElementById("giaTriGiam").value) || 0;
+        let donGiaToiThieu = parseFloat(document.getElementById("donGiaToiThieu").value) || 0;
+        let isPercent = document.getElementById("percent").checked;
+
+        let giamToiDa = 0;
+        if (isPercent) {
+            // Nếu giảm theo phần trăm (%)
+            giamToiDa = (donGiaToiThieu * giaTriGiam) / 100;
+        } else {
+            // Nếu giảm theo tiền mặt (VND)
+            giamToiDa = giaTriGiam;
+        }
+
+        document.getElementById("giamToiDa").value = giamToiDa.toFixed(0);
+    }
+
+    // Lắng nghe thay đổi
+    document.getElementById("giaTriGiam").addEventListener("input", tinhGiamToiDa);
+    document.getElementById("donGiaToiThieu").addEventListener("input", tinhGiamToiDa);
+    document.getElementById("percent").addEventListener("change", tinhGiamToiDa);
+    document.getElementById("vnd").addEventListener("change", tinhGiamToiDa);
+
+    // Tính ngay khi load trang
+    window.onload = tinhGiamToiDa;
 
     // Ngăn submit khi mã voucher trùng
     document.getElementById('voucherForm').addEventListener('submit', function (e) {
@@ -672,6 +712,20 @@
                     $(element).removeClass('is-invalid');
                 }
             });
+        $.validator.addMethod("validateDiscount", function (value, element) {
+            const discountUnit = $('input[name="DiscountUnit"]:checked').val();
+            const giaTri = parseFloat(value) || 0;
+            const giaTriToiThieu = parseFloat($('#VoucherForm_GiaTriToiThieu').val()) || 0;
+
+            if (discountUnit === "percent") {
+                // % thì không được vượt quá 30%
+                return giaTri > 0 && giaTri <= 30;
+            } else {
+                // VND thì không được vượt quá 30% giá trị tối thiểu
+                return giaTri > 0 && giaTri <= (0.3 * giaTriToiThieu);
+            }
+        }, "Giá trị giảm không hợp lệ");
+
 
         // Validation ngày
         $('#VoucherForm_NgayKetThuc').on('change', function () {
@@ -688,7 +742,62 @@
                 $(this).next('.text-danger').remove();
             }
         });
+        function loadPrivateVouchers() {
+            $.get("/api/Voucher/GetPrivate", function (data) {
+                let select = $("#voucherSelect");
+                let count = $("#voucherCount");
 
+                select.empty();
+
+                if (!data || data.length === 0) {
+                    select.append('<option value="">-- Không có voucher --</option>');
+                    count.text("0 voucher");
+                    return;
+                }
+
+                // Thêm option mặc định
+                select.append('<option value="">-- Chọn voucher --</option>');
+
+                // Đổ danh sách voucher private
+                data.forEach(voucher => {
+                    select.append(`
+                        <option value="${voucher.id}"
+                                data-name="${voucher.ten}"
+                                data-code="${voucher.ma}"
+                                data-giam="${voucher.giaTri}">
+                            ${voucher.ten}
+                        </option>
+                    `);
+                });
+
+                // Cập nhật số lượng
+                count.text(data.length + " voucher");
+            });
+        }
+
+        // Khi chọn voucher trong dropdown
+        function chonVoucher() {
+            let option = $("#voucherSelect option:selected");
+            let voucherId = option.val();
+
+            if (!voucherId) {
+                $("#voucherInfo").hide().text("");
+                return;
+            }
+
+            let voucherName = option.data("name");
+            let voucherCode = option.data("code");
+            let voucherGiam = option.data("giam");
+
+            $("#voucherInfo")
+                .html(`🎫 <strong>${voucherName}</strong> (Mã: <code>${voucherCode}</code>, Giảm: ${voucherGiam}%)`)
+                .show();
+        }
+
+        // Load khi trang mở
+        $(document).ready(function () {
+            loadPrivateVouchers();
+        });
         // Validation giá trị
         $('#VoucherForm_GiaTriToiDa').on('change', function () {
             const giaTri = parseInt($('#VoucherForm_GiaTri').val());
