@@ -16,7 +16,7 @@ namespace AppData.ViewModels.BanOffline
         //them tien ship va dia chi , ten va sdt nguoi nhan 
         public string tenNguoiNhan { get; set; } = string.Empty;
         public string sdtNguoiNhan { get; set; } = string.Empty;
-        public decimal TienShip { get; set; }
+        public decimal? TienShip { get; set; }
         public string diaChi { get; set; } = string.Empty;
         public decimal TongTien { get; set; } // Khách phải trả
         public int DiemTichHD { get; set; }

@@ -6,9 +6,11 @@ using AppData.ViewModels.VNPay;
 using AppView.IServices;
 using AppView.Models;
 using AppView.Models.Momo;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net.Http.Json;
+using System.Runtime.InteropServices;
 
 namespace AppView.Controllers
 {
@@ -451,12 +453,12 @@ namespace AppView.Controllers
                 var ID_TIEN_MAT = Guid.Parse("9b6289bf-5e83-419a-94d5-926abb264961");
                 var ID_MOMO = Guid.Parse("f29cd85d-0251-4b50-8867-6a88891417f6");
 
-                // Lấy thông tin đăng nhập từ Session
                 if (request == null)
                 {
                     return Json(new { success = false, message = "Request null" });
                 }
 
+                // Lấy nhân viên từ session nếu thiếu
                 if (request.IdNhanVien == Guid.Empty)
                 {
                     string? session = HttpContext.Session.GetString("LoginInfor");
@@ -470,9 +472,10 @@ namespace AppView.Controllers
                     }
                 }
 
-                if (request.IDPhuongThucThanhToan == ID_TIEN_MAT)
+                // So sánh Guid an toàn bằng Equals (không ==)
+                if (request.IDPhuongThucThanhToan.Equals(ID_TIEN_MAT))
                 {
-                    // Xử lý thanh toán tiền mặt (giữ nguyên)
+                    // Thanh toán tiền mặt
                     var hdrequest = new HoaDonThanhToanRequest()
                     {
                         Id = request.Id,
@@ -498,29 +501,62 @@ namespace AppView.Controllers
 
                     return Json(new { success = false, message = "Thanh toán thất bại" });
                 }
-                else if (request.IDPhuongThucThanhToan == ID_MOMO)
+                else if (request.IDPhuongThucThanhToan.Equals(ID_MOMO))
                 {
-                    // SỬ DỤNG TRỰC TIẾP MOMO SERVICE - ĐƠN GIẢN HƠN
+                    // Update hóa đơn trước khi thanh toán momo
+                    var hdChoUpdate = new HoaDonThanhToanRequest
+                    {
+                        Id = request.Id,
+                        IdNhanVien = request.IdNhanVien,
+                        IdVoucher = request.IdVoucher == Guid.Empty ? Guid.Empty : request.IdVoucher,
+                        IDPhuongThucThanhToan = request.IDPhuongThucThanhToan,
+                        TienShip = request.TienShip,
+                        tenNguoiNhan = request.tenNguoiNhan,
+                        sdtNguoiNhan = request.sdtNguoiNhan,
+                        GhiChu = request.GhiChu,
+                        diaChi = request.diaChi,
+                        TongTien = request.TongTien,
+                    };
+
+                    var updateResponse = await _httpClient.PutAsJsonAsync("HoaDon/UpdateHoaDon/", hdChoUpdate);
+                    if (!updateResponse.IsSuccessStatusCode)
+                    {
+                        return Json(new { success = false, message = "Không thể cập nhật hóa đơn trước khi thanh toán" });
+                    }
+
                     var momoModel = new OrderInfoModel
                     {
                         FullName = request.tenNguoiNhan ?? "Khách hàng",
-                        Amount = (int)request.TongTien,
+                        Amount = (double)request.TongTien,
                         OrderInfo = $"Thanh toán đơn hàng {request.Id} - {request.tenNguoiNhan}",
-                        OrderId = request.Id.ToString() // Truyền ID hóa đơn làm OrderId
+                        OrderId = request.Id.ToString()
                     };
 
-                    // Gọi trực tiếp service
                     var momoResult = await _momoService.CreatePaymentAsync(momoModel);
+                    _logger.LogInformation($"Momo Service Result - ErrorCode: {momoResult?.ErrorCode}, PayUrl: {momoResult?.PayUrl}");
 
                     if (momoResult != null && momoResult.ErrorCode == 0)
                     {
-                        // Lưu thông tin hóa đơn tạm thời để xử lý callback
-                        TempData["HoaDonMomo"] = JsonConvert.SerializeObject(request);
-                        return Json(new { Success = true, PaymentUrl = momoResult.PayUrl });
+                        var paymentSession = new MomoPaymentSession
+                        {
+                            HoaDonId = request.Id,
+                            OrderId = request.Id.ToString(),
+                            RequestData = request,
+                            CreatedTime = DateTime.Now
+                        };
+
+                        HttpContext.Session.SetString($"MomoPayment_{request.Id}", JsonConvert.SerializeObject(paymentSession));
+
+                        return Json(new
+                        {
+                            success = true,
+                            paymentUrl = momoResult.PayUrl
+                        });
                     }
                     else
                     {
                         var errorMessage = momoResult?.LocalMessage ?? momoResult?.Message ?? "Lỗi khi tạo link thanh toán Momo";
+                        _logger.LogError($"Momo Error: {errorMessage}");
                         return Json(new { success = false, message = errorMessage });
                     }
                 }
@@ -534,32 +570,103 @@ namespace AppView.Controllers
             }
         }
 
+        private async Task<HoaDonThanhToanRequest> LayThongTinHoaDonTuDatabase(Guid hoadonId)
+        {
+            try
+            {
+                // Gọi API để lấy thông tin hóa đơn từ database 
+                var hoadonResponse = await _httpClient.GetAsync($"HoaDon/GetById/{hoadonId}");
+                if (hoadonResponse.IsSuccessStatusCode)
+                {
+                    var hoadonData = await hoadonResponse.Content.ReadFromJsonAsync<HoaDon>();
+                    if (hoadonData != null)
+                    {
+                        // Tạo request từ dữ liệu database
+                        return new HoaDonThanhToanRequest
+                        {
+                            Id = hoadonData.ID,
+                            IdNhanVien = hoadonData.IDNhanVien ?? Guid.Empty,
+                            IdVoucher = hoadonData.IDVoucher ?? Guid.Empty,
+                            TongTien = hoadonData.TongTien ?? 0,
+                            TienShip = hoadonData.TienShip,
+                            tenNguoiNhan = hoadonData.TenNguoiNhan,
+                            sdtNguoiNhan = hoadonData.SDT,
+                            diaChi = hoadonData.DiaChi,
+                            GhiChu = hoadonData.GhiChu
+                        };
+                    }
+                }
+
+                _logger.LogWarning($"Không thể lấy thông tin hóa đơn từ database: {hoadonId}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Lỗi khi lấy thông tin hóa đơn từ database: {hoadonId}");
+                return null;
+            }
+        }
+
         [HttpGet]
-        public IActionResult PaymentCallBack()
+        public async Task<IActionResult> PaymentCallBack()
         {
             try
             {
                 _logger.LogInformation($"Momo callback received: {Request.QueryString}");
 
-                // SỬ DỤNG TRỰC TIẾP MOMO SERVICE ĐỂ XỬ LÝ CALLBACK
                 var momoResult = _momoService.PaymentExecuteAsync(HttpContext.Request.Query);
 
                 if (momoResult != null)
                 {
                     _logger.LogInformation($"Momo result: OrderId={momoResult.OrderId}, Amount={momoResult.Amount}");
 
-                    // Xử lý hóa đơn dựa trên OrderId (OrderId chính là Id hóa đơn)
-                    if (Guid.TryParse(momoResult.OrderId, out Guid hoadonId))
+                    // parse về Guid
+                    if (!Guid.TryParse(momoResult.OrderId, out Guid hoaDonId))
                     {
-                        return XuLyHoaDonSauThanhToan(hoadonId, momoResult).Result;
-                    }
-                    else
-                    {
-                        _logger.LogError($"Invalid OrderId format: {momoResult.OrderId}");
+                        _logger.LogError($"OrderId Momo trả về không phải Guid hợp lệ: {momoResult.OrderId}");
                         return View("PaymentResult", new PaymentResultViewModel
                         {
                             Success = false,
                             Message = "Mã đơn hàng không hợp lệ"
+                        });
+                    }
+
+                    // Session key dựa theo Guid gốc
+                    var sessionKey = $"MomoPayment_{hoaDonId}";
+                    var sessionData = HttpContext.Session.GetString(sessionKey);
+
+                    HoaDonThanhToanRequest request = null;
+
+                    if (!string.IsNullOrEmpty(sessionData))
+                    {
+                        var paymentSession = JsonConvert.DeserializeObject<MomoPaymentSession>(sessionData);
+                        request = paymentSession.RequestData;
+
+                        HttpContext.Session.Remove(sessionKey);
+                        _logger.LogInformation($"Lấy thông tin từ Session thành công cho hóa đơn: {hoaDonId}");
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Không tìm thấy Session, thử lấy từ Database cho OrderId: {hoaDonId}");
+
+                        request = await LayThongTinHoaDonTuDatabase(hoaDonId);
+                        if (request != null)
+                        {
+                            _logger.LogInformation($"Lấy thông tin từ Database thành công cho hóa đơn: {hoaDonId}");
+                        }
+                    }
+
+                    if (request != null)
+                    {
+                        return await XuLyHoaDonSauThanhToan(request, momoResult);
+                    }
+                    else
+                    {
+                        _logger.LogError($"Không tìm thấy thông tin thanh toán cho OrderId: {momoResult.OrderId}");
+                        return View("PaymentResult", new PaymentResultViewModel
+                        {
+                            Success = false,
+                            Message = "Không tìm thấy thông tin đơn hàng. Vui lòng liên hệ nhân viên để được hỗ trợ."
                         });
                     }
                 }
@@ -581,50 +688,43 @@ namespace AppView.Controllers
             }
         }
 
-        private async Task<IActionResult> XuLyHoaDonSauThanhToan(Guid hoadonId, MomoExecuteResponseModel momoResult)
+        private async Task<IActionResult> XuLyHoaDonSauThanhToan(HoaDonThanhToanRequest request, MomoExecuteResponseModel momoResult)
         {
             try
             {
-                // Kiểm tra xem có thông tin hóa đơn trong TempData không
-                HoaDonThanhToanRequest request = null;
-                if (TempData.ContainsKey("HoaDonMomo"))
+                // Kiểm tra và bổ sung thông tin nếu cần
+                if (request.IdNhanVien == Guid.Empty)
                 {
-                    request = JsonConvert.DeserializeObject<HoaDonThanhToanRequest>(TempData["HoaDonMomo"]!.ToString());
-                }
-
-                // Nếu không có trong TempData, lấy từ database
-                if (request == null)
-                {
-                    // Gọi API để lấy thông tin hóa đơn
-                    var hoadonResponse = await _httpClient.GetAsync($"HoaDon/GetById/{hoadonId}");
-                    if (hoadonResponse.IsSuccessStatusCode)
+                    // Lấy thông tin nhân viên từ session nếu có
+                    string? session = HttpContext.Session.GetString("LoginInfor");
+                    if (!string.IsNullOrEmpty(session))
                     {
-                        var hoadonData = await hoadonResponse.Content.ReadFromJsonAsync<HoaDon>();
-                        if (hoadonData != null)
-                        {
-                            request = new HoaDonThanhToanRequest
-                            {
-                                Id = hoadonData.ID,
-                                TongTien = hoadonData.TongTien ?? 0,
-                            };
-                        }
+                        var loginInfor = JsonConvert.DeserializeObject<LoginViewModel>(session);
+                        if (loginInfor != null)
+                            request.IdNhanVien = loginInfor.Id;
+                    }
+
+                    // Nếu vẫn không có, sử dụng giá trị mặc định
+                    if (request.IdNhanVien == Guid.Empty)
+                    {
+                        request.IdNhanVien = Guid.Parse("00000000-0000-0000-0000-000000000000"); // ID mặc định
                     }
                 }
 
-                // Cập nhật hóa đơn
+                // Cập nhật hóa đơn với thông tin đầy đủ
                 var hdrequest = new HoaDonThanhToanRequest
                 {
-                    Id = hoadonId,
-                    IdNhanVien = request?.IdNhanVien ?? Guid.Empty,
+                    Id = request.Id,
+                    IdNhanVien = request.IdNhanVien,
                     NgayThanhToan = DateTime.Now,
-                    IdVoucher = request?.IdVoucher ?? Guid.Empty,
+                    IdVoucher = request.IdVoucher,
                     IDPhuongThucThanhToan = Guid.Parse("f29cd85d-0251-4b50-8867-6a88891417f6"), // ID Momo
-                    TienShip = request?.TienShip ?? 0,
-                    tenNguoiNhan = request?.tenNguoiNhan ?? momoResult.FullName,
-                    sdtNguoiNhan = request?.sdtNguoiNhan ?? "",
+                    TienShip = request.TienShip,
+                    tenNguoiNhan = !string.IsNullOrEmpty(request.tenNguoiNhan) ? request.tenNguoiNhan : "Khách hàng",
+                    sdtNguoiNhan = !string.IsNullOrEmpty(request.sdtNguoiNhan) ? request.sdtNguoiNhan : "",
                     GhiChu = $"Đã thanh toán Momo - {momoResult.OrderInfo}",
-                    diaChi = request?.diaChi ?? "",
-                    TongTien = request?.TongTien ?? decimal.Parse(momoResult.Amount),
+                    diaChi = !string.IsNullOrEmpty(request.diaChi) ? request.diaChi : "",
+                    TongTien = request.TongTien > 0 ? request.TongTien : decimal.Parse(momoResult.Amount),
                     TrangThai = 6 // Đã thanh toán
                 };
 
@@ -632,9 +732,16 @@ namespace AppView.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     // Xóa hóa đơn chờ nếu tồn tại
-                    await _httpClient.DeleteAsync($"HoaDon/DeleteHoaDonCho?idHoaDon={hoadonId}");
+                    try
+                    {
+                        await _httpClient.DeleteAsync($"HoaDon/DeleteHoaDonCho?idHoaDon={request.Id}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, $"Không thể xóa hóa đơn chờ: {request.Id}");
+                    }
 
-                    _logger.LogInformation($"Cập nhật hóa đơn {hoadonId} thành công");
+                    _logger.LogInformation($"Cập nhật hóa đơn {request.Id} thành công");
 
                     return View("PaymentResult", new PaymentResultViewModel
                     {
@@ -658,7 +765,7 @@ namespace AppView.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Lỗi khi xử lý hóa đơn {hoadonId}");
+                _logger.LogError(ex, $"Lỗi khi xử lý hóa đơn {request.Id}");
                 return View("PaymentResult", new PaymentResultViewModel
                 {
                     Success = false,

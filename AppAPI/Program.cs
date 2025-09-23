@@ -2,7 +2,6 @@
 using AppAPI.Services;
 using AppData.Models;
 using AppData.ViewModels.Mail;
-using AppView.Models.Momo;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;

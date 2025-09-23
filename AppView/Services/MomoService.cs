@@ -19,14 +19,22 @@ namespace AppView.Services
         }
         public async Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model)
         {
-            model.OrderId = DateTime.UtcNow.Ticks.ToString();
+            // ✅ Không dùng DateTime.UtcNow.Ticks nữa
+            // Nếu OrderId rỗng thì gán Guid mới
+            if (string.IsNullOrEmpty(model.OrderId))
+            {
+                model.OrderId = Guid.NewGuid().ToString();
+            }
+
             model.OrderInfo = "Khách hàng: " + model.FullName + ". Nội dung: " + model.OrderInfo;
+
+            // raw data theo đúng format Momo
             var rawData =
                 $"partnerCode={_options.Value.PartnerCode}" +
                 $"&accessKey={_options.Value.AccessKey}" +
-                $"&requestId={model.OrderId}" +
+                $"&requestId={model.OrderId}" +   // requestId = luôn Guid string
                 $"&amount={model.Amount}" +
-                $"&orderId={model.OrderId}" +
+                $"&orderId={model.OrderId}" +     // orderId = Guid hóa đơn
                 $"&orderInfo={model.OrderInfo}" +
                 $"&returnUrl={_options.Value.ReturnUrl}" +
                 $"&notifyUrl={_options.Value.NotifyUrl}" +
@@ -38,7 +46,6 @@ namespace AppView.Services
             var request = new RestRequest() { Method = Method.Post };
             request.AddHeader("Content-Type", "application/json; charset=UTF-8");
 
-            // Create an object representing the request data
             var requestData = new
             {
                 accessKey = _options.Value.AccessKey,
@@ -46,10 +53,10 @@ namespace AppView.Services
                 requestType = _options.Value.RequestType,
                 notifyUrl = _options.Value.NotifyUrl,
                 returnUrl = _options.Value.ReturnUrl,
-                orderId = model.OrderId,
+                orderId = model.OrderId,          // gửi Guid
                 amount = model.Amount.ToString(),
                 orderInfo = model.OrderInfo,
-                requestId = model.OrderId,
+                requestId = model.OrderId,        // requestId = cùng giá trị Guid
                 extraData = "",
                 signature = signature
             };
@@ -58,8 +65,8 @@ namespace AppView.Services
 
             var response = await client.ExecuteAsync(request);
             var momoResponse = JsonConvert.DeserializeObject<MomoCreatePaymentResponseModel>(response.Content);
-            return momoResponse;
 
+            return momoResponse;
         }
 
         public MomoExecuteResponseModel PaymentExecuteAsync(IQueryCollection collection)
@@ -73,7 +80,6 @@ namespace AppView.Services
                 Amount = amount,
                 OrderId = orderId,
                 OrderInfo = orderInfo
-
             };
         }
 
@@ -82,16 +88,10 @@ namespace AppView.Services
             var keyBytes = Encoding.UTF8.GetBytes(secretKey);
             var messageBytes = Encoding.UTF8.GetBytes(message);
 
-            byte[] hashBytes;
+            using var hmac = new HMACSHA256(keyBytes);
+            var hashBytes = hmac.ComputeHash(messageBytes);
 
-            using (var hmac = new HMACSHA256(keyBytes))
-            {
-                hashBytes = hmac.ComputeHash(messageBytes);
-            }
-
-            var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-
-            return hashString;
+            return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
         }
 
     }

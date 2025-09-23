@@ -1837,7 +1837,7 @@
         });
     });
 
-    // ===== Thanh toán hóa đơn (ĐÃ SỬA ĐỂ PHÙ HỢP VỚI CONTROLLER) =====
+    // ===== Thanh toán hóa đơn (SỬA LẠI PHẦN XỬ LÝ RESPONSE) =====
     function thanhToanHoaDon() {
         // Lấy ID hóa đơn đang active
         const activeTab = $(".tabs-box .tab.active");
@@ -1907,6 +1907,8 @@
             diaChi: getDiaChiDayDu(),
         };
 
+        console.log("Dữ liệu gửi đi:", thanhToanData); // Debug
+
         // Hiển thị loading
         const $btn = $(".btn-primary").filter(':contains("Thanh toán")');
         const originalText = $btn.html();
@@ -1921,22 +1923,28 @@
             dataType: "json",
             data: JSON.stringify(thanhToanData),
             success: function (response) {
-                // Khôi phục trạng thái nút
+                // Khôi phục trạng thái nút NGAY LẬP TỨC
                 $btn.html(originalText);
                 $btn.prop("disabled", false);
 
-                if (response.success) {
-                    toastr.success("Đang chuyển hướng đến Momo...");
+                console.log("Response từ server:", response);
 
-                    // Chuyển hướng đến Momo
-                    if (response.PaymentUrl) {
-                        window.location.href = response.PaymentUrl;
+                // QUAN TRỌNG: Chỉ kiểmtra 'success' thường
+                if (response.success) {
+                    // Nếu có paymentUrl -> là Momo
+                    if (response.paymentUrl) {
+                        console.log("Chuyển hướng đến Momo:", response.paymentUrl);
+
+                        // CHUYỂN HƯỚNG NGAY LẬP TỨC - KHÔNG HIỂN THỊ TOASTR
+                        window.location.href = response.paymentUrl;
+
                     } else {
-                        // Nếu là thanh toán tiền mặt
-                        toastr.success("Thanh toán thành công!");
+                        // Là thanh toán tiền mặt
+                        toastr.success(response.message || "Thanh toán thành công!");
                         resetFormAfterPayment();
                     }
                 } else {
+                    // Có lỗi
                     toastr.error(response.message || "Thanh toán thất bại!");
                 }
             },
@@ -1945,7 +1953,7 @@
                 $btn.html(originalText);
                 $btn.prop("disabled", false);
 
-                console.error("Lỗi khi thanh toán:", error, xhr.responseText);
+                console.error("Lỗi khi thanh toán:", error);
                 toastr.error("Có lỗi xảy ra khi thanh toán: " + (xhr.responseJSON?.message || error));
             }
         });
@@ -2644,5 +2652,12 @@
         $("#giaoHang").prop("checked", false);
         toggleGiaoHangForm();
         loadHDCHO();
+
+        // Reset các giá trị thanh toán
+        $('#tongTien').text('0 đ');
+        $('#khachPhaiTra').text('0 đ');
+        $('#thanhTien').text('0 đ');
+        $('#tienKhachDua').val('0');
+        $('#tienThua').text('0 đ');
     }
 </script>

@@ -4,12 +4,13 @@ using AppView.Models.Momo;
 using AppView.Services;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Rotativa.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 //Momo API Payment
-builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoAPI"));
+builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoOption"));
 builder.Services.AddScoped<IMomoService, MomoService>();
 
 // Add services to the container.
@@ -30,6 +31,8 @@ builder.Services.AddDbContext<AssignmentDBContext>(options =>
 builder.Services.AddSession(cfg =>
 {
     cfg.IdleTimeout = new TimeSpan(1,0,0);
+    cfg.Cookie.HttpOnly = true;
+    cfg.Cookie.IsEssential = true;
 });
 var app = builder.Build();
 
