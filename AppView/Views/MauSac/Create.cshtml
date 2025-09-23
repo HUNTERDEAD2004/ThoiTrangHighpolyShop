@@ -44,10 +44,13 @@
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-dark text-white px-4 py-2 custom-hover" style="margin-top: 10px" />
+                <a asp-action="Show" asp-controller="MauSac" class="btn btn-outline-orange me-2" style="margin-top: 10px"> <i class="fas fa-arrow-left"></i> Quay lại</a>
             </div>
         </form>
     </div>
 </div>
+<div id="toastMessage" style="position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 6px; display: none; color: #fff; z-index: 9999;"></div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $("input[name='Ten']").on("input", function () {
         $(this).removeClass("is-invalid");
@@ -74,8 +77,43 @@
         }
         return true;
     });
-</script>
+    function showMessage(message, type = 'success') {
+        const toast = $("#toastMessage");
+        toast.stop(true, true);
+        toast.text(message);
 
+        switch(type) {
+            case 'success': toast.css('background-color', '#28a745'); break;
+            case 'danger':
+            case 'error': toast.css('background-color', '#dc3545'); break;
+            case 'warning': toast.css('background-color', '#ffc107; color:#212529'); break;
+            default: toast.css('background-color', '#17a2b8'); break;
+        }
+
+        toast.fadeIn(400).delay(3000).fadeOut(400);
+    }
+
+    $(document).ready(function(){
+        var message = @Html.Raw(Json.Serialize(TempData["AlertMessage"] ?? ""));
+        var type = @Html.Raw(Json.Serialize(TempData["AlertType"] ?? "success"));
+        if(message) {
+            showMessage(message, type);
+        }
+    });
+</script>
+<style>
+    .btn-outline-orange {
+        background-color: #fff;
+        color: #000 !important;
+        border: 1px solid #ff6600;
+        transition: 0.3s;
+    }
+
+        .btn-outline-orange:hover {
+            background-color: #ff6600;
+            color: #fff !important;
+        }
+</style>
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

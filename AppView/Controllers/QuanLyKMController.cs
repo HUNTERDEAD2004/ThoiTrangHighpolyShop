@@ -378,7 +378,7 @@ namespace AppView.Controllers
                     }
                     if (timkiem.TrangThai == 3)
                     {
-                        timkiem.TrangThai = 1;
+                        timkiem.TrangThai = 1; 
                         dBContext.KhuyenMais.Update(timkiem);
                     }
                     dBContext.SaveChanges();

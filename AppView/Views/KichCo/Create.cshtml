@@ -30,27 +30,93 @@
             <input type="hidden" asp-for="TrangThai" value="1" />
             <div class="form-group">
                 <input type="submit" value="Lưu" class="btn btn-dark text-white px-4 py-2 custom-hover" style="margin-top: 10px" />
+                <a asp-action="Show" asp-controller="KichCo" class="btn btn-outline-orange me-2" style="margin-top: 10px"> <i class="fas fa-arrow-left"></i> Quay lại</a>
             </div>
         </form>
     </div>
 </div>
+<div id="toastMessage"></div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $("input[name='Ten']").on("input", function () {
         $(this).removeClass("is-invalid");
         $("#emptyNameError").text("");
     });
-    $("form").submit(function () {
-        var tenInput = $("input[name='Ten']");
-        var tenValue = tenInput.val();
-        if (tenValue.trim() === "") {
+        function showMessage(message, type = 'success') {
+        const toast = $("#toastMessage");
+        toast.stop(true,true).text(message);
+
+        switch(type) {
+            case 'success': toast.css('background-color','#28a745'); break;
+            case 'error': toast.css('background-color','#dc3545'); break;
+            case 'warning': toast.css('background-color','#ffc107; color:#212529'); break;
+            default: toast.css('background-color','#17a2b8'); break;
+        }
+
+        toast.fadeIn(400).delay(2500).fadeOut(400);
+    }
+
+    $("form").submit(function(e){
+        e.preventDefault();
+
+        const tenInput = $("input[name='Ten']");
+        if(tenInput.val().trim() === "") {
             tenInput.addClass("is-invalid");
             $("#emptyNameError").text("Tên không được bỏ trống");
             return false;
         }
-        return true;
+
+        const submitBtn = $(this).find('input[type="submit"]');
+        submitBtn.prop("disabled", true).val("Đang xử lý...");
+
+        $.ajax({
+        url: $(this).attr("action"),
+        type: "POST",
+        data: $(this).serialize(),
+        success: function(res){
+            if(res.success){
+                showMessage(res.message, "success");
+                setTimeout(function(){
+                    // Chuyển về trang danh sách KichCo
+                    window.location.href = '@Url.Action("Show", "KichCo")';}, 1000);
+                } else {
+                    showMessage(res.message, "error");
+                    submitBtn.prop("disabled", false).val("Lưu");
+                }
+            },
+            error: function(){
+                showMessage("Lỗi kết nối!", "error");
+                submitBtn.prop("disabled", false).val("Lưu");
+            }
+        });
     });
 </script>
+<style>
+    .btn-outline-orange {
+        background-color: #fff;
+        color: #000 !important;
+        border: 1px solid #ff6600;
+        transition: 0.3s;
+    }
+
+        .btn-outline-orange:hover {
+            background-color: #ff6600;
+            color: #fff !important;
+        }
+#toastMessage {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 6px;
+        display: none;
+        color: #fff;
+        z-index: 9999;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+</style>
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

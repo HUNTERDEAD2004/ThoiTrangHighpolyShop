@@ -41,19 +41,27 @@ namespace AppAPI.Controllers
             if (tr == null) return BadRequest();
             return Ok(tr);
         }
-        [HttpPost("ThemKichCo")]
-        public async Task<IActionResult> Add(string ten, int trangthai)
-        {
+		[HttpPost("ThemKichCo")]
+		public async Task<IActionResult> Add(string ten, int trangthai)
+		{
+			if (string.IsNullOrWhiteSpace(ten))
+				return BadRequest(new { success = false, message = "Tên kích cỡ không được để trống!" });
 
-            var nv = await service.AddKichCo(ten, trangthai);
-            if (nv == null)
-            {
-                return BadRequest();
-            }
-            return Ok();
-        }
-        // PUT api/<NhanVienController>/5
-        [HttpPut("{id}")]
+			// Kiểm tra trùng tên
+			var exist = _dbContext.KichCos.FirstOrDefault(k => k.Ten.ToLower() == ten.ToLower());
+			if (exist != null)
+				return BadRequest(new { success = false, message = "Kích cỡ này đã tồn tại!" });
+
+			var nv = await service.AddKichCo(ten, trangthai);
+			if (nv == null)
+				return BadRequest(new { success = false, message = "Thêm thất bại!" });
+
+			// Trả về luôn đối tượng KichCo mới
+			return Ok(nv);
+		}
+
+		// PUT api/<NhanVienController>/5
+		[HttpPut("{id}")]
         public async Task<IActionResult> Put(Guid id, string ten, int trangthai)
         {
             var bv = await service.UpdateKichCo(id, ten, trangthai);

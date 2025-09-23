@@ -30,14 +30,32 @@
         <label class="form-label">Mã sản phẩm</label>
         <input type="text" class="form-control" placeholder="Tìm theo mã" id="searchName">
     </div>
-    <div class="col-md-2">
-        <label class="form-label">Giá bán Min</label>
-        <input type="number" class="form-control" id="priceMin">
+    <div class="col-lg-2" style="padding-left:2px;padding-right:2px">
+        <p style="margin:0px">Giá bán từ:</p>
+        <select class="form-select" id="priceMin">
+            <option value="">Min</option>
+            <option value="100000">100.000</option>
+            <option value="200000">200.000</option>
+            <option value="500000">500.000</option>
+            <option value="1000000">1.000.000</option>
+            <option value="2000000">2.000.000</option>
+            <option value="2000000">5.000.000</option>
+            <option value="2000000">10.000.000</option>
+        </select>
     </div>
-    <div class="col-md-2">
-        <label class="form-label">Giá bán Max</label>
-        <input type="number" class="form-control" id="priceMax">
+    <div class="col-lg-2" style="padding-left:2px;padding-right:2px">
+        <p style="margin:0px">Đến:</p>
+        <select class="form-select" id="priceMax">
+            <option value="">Max</option>
+            <option value="200000">200.000</option>
+            <option value="500000">500.000</option>
+            <option value="1000000">1.000.000</option>
+            <option value="2000000">2.000.000</option>
+            <option value="2000000">5.000.000</option>
+            <option value="2000000">10.000.000</option>
+        </select>
     </div>
+
     <div class="col-md-2">
         <label class="form-label">SL Min</label>
         <input type="number" class="form-control" id="quantityMin">
@@ -195,10 +213,10 @@
                             <td><input type="color" value="${item.maMauSac}" style="border:none;width:27px;height:25px" disabled></td>
                             <td>${item.tenKichCo}</td>
                             <td style="width:100px">
-                                <input type="number" value="${item.soLuong}" id="soLuong_${item.id}" onchange="changeSoLuong('${item.id}')" min="0" class="form-control form-control-sm">
+                                <input type="number" value="${item.soLuong}" id="soLuong_${item.id}" onchange="changeSoLuong('${item.id}')" min="0" class="form-control form-control-sm" Disabled>
                             </td>
                             <td style="width:100px">
-                                <input type="number" value="${item.giaGoc}" id="giaGoc_${item.id}" onchange="changeGiaBan('${item.id}')" min="0" class="form-control form-control-sm">
+                                <input type="number" value="${item.giaGoc}" id="giaGoc_${item.id}" onchange="changeGiaBan('${item.id}')" min="0" class="form-control form-control-sm" Disabled>
                             </td>
                             <td id="giaBan_${item.id}">${item.giaBan}</td>
                             <td>${radioBtn}</td>

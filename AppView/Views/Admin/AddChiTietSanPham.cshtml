@@ -2,38 +2,57 @@
 
 @{
     ViewData["Title"] = "Thêm chi tiết sản phẩm";
+    string idSanPham = TempData["IDSanPham"] as string;
 }
 
 <h1>Thêm chi tiết sản phẩm</h1>
 
 <hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="AddChiTietSanPham">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <!-- Màu sắc -->
-            <div class="form-group">
-                <label class="control-label">Màu sắc</label>
-                <div id="lstMauSac" class="d-flex flex-column gap-2"></div>
-                <input type="button" value="Thêm màu có sẵn" onclick="themBienTheMauSac()" />
-                <input type="button" value="Tạo màu mới" onclick="taoMoiMauSac()" />
+<form asp-action="AddChiTietSanPham" id="formAddChiTietSanPham">
+    <div class="row justify-content-center">
+        <!-- Cột chính: màu sắc + kích cỡ -->
+        <div class="col-md-6">
+            <!-- MÀU SẮC -->
+            <div class="form-group mb-3">
+                <label class="control-label fw-bold">Màu sắc</label>
+                <div id="lstMauSac" class="d-flex flex-wrap gap-2 mb-2">
+                    <!-- JS render -->
+                </div>
+                <div class="d-flex gap-2 mt-2">
+                    <button type="button" class="btn btn-secondary btn-sm flex-grow-1" onclick="themBienTheMauSac()">
+                        Thêm biến thể màu
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm flex-grow-1" onclick="taoMoiMauSac()">
+                        Thêm màu
+                    </button>
+                </div>
             </div>
 
-            <!-- Kích cỡ -->
-            <div class="form-group">
-                <label class="control-label">Kích cỡ</label>
-                <div id="lstKichCo" class="d-flex flex-column gap-2"></div>
-                <input type="button" class="btn btn-primary mt-2" value="Thêm kích cỡ có sẵn" onclick="themBienTheKichCo()" />
-                <input type="button" class="btn btn-primary mt-2" value="Thêm kích cỡ mới" onclick="taoMoiKichCo()" />
+            <!-- KÍCH CỠ -->
+            <div class="form-group mb-3">
+                <label class="control-label fw-bold">Kích cỡ</label>
+                <div id="lstKichCo" class="d-flex flex-wrap gap-2 mb-2">
+                    <!-- JS render -->
+                </div>
+                <div class="d-flex gap-2 mt-2">
+                    <button type="button" class="btn btn-secondary btn-sm flex-grow-1" onclick="themBienTheKichCo()">
+                        Thêm biến thể kích cỡ
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm flex-grow-1" onclick="taoMoiKichCo()">
+                        Thêm kích cỡ
+                    </button>
+                </div>
             </div>
-
-            <div class="form-group">
-                <input type="submit" value="Tạo" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
+
+    <!-- Nút submit -->
+    <div class="form-group text-center mt-4">
+        <input type="submit" value="Thêm chi tiết sản phẩm" class="btn btn-secondary px-4 py-2" />
+        <a asp-action="ProductDetail" asp-controller="Admin" asp-route-idSanPham="@idSanPham" class="btn btn-outline-orange me-2"> <i class="fas fa-arrow-left"></i> Quay lại</a>
+    </div>
+</form>
+
 
 <script src="~/js/jquery-3.3.1.min.js"></script>
 <script>
@@ -58,20 +77,28 @@
     });
 
      // --- Tạo mới Kích cỡ ---
-    function taoMoiKichCo() {
+     function taoMoiKichCo() {
         const ten = prompt("Nhập kích cỡ mới:");
-        if (!ten) return;
+        if (!ten || !ten.trim()) {
+            alert("Tên kích cỡ không được để trống!");
+            return;
+        }
 
-        $.post("/Admin/TaoKichCoTuSanPhamAsync", { ten: ten }, function (res) {
-            if (res.success) {
-                alert("Đã thêm!");
-                $.get("/Admin/GetAllKichCo", function (data) {
-                    lstKichCo = data;
+        $.post("/Admin/TaoKichCoMoiTuSanPham", { ten: ten.trim() }, function(res) {
+            if (res.success && res.data) {
+                alert("Thêm kích cỡ thành công!");
+                // gọi lại API GetAllKichCo và render
+                $.get("/Admin/GetAllKichCo", function(list) {
+                    lstKichCo = list.map(x => ({ id: x.id, ten: x.ten }));
                     $("#lstKichCo").empty();
                     countKichCo = 0;
                     themBienTheKichCo();
                 });
+            } else {
+                alert(res.message || "Thêm thất bại!");
             }
+        }).fail(function(xhr) {
+            alert("Lỗi kết nối: " + (xhr.responseText || xhr.statusText));
         });
     }
 
@@ -146,6 +173,51 @@
     }
 </script>
 
+<style>
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-control, .form-select {
+        height: 42px;
+    }
+
+    .btn-secondary {
+        background: #6c757d !important;
+        color: #fff !important;
+        border: none;
+    }
+
+        .btn-secondary:hover {
+            background: #5a6268 !important;
+        }
+
+    .gap-2 {
+        gap: 8px;
+    }
+
+    #lstMauSac > div, #lstKichCo > div {
+        width: 48%;
+        padding: 6px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: #fff;
+    }
+
+
+
+    .btn-outline-orange {
+        background-color: #fff;
+        color: #000 !important;
+        border: 1px solid #ff6600;
+        transition: 0.3s;
+    }
+
+        .btn-outline-orange:hover {
+            background-color: #ff6600;
+            color: #fff !important;
+        }
+</style>
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
