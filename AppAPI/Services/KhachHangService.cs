@@ -107,7 +107,8 @@ namespace AppAPI.Services
             
             <!-- Logo Container -->
             <div style='margin-bottom: 20px;'>
-                <img src='https://drive.google.com/file/d/1CY63QePGArcHRJyQP0Xz0sfutj5ZMwLS/view?usp=sharing' alt='ThoiTrangHighpolyShop Logo' style='max-width: 120px; height: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));' />
+               <img src=""cid:logoHighPoly"" alt=""Logo ThoiTrangHighpolyShop"" style=""width:120px; height:auto;"" />
+
             </div>
             
             <h1 style='color: white; margin: 0; font-size: 28px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);'>
@@ -211,7 +212,7 @@ namespace AppAPI.Services
     </div>
 </body>
 </html>";
-
+           
             await _mailService.SendEmailAsync(email, subject, body);
         }
           

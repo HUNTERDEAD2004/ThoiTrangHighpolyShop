@@ -8,7 +8,10 @@ namespace AppAPI.IServices
 {
     public interface IHoaDonService
     {
-        public DonMuaSuccessViewModel CreateHoaDon(List<ChiTietHoaDonViewModel> chiTietHoaDons,HoaDonViewModel hoaDon);
+
+        Task<DonMuaSuccessViewModel> CreateHoaDon(
+            List<ChiTietHoaDonViewModel> chiTietHoaDons,
+            HoaDonViewModel hoaDon);
         public List<HoaDon> GetAllHoaDon();
         public HoaDon GetHoaDonById(Guid idhd);
         public List<ChiTietHoaDon> GetAllChiTietHoaDon(Guid idHoaDon);

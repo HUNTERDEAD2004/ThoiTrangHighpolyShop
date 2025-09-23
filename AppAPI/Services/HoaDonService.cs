@@ -10,7 +10,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Net.Mail;
+using System.Net.Mime;
+using System.Net;
 using System.Security.Cryptography.Xml;
+using Org.BouncyCastle.Utilities;
+using System.Collections.Generic;
 namespace AppAPI.Services
 {
     public class HoaDonService : IHoaDonService
@@ -30,8 +35,9 @@ namespace AppAPI.Services
         private readonly IAllRepository<DiaChi> reposDiaChi;
         AssignmentDBContext context = new AssignmentDBContext();
         private readonly IGioHangServices _iGioHangServices;
+        private readonly EmailService _mailService;
 
-        public HoaDonService(AssignmentDBContext context)
+        public HoaDonService(AssignmentDBContext context, EmailService EmailService)
         {
             reposHoaDon = new AllRepository<HoaDon>(context, context.HoaDons);
             reposChiTietHoaDon = new AllRepository<ChiTietHoaDon>(context, context.ChiTietHoaDons);
@@ -49,6 +55,7 @@ namespace AppAPI.Services
             context = new AssignmentDBContext();
             _iGioHangServices = new GioHangServices();
             this.context = context;
+            _mailService = EmailService;
 
         }
 
@@ -222,7 +229,9 @@ namespace AppAPI.Services
                 return false;
             }
         }
-        public DonMuaSuccessViewModel CreateHoaDon(List<ChiTietHoaDonViewModel> chiTietHoaDons, HoaDonViewModel hoaDon)
+        public async Task<DonMuaSuccessViewModel> CreateHoaDon(
+     List<ChiTietHoaDonViewModel> chiTietHoaDons,
+     HoaDonViewModel hoaDon)
         {
             var result = new DonMuaSuccessViewModel();
 
@@ -232,33 +241,45 @@ namespace AppAPI.Services
             using var transaction = context.Database.BeginTransaction();
             try
             {
+                // Tạo lịch sử trạng thái
                 var lichSu = CreateLichSuHoaDon(hoaDon.TrangThai);
+
+                // Lấy địa chỉ giao hàng
                 string diaChi = ResolveDiaChi(hoaDon);
+
+                // Tạo entity hóa đơn
                 var hoaDonEntity = BuildHoaDonEntity(hoaDon, lichSu.ID, diaChi);
+
+                // Áp dụng voucher nếu có
                 ApplyVoucherIfAvailable(hoaDon, hoaDonEntity, result);
 
                 context.HoaDons.Add(hoaDonEntity);
                 context.SaveChanges();
 
+                // Xử lý chi tiết hóa đơn
                 int subtotal = 0;
-                var gioHangList = ProcessChiTietHoaDon(chiTietHoaDons, hoaDonEntity.ID, ref subtotal, transaction, result, hoaDon);
+                var gioHangList = ProcessChiTietHoaDon(
+                    chiTietHoaDons, hoaDonEntity.ID, ref subtotal, transaction, result, hoaDon);
+
                 result.GioHangs = gioHangList;
 
+                // Xử lý tích/tiêu điểm
                 if (hoaDon.IDKhachHang != Guid.Empty)
                 {
                     HandleTichTieuDiem(hoaDon, hoaDonEntity, subtotal, result);
                     result.Login = true;
                 }
 
+                // Xóa giỏ hàng nếu thanh toán thành công
                 if (hoaDon.TrangThai && hoaDon.IDKhachHang != Guid.Empty)
                 {
                     _iGioHangServices.DeleteCart(hoaDon.IDKhachHang);
                 }
 
-
                 context.SaveChanges();
                 transaction.Commit();
 
+                // Gán các thông tin trả về
                 result.ID = hoaDonEntity.ID.ToString();
                 result.Ten = hoaDon.Ten;
                 result.Email = hoaDon.Email;
@@ -270,15 +291,157 @@ namespace AppAPI.Services
                 result.DiemSuDung = hoaDon.Diem ?? 0;
                 result.MaHoaDon = hoaDonEntity.MaHoaDon;
 
+                // ----- Gửi email đơn hàng -----
+                try
+                {
+                    var donMuaChiTiets = gioHangList.Select(g => new DonMuaChiTietViewModel
+                    {
+                        TenSanPham = g.Ten,
+                        TenMau = g.MauSac,
+                        TenKichCo = g.KichCo,
+                        SoLuong = g.SoLuong,
+                        DonGia = g.DonGia ?? 0,
+                        TrangThaiGiaoHang = hoaDon.TrangThai ? 11 : 2
+                    }).ToList();
+
+                    await SendOrderInfoEmail(
+                        hoaDon.Email,
+                        hoaDon.Ten,
+                        result.MaHoaDon,
+                        donMuaChiTiets,
+                        result.DiaChi
+                    );
+                }
+                catch (Exception emailEx)
+                {
+                    // Log lỗi gửi email nhưng không rollback đơn hàng
+                    Console.WriteLine("Lỗi gửi email đơn hàng: " + emailEx.Message);
+                }
 
                 return result;
             }
             catch (Exception ex)
             {
-
                 transaction.Rollback();
                 return ErrorResult("Lỗi hệ thống khi tạo đơn hàng", -999);
             }
+        }
+
+        private async Task SendOrderInfoEmail(string email, string tenKH, string maDonHang, List<DonMuaChiTietViewModel> items, string diaChiGiaoHang)
+        {
+            // Tính tổng tiền
+            decimal tongTien = items.Sum(i => i.DonGia * i.SoLuong);
+
+            // Lấy trạng thái đơn hàng
+            string GetTrangThai(int status) => status switch
+            {
+                2 => "Chờ xác nhận",
+                11 => "Đã xác nhận",
+                10 => "Chờ đóng hàng",
+                3 => "Đang giao hàng",
+                6 => "Hoàn thành",
+                7 => "Đã hủy",
+                _ => "Không xác định"
+            };
+            string trangThai = GetTrangThai(items.FirstOrDefault()?.TrangThaiGiaoHang ?? 0);
+
+            string subject = $"🛒 Xác nhận đơn hàng {maDonHang} từ ThoiTrangHighpolyShop!";
+
+            // Build bảng sản phẩm
+            string itemRows = "";
+            foreach (var item in items)
+            {
+                itemRows += $@"
+        <tr>
+            <td style='padding:10px; border:1px solid #ddd;'>{item.TenSanPham} ({item.TenMau}, {item.TenKichCo})</td>
+            <td style='padding:10px; border:1px solid #ddd; text-align:center;'>{item.SoLuong}</td>
+            <td style='padding:10px; border:1px solid #ddd; text-align:right;'>{item.DonGia.ToString("N0")}₫</td>
+        </tr>";
+            }
+
+            // HTML email
+            string body = $@"
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<title>Thông tin đơn hàng</title>
+</head>
+<body style='margin:0; padding:0; font-family: Arial,sans-serif; background:#f2f2f2;'>
+    <div style='max-width:600px; margin:30px auto; background:white; border-radius:10px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.1);'>
+        
+        <!-- Header -->
+        <div style='background: linear-gradient(135deg,#ff6b6b,#ee5a24); color:white; text-align:center; padding:30px; position:relative;'>
+            <img src='cid:logoHighPoly' alt='Logo' style='width:120px; height:auto; margin-bottom:10px;'/>
+            <h1>ThoiTrangHighpolyShop</h1>
+            <p>Đơn hàng của bạn đã được ghi nhận</p>
+        </div>
+
+        <!-- Greeting -->
+        <div style='padding:30px;'>
+            <h2>Chào {tenKH},</h2>
+            <p>Cảm ơn bạn đã đặt hàng! Dưới đây là thông tin chi tiết đơn hàng của bạn:</p>
+            
+            <!-- Order Info -->
+            <div style='margin:20px 0;'>
+                <p><strong>Mã đơn hàng:</strong> {maDonHang}</p>
+                <p><strong>Địa chỉ giao hàng:</strong> {diaChiGiaoHang}</p>
+                <table style='width:100%; border-collapse:collapse; margin-top:10px;'>
+                    <thead>
+                        <tr style='background:#f8f9fa;'>
+                            <th style='padding:10px; border:1px solid #ddd;'>Sản phẩm</th>
+                            <th style='padding:10px; border:1px solid #ddd;'>Số lượng</th>
+                            <th style='padding:10px; border:1px solid #ddd;'>Đơn giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {itemRows}
+                        <tr>
+                            <td colspan='2' style='padding:10px; border:1px solid #ddd; font-weight:bold;'>Tổng tiền</td>
+                            <td style='padding:10px; border:1px solid #ddd; text-align:right; font-weight:bold;'>{tongTien.ToString("N0")}₫</td>
+                        </tr>
+                        <tr>
+                            <td colspan='2' style='padding:10px; border:1px solid #ddd; font-weight:bold;'>Trạng thái</td>
+                            <td style='padding:10px; border:1px solid #ddd; text-align:right; font-weight:bold;'>{trangThai}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style='text-align:center; margin-top:30px;'>
+                <a href='#' style='background: linear-gradient(135deg,#667eea,#764ba2); color:white; padding:15px 30px; border-radius:25px; text-decoration:none; font-weight:bold; display:inline-block;'>📦 Theo dõi đơn hàng</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style='background:#2c3e50; color:white; text-align:center; padding:20px;'>
+            <p>📧 Đây là email tự động, vui lòng không phản hồi.</p>
+            <p>© 2025 ThoiTrangHighpolyShop</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+            // Gửi email với logo inline
+            using var mail = new MailMessage();
+            mail.To.Add(email);
+            mail.Subject = subject;
+            mail.IsBodyHtml = true;
+            mail.Body = body;
+
+            var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img/logo_HightPoly.png");
+            var logoAttachment = new Attachment(logoPath);
+            logoAttachment.ContentId = "logoHighPoly";
+            logoAttachment.ContentDisposition.Inline = true;
+            logoAttachment.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
+            logoAttachment.ContentType.MediaType = "image/png";
+            mail.Attachments.Add(logoAttachment);
+
+            using var smtp = new SmtpClient("smtp.example.com");
+            smtp.Credentials = new NetworkCredential("user", "pass");
+            smtp.Port = 587;
+            smtp.EnableSsl = true;
+            smtp.Send(mail);
         }
 
         private DonMuaSuccessViewModel ErrorResult(string message, int code)

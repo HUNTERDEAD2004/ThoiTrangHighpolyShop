@@ -70,10 +70,12 @@ namespace AppAPI.Controllers
             return _iHoaDonService.CheckCusUseVoucher(idkh, idvoucher);
         }
         [HttpPost]
-        public DonMuaSuccessViewModel CreateHoaDon(HoaDonViewModel hoaDon)
+        public async Task<DonMuaSuccessViewModel> CreateHoaDon(HoaDonViewModel hoaDon)
         {
-            return _iHoaDonService.CreateHoaDon(hoaDon.ChiTietHoaDons, hoaDon);
+            // Gọi async service method với await
+            return await _iHoaDonService.CreateHoaDon(hoaDon.ChiTietHoaDons, hoaDon);
         }
+
         [HttpPost("Offline/{idNhanVien}")]
         public IActionResult CreateHoaDonOffline(Guid idNhanVien, [FromBody] HoaDonOfflineRequest req)
         {
@@ -169,25 +171,6 @@ namespace AppAPI.Controllers
       
 
 
-        //[HttpGet("PhuongThucThanhToan")]
-        //public List<PhuongThucThanhToan> GetAllPTTT()
-        //{
-        //    return _iHoaDonService.GetAllPTTT();
-        //}
-        //[HttpPost("PhuongThucThanhToan")]
-        //public bool CreatePTT(PhuongThucThanhToan pttt)
-        //{
-        //    return _iHoaDonService.CreatePTTT(pttt);
-        //}
-        //[HttpPut("PhuongThucThanhToan")]
-        //public bool UpdatePTT(PhuongThucThanhToan pttt)
-        //{
-        //    return _iHoaDonService.UpdatePTTT(pttt);
-        //}
-        //[HttpDelete("PhuongThucThanhToan/{id}")]
-        //public bool DeletePTT(Guid id)
-        //{
-        //    return _iHoaDonService.DeletePTTT(id);
-        //}
+      
     }
 }
