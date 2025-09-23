@@ -107,7 +107,8 @@ namespace AppAPI.Services
             
             <!-- Logo Container -->
             <div style='margin-bottom: 20px;'>
-               <img src=""cid:logoHighPoly"" alt=""Logo ThoiTrangHighpolyShop"" style=""width:120px; height:auto;"" />
+       
+
 
             </div>
             

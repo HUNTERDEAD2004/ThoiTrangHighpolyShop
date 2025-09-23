@@ -16,6 +16,7 @@ using System.Net;
 using System.Security.Cryptography.Xml;
 using Org.BouncyCastle.Utilities;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Hosting;
 namespace AppAPI.Services
 {
     public class HoaDonService : IHoaDonService
@@ -36,8 +37,9 @@ namespace AppAPI.Services
         AssignmentDBContext context = new AssignmentDBContext();
         private readonly IGioHangServices _iGioHangServices;
         private readonly EmailService _mailService;
+        private readonly IWebHostEnvironment _env;
 
-        public HoaDonService(AssignmentDBContext context, EmailService EmailService)
+        public HoaDonService(AssignmentDBContext context, EmailService EmailService, IWebHostEnvironment env)
         {
             reposHoaDon = new AllRepository<HoaDon>(context, context.HoaDons);
             reposChiTietHoaDon = new AllRepository<ChiTietHoaDon>(context, context.ChiTietHoaDons);
@@ -56,6 +58,7 @@ namespace AppAPI.Services
             _iGioHangServices = new GioHangServices();
             this.context = context;
             _mailService = EmailService;
+            _env = env;
 
         }
 
@@ -326,6 +329,8 @@ namespace AppAPI.Services
                 return ErrorResult("Lỗi hệ thống khi tạo đơn hàng", -999);
             }
         }
+      
+
 
         private async Task SendOrderInfoEmail(string email, string tenKH, string maDonHang, List<DonMuaChiTietViewModel> items, string diaChiGiaoHang)
         {
@@ -372,7 +377,6 @@ namespace AppAPI.Services
         
         <!-- Header -->
         <div style='background: linear-gradient(135deg,#ff6b6b,#ee5a24); color:white; text-align:center; padding:30px; position:relative;'>
-            <img src='cid:logoHighPoly' alt='Logo' style='width:120px; height:auto; margin-bottom:10px;'/>
             <h1>ThoiTrangHighpolyShop</h1>
             <p>Đơn hàng của bạn đã được ghi nhận</p>
         </div>
@@ -409,7 +413,7 @@ namespace AppAPI.Services
             </div>
 
             <div style='text-align:center; margin-top:30px;'>
-                <a href='#' style='background: linear-gradient(135deg,#667eea,#764ba2); color:white; padding:15px 30px; border-radius:25px; text-decoration:none; font-weight:bold; display:inline-block;'>📦 Theo dõi đơn hàng</a>
+                <a href='https://localhost:5001' style='background: linear-gradient(135deg,#667eea,#764ba2); color:white; padding:15px 30px; border-radius:25px; text-decoration:none; font-weight:bold; display:inline-block;'>📦 Theo dõi đơn hàng</a>
             </div>
         </div>
 
@@ -422,27 +426,11 @@ namespace AppAPI.Services
 </body>
 </html>";
 
-            // Gửi email với logo inline
-            using var mail = new MailMessage();
-            mail.To.Add(email);
-            mail.Subject = subject;
-            mail.IsBodyHtml = true;
-            mail.Body = body;
+            await _mailService.SendEmailAsync(email, subject, body);
 
-            var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img/logo_HightPoly.png");
-            var logoAttachment = new Attachment(logoPath);
-            logoAttachment.ContentId = "logoHighPoly";
-            logoAttachment.ContentDisposition.Inline = true;
-            logoAttachment.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
-            logoAttachment.ContentType.MediaType = "image/png";
-            mail.Attachments.Add(logoAttachment);
-
-            using var smtp = new SmtpClient("smtp.example.com");
-            smtp.Credentials = new NetworkCredential("user", "pass");
-            smtp.Port = 587;
-            smtp.EnableSsl = true;
-            smtp.Send(mail);
         }
+
+
 
         private DonMuaSuccessViewModel ErrorResult(string message, int code)
         {
