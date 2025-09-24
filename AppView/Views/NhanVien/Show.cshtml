@@ -1,16 +1,18 @@
 ﻿@model AppView.PhanTrang.PhanTrangNhanVien
+
 @{
     ViewData["Title"] = "Danh sách nhân viên";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
     int stt = 1;
 }
 
-<hr />
-<div class="row mb-4" style="margin: 5px">
-    <!-- Thanh tìm kiếm bên trái -->
-    <div class="col-md-4 d-flex justify-content-start">
+<div class="container mt-4">
+    <hr />
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a class="btn btn-secondary text-white px-4 py-2" asp-action="Create">Thêm mới</a>
+
         <form asp-action="SearchTheoTen" method="get" id="searchForm" class="d-flex align-items-center gap-2">
-            <input type="text" name="Ten" class="form-control shadow-sm" placeholder="Tìm theo tên hoặc SĐT" style="width: 250px;" />
+            <input type="text" name="Ten" class="form-control shadow-sm tk1" placeholder="Tìm theo tên hoặc SĐT" style="width: 250px;" />
             <input type="submit" value="Tìm kiếm" class="btn btn-secondary px-4 py-2" />
         </form>
     </div>
@@ -30,122 +32,158 @@
     </div>
 </div>
 
-<div id="searchErrorMessage" class="alert alert-warning" role="alert" style="display: @(ViewData["SearchError"] != null ? "block" : "none"); margin-top: 10px; margin-left: 11px">@ViewData["SearchError"]</div>
+    @* ✅ Token để gọi fetch Delete *@
+    @Html.AntiForgeryToken()
 
-<!-- Bảng dữ liệu -->
-<table id="employeeTable" class="table table-bordered table-hover" style="background-color: transparent;">
-    <thead class="table-light">
-        <tr>
-            <th>STT</th>
-            <th>Tên</th>
-            <th>Email</th>
-            <th>SĐT</th>
-            <th>Địa chỉ</th>
-            <th>Ngày sinh</th>
-            <th>Giới tính</th>
-            <th>Mã nhân viên</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.listNv)
-        {
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
             <tr>
-                <td>@stt</td>
-                <td>@item.Ten</td>
-                <td>@item.Email</td>
-                <td>@item.SDT</td>
-                <td>@item.DiaChi</td>
-                <td>@(item.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chưa có")</td>
-                <td>
-                    @{
-                        string gioiTinhStr = item.GioiTinh switch
-                        {
-                            0 => "Nam",
-                            1 => "Nữ",
-                            _ => "Khác"
-                        };
-                    }
-                    @gioiTinhStr
-                </td>
-                <td>@item.MaNhanVien</td>
-                <td class="status-cell">@((item.TrangThai == 1) ? "Đang làm" : "Nghỉ làm")</td>
-                <td class="d-flex gap-1">
-                    <!-- Nút thao tác -->
-                    <div class="btn-group" role="group">
-                        <!-- Nút đổi trạng thái (đen) -->
-                        <a class="btn btn-sm btn-dark text-white"
-                           asp-action="Sua"
-                           asp-route-id="@item.ID"
-                           title="Đổi trạng thái">
-                            <i class="fa fa-sync-alt"></i>
-                        </a>
-
-                        <!-- Nút sửa (vàng) -->
-                        <a class="btn btn-sm btn-warning text-white"
-                           asp-action="Edit"
-                           asp-route-id="@item.ID"
-                           title="Sửa">
-                            <i class="fa fa-edit"></i>
-                        </a>
-
-                        <!-- Nút xem chi tiết -->
-                        <a class="btn btn-sm btn-secondary text-white"
-                           asp-action="Details"
-                           asp-route-id="@item.ID"
-                           title="Xem chi tiết">
-                            <i class="fa fa-eye"></i>
-                        </a>
-                    </div>
-                </td>
+                <th>STT</th>
+                <th>Mã nhân viên</th>
+                <th>Tên</th>
+                <th>Email</th>
+                <th>SĐT</th>
+                <th>Địa chỉ</th>
+                <th>Ngày sinh</th>
+                <th>Giới tính</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
             </tr>
-            stt++;
-        }
-    </tbody>
-</table>
-<!-- Phân trang -->
-<div class="d-flex justify-content-center gap-1">
-    <a class="btn btn-outline-dark btn-sm @(Model.PagingInfo.CurrentPage == 1 ? "disabled" : "")"
-       href="@Url.Action("Show", new { ProductPage = 1 })">Đầu</a>
+        </thead>
 
-    @if (Model.PagingInfo.CurrentPage > 1)
-    {
-        <a class="btn btn-outline-secondary btn-sm"
-           href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage - 1 })">Trước</a>
-    }
+        <tbody>
+            @foreach (var item in Model.listNv)
+            {
+                <tr>
+                    <td>@stt</td>
+                    <td>@item.MaNhanVien</td>
+                    <td>@item.Ten</td>
+                    <td>@item.Email</td>
+                    <td>@item.SDT</td>
+                    <td>@item.DiaChi</td>
+                    <td>@(item.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chưa có")</td>
+                    <td>
+                        @{
+                            string gioiTinhStr = item.GioiTinh switch
+                            {
+                                0 => "Nam",
+                                1 => "Nữ",
+                                _ => "Khác"
+                            };
+                        }
+                        @gioiTinhStr
+                    </td>
+                    <td>@(item.TrangThai == 1 ? "Đang làm" : "Nghỉ làm")</td>
+                    <td class="d-flex gap-1">
+                        <div class="btn-group" role="group">
+                            <a class="btn btn-sm btn-dark text-white"
+                               asp-action="Sua"
+                               asp-route-id="@item.ID"
+                               title="Đổi trạng thái">
+                                <i class="fa fa-sync-alt"></i>
+                            </a>
 
-    @for (int i = Math.Max(1, Model.PagingInfo.CurrentPage - 1); i <= Math.Min(Model.PagingInfo.TotalPages, Model.PagingInfo.CurrentPage + 1); i++)
-    {
-        <a class="btn @(i == Model.PagingInfo.CurrentPage ? "btn-primary" : "btn-outline-secondary") btn-sm"
-           href="@Url.Action("Show", new { ProductPage = i })">@i</a>
-    }
+                            <a class="btn btn-sm btn-warning text-white"
+                               asp-action="Edit"
+                               asp-route-id="@item.ID"
+                               title="Sửa">
+                                <i class="fa fa-edit"></i>
+                            </a>
 
-    @if (Model.PagingInfo.CurrentPage < Model.PagingInfo.TotalPages)
-    {
-        <a class="btn btn-outline-secondary btn-sm"
-           href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage + 1 })">Tiếp</a>
-    }
+                            <!-- Nút xóa -->
+                            <a class="btn btn-sm btn-danger text-white"
+                               href="javascript:void(0);"
+                               onclick="confirmDelete('@item.ID')"
+                               title="Xóa nhân viên">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                stt++;
+            }
+        </tbody>
+    </table>
 
-    <a class="btn btn-outline-dark btn-sm @(Model.PagingInfo.CurrentPage == Model.PagingInfo.TotalPages ? "disabled" : "")"
-       href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.TotalPages })">Cuối</a>
+    <!-- Phân trang -->
+    <nav aria-label="Page navigation" class="d-flex justify-content-center">
+        <ul class="pagination">
+            <li class="page-item @(Model.PagingInfo.CurrentPage == 1 ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("Show", new { ProductPage = 1 })">Đầu</a>
+            </li>
+
+            @if (Model.PagingInfo.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage - 1 })">Trước</a>
+                </li>
+            }
+
+            @{
+                int total = Model.PagingInfo.TotalPages;
+                int current = Model.PagingInfo.CurrentPage;
+
+                if (current > 2)
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Show", new { ProductPage = 1 })">1</a>
+                    </li>
+                    if (current > 3)
+                    {
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    }
+                }
+
+                for (int i = Math.Max(1, current - 1); i <= Math.Min(total, current + 1); i++)
+                {
+                    <li class="page-item @(i == current ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Show", new { ProductPage = i })">@i</a>
+                    </li>
+                }
+
+                if (current < total - 1)
+                {
+                    if (current < total - 2)
+                    {
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    }
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("Show", new { ProductPage = total })">@total</a>
+                    </li>
+                }
+            }
+
+            @if (Model.PagingInfo.CurrentPage < Model.PagingInfo.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.CurrentPage + 1 })">Tiếp</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.PagingInfo.CurrentPage == Model.PagingInfo.TotalPages ? "disabled" : "")">
+                <a class="page-link" href="@Url.Action("Show", new { ProductPage = Model.PagingInfo.TotalPages })">Cuối</a>
+            </li>
+        </ul>
+    </nav>
 </div>
+
+<script src="~/js/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 @section Scripts {
     <script>
+        // Lưu và khôi phục dữ liệu tìm kiếm
+        document.getElementById('searchForm').addEventListener('submit', function (event) {
+            let searchInput = document.querySelector('.tk1');
+            let searchValue = searchInput.value.trim();
 
-            document.getElementById('searchForm').addEventListener('submit', function (event) {
-                let searchInput = document.querySelector('.tk1');
-                let searchValue = searchInput.value.trim();
-
-                if (!searchValue) {
-                    event.preventDefault();
-                    alert("Vui lòng nhập từ khóa tìm kiếm!");
-                    return;
-                }
-
-                sessionStorage.setItem('searchData', searchValue);
-            });
+            if (!searchValue) {
+                event.preventDefault();
+                alert("Vui lòng nhập từ khóa tìm kiếm!");
+                return;
+            }
+            sessionStorage.setItem('searchData', searchValue);
+        });
 
             window.addEventListener('load', function () {
                 let searchInput = document.querySelector('.tk1');
@@ -155,29 +193,40 @@
                 }
             });
 
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Backspace') {
-                    sessionStorage.removeItem('searchData');
-                    window.location.href = '/NhanVien/Show';
-                }
-            });
-            // Bộ lọc theo trạng thái
-            function filterByStatus() {
-            var selectedStatus = document.getElementById("statusFilter").value;
-            var rows = document.querySelectorAll("#employeeTable tbody tr");
+        document.addEventListener('keydown', function (event) {
+            let searchInput = document.querySelector('.tk1');
+            if (event.key === 'Backspace' && document.activeElement !== searchInput) {
+                sessionStorage.removeItem('searchData');
+                window.location.href = '/NhanVien/Show';
+            }
+        });
 
-            rows.forEach(function (row) {
-                var statusText = row.querySelector(".status-cell").innerText.trim();
-
-                // Nếu không chọn gì (mặc định) hoặc trạng thái phù hợp với bộ lọc, thì hiển thị dòng
-                if (selectedStatus === "" || (selectedStatus === "1" && statusText === "Đang làm") || (selectedStatus === "0" && statusText === "Nghỉ làm")) {
-                    row.style.display = ""; // hiển thị
-                } else {
-                    row.style.display = "none"; // ẩn dòng
-                }
-            });
+               function confirmDelete(id) {
+            if (confirm("Bạn có chắc chắn muốn xóa nhân viên này không?")) {
+                fetch('https://localhost:7095/api/NhanVien/' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // nếu API yêu cầu token auth thì thêm ở đây
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Xóa thành công!");
+                        window.location.reload();
+                    } else {
+                        alert("Xóa thất bại!");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Có lỗi xảy ra khi xóa.");
+                });
+            }
         }
+
     </script>
+
     <style>
         .table th, .table td {
             vertical-align: middle;
@@ -212,6 +261,12 @@
 
         .btn-dark:hover, .btn-secondary:hover, .btn-outline-dark:hover {
             background-color: #343a40 !important;
+            color: white !important;
+        }
+
+        .pagination .active .page-link {
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
             color: white !important;
         }
     </style>

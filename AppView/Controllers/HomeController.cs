@@ -1779,7 +1779,6 @@ namespace AppView.Controllers
         }
 
         [HttpPost]
-        [HttpPost]
         public async Task<string> Order([FromBody] HoaDonViewModel hoaDon)
         {
             string check = string.Empty;
@@ -1807,6 +1806,12 @@ namespace AppView.Controllers
                     hoaDon.IDKhachHang = JsonConvert.DeserializeObject<LoginViewModel>(session).Id;
                 }
 
+                else
+                {
+
+                    hoaDon.IDKhachHang = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+                }
                 TempData.Remove("TongTien");
                 TempData.Remove("Quantity");
 
@@ -2213,6 +2218,60 @@ namespace AppView.Controllers
         }
 
 
+        public IActionResult TraCuuDonHang()
+        {
+            return View();
+        }
+        [HttpGet]
+        public async Task<IActionResult> PurchaseOrderByMa(string maHoaDon)
+        {
+            if (string.IsNullOrEmpty(maHoaDon))
+            {
+                TempData["Error"] = "Vui lòng nhập mã đơn hàng!";
+                return RedirectToAction("TraCuuDonHang");
+            }
+
+            var response = await _httpClient.GetAsync($"HoaDon/Get-CTHD-ByMa?maHoaDon={maHoaDon}");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                // Deserialize ra List<DonMuaChiTietViewModel>
+                var data = JsonConvert.DeserializeObject<List<DonMuaChiTietViewModel>>(json);
+
+                if (data != null && data.Any())
+                {
+                    return View(data);
+                }
+            }
+
+            TempData["Error"] = "Không tìm thấy đơn hàng!";
+            return RedirectToAction("TraCuuDonHang");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> TraCuuDonHang(string maHoaDon)
+        {
+            if (string.IsNullOrEmpty(maHoaDon))
+            {
+                TempData["Error"] = "Vui lòng nhập mã đơn hàng!";
+                return RedirectToAction("Index");
+            }
+
+            var response = await _httpClient.GetAsync($"HoaDon/Get-CTHD-ByMa?maHoaDon={maHoaDon}");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var data = JsonConvert.DeserializeObject<ChiTietHoaDonQL>(json);
+
+                if (data != null)
+                {
+                    return View("PurchaseOrderByMa", data); // View sẽ dùng ChiTietHoaDonQL
+                }
+            }
+
+            TempData["Error"] = "Không tìm thấy đơn hàng!";
+            return RedirectToAction("Index");
+        }
 
 
     }

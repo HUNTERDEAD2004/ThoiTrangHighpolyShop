@@ -8,7 +8,14 @@ namespace AppData.ViewModels.DTO
 {
     public class DiaChiDTO
     {
-        public Guid IDDiaChi { get; set; }
+        public Guid Id { get; set; }
+
+        // alias cho Id
+        public Guid IDDiaChi
+        {
+            get => Id;
+            set => Id = value;
+        }
         public string DiaChiChiTiet { get; set; }
         public string Tinh { get; set; }
         public string Huyen { get; set; }

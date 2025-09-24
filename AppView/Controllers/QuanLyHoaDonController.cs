@@ -13,18 +13,18 @@ using System.Net;
 
 namespace AppView.Controllers
 {
-    public class QuanLyHoaDonController : Controller
-    {
-        private readonly HttpClient _httpClient;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly ITempDataProvider _tempDataProvider;
-        public QuanLyHoaDonController(IServiceProvider serviceProvider, ITempDataProvider tempDataProvider)
+        public class QuanLyHoaDonController : Controller
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri("https://localhost:7095/api/");
-            _serviceProvider = serviceProvider;
-            _tempDataProvider = tempDataProvider;
-        }
+            private readonly HttpClient _httpClient;
+            private readonly IServiceProvider _serviceProvider;
+            private readonly ITempDataProvider _tempDataProvider;
+            public QuanLyHoaDonController(IServiceProvider serviceProvider, ITempDataProvider tempDataProvider)
+            {
+                _httpClient = new HttpClient();
+                _httpClient.BaseAddress = new Uri("https://localhost:7095/api/");
+                _serviceProvider = serviceProvider;
+                _tempDataProvider = tempDataProvider;
+            }
         //View QLHD
         public IActionResult _QuanLyHoaDon()
         {
@@ -308,5 +308,8 @@ namespace AppView.Controllers
             var cthd = await _httpClient.GetFromJsonAsync<ChiTietHoaDonQL>($"HoaDon/ChiTietHoaDonQL/{idhd}");
             return View("ExportHD", cthd);
         }
+
+      
+
     }
 }

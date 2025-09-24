@@ -24,11 +24,11 @@
                 <span asp-validation-for="Ten" class="text-danger small"></span>
             </div>
 
-            <div class="col-md-6">
-                <label asp-for="MaNhanVien" class="form-label">Mã nhân viên</label>
-                <input asp-for="MaNhanVien" class="form-control" />
-                <span asp-validation-for="MaNhanVien" class="text-danger small"></span>
-            </div>
+            @* <div class="col-md-6" > *@
+            @*     <label asp-for="MaNhanVien" class="form-label">Mã nhân viên</label> *@
+            @*     <input asp-for="MaNhanVien" class="form-control" readonly /> *@
+            @* </div> *@
+            <input type="hidden" asp-for="MaNhanVien" />
 
             <div class="col-md-6">
                 <label class="form-label d-block">Giới tính</label>
@@ -88,35 +88,76 @@
 
 @section Scripts {
     <script>
-        $("input[name='SDT']").on("input", function () {
-            $(this).removeClass("is-invalid");
-            $("#sdtErrorMessage").text("");
-        });
-
-        $("input[name='Password']").on("input", function () {
-            $(this).removeClass("is-invalid");
-            $("#passwordErrorMessage").text("");
-        });
-
         $("form").submit(function () {
-            var password = $("input[name='Password']").val().trim();
-            if (password !== "" && password.length < 6) {
-                $("input[name='Password']").addClass("is-invalid");
-                $("#passwordErrorMessage").text("Mật khẩu phải từ 6 ký tự trở lên.");
-                return false;
+            var isValid = true;
+
+            // Reset error
+            $("input").removeClass("is-invalid");
+            $(".text-danger.small").text("");
+
+            // 🔹 Tên (bắt buộc)
+            var ten = $("input[name='Ten']").val().trim();
+            if (ten === "") {
+                $("input[name='Ten']").addClass("is-invalid");
+                $("input[name='Ten']").after('<div class="text-danger small">Vui lòng nhập tên.</div>');
+                isValid = false;
             }
 
+            // 🔹 Mã nhân viên (readonly => bỏ qua nếu tự sinh)
+
+           
+
+            // 🔹 SDT (bắt buộc + đúng định dạng)
             var sdt = $("input[name='SDT']").val().trim();
             var sdtRegex = /^0\d{9}$/;
-            if (sdt !== "" && (!(/^\d+$/.test(sdt)) || !sdtRegex.test(sdt))) {
+            if (sdt === "" || !(/^\d+$/.test(sdt)) || !sdtRegex.test(sdt)) {
                 $("input[name='SDT']").addClass("is-invalid");
-                $("#sdtErrorMessage").text("Số điện thoại không đúng định dạng.");
-                return false;
+                $("input[name='SDT']").after('<div class="text-danger small">Số điện thoại không đúng định dạng.</div>');
+                isValid = false;
             }
 
-            return true;
+            // 🔹 Password (bắt buộc + >= 6 ký tự)
+            var password = $("input[name='Password']").val().trim();
+            if (password === "" || password.length < 6) {
+                $("input[name='Password']").addClass("is-invalid");
+                $("input[name='Password']").after('<div class="text-danger small">Mật khẩu phải từ 6 ký tự trở lên.</div>');
+                isValid = false;
+            }
+
+            // 🔹 Ngày sinh (bắt buộc + >= 16 tuổi)
+            var ngaySinhStr = $("input[name='NgaySinh']").val();
+            if (!ngaySinhStr) {
+                $("input[name='NgaySinh']").addClass("is-invalid");
+                $("input[name='NgaySinh']").after('<div class="text-danger small">Vui lòng nhập ngày sinh.</div>');
+                isValid = false;
+            } else {
+                var ngaySinh = new Date(ngaySinhStr);
+                var today = new Date();
+                var tuoi = today.getFullYear() - ngaySinh.getFullYear();
+                var monthDiff = today.getMonth() - ngaySinh.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < ngaySinh.getDate())) {
+                    tuoi--;
+                }
+
+                if (tuoi < 16) {
+                    $("input[name='NgaySinh']").addClass("is-invalid");
+                    $("input[name='NgaySinh']").after('<div class="text-danger small">Nhân viên phải từ 16 tuổi trở lên.</div>');
+                    isValid = false;
+                }
+            }
+
+            // 🔹 Địa chỉ (bắt buộc)
+            var diaChi = $("input[name='DiaChi']").val().trim();
+            if (diaChi === "") {
+                $("input[name='DiaChi']").addClass("is-invalid");
+                $("input[name='DiaChi']").after('<div class="text-danger small">Vui lòng nhập địa chỉ.</div>');
+                isValid = false;
+            }
+
+            return isValid;
         });
     </script>
 
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }
+

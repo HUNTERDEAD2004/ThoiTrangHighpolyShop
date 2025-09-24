@@ -10,7 +10,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Net.Mail;
+using System.Net.Mime;
+using System.Net;
 using System.Security.Cryptography.Xml;
+using Org.BouncyCastle.Utilities;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Hosting;
 namespace AppAPI.Services
 {
     public class HoaDonService : IHoaDonService
@@ -30,8 +36,10 @@ namespace AppAPI.Services
         private readonly IAllRepository<DiaChi> reposDiaChi;
         AssignmentDBContext context = new AssignmentDBContext();
         private readonly IGioHangServices _iGioHangServices;
+        private readonly EmailService _mailService;
+        private readonly IWebHostEnvironment _env;
 
-        public HoaDonService(AssignmentDBContext context)
+        public HoaDonService(AssignmentDBContext context, EmailService EmailService, IWebHostEnvironment env)
         {
             reposHoaDon = new AllRepository<HoaDon>(context, context.HoaDons);
             reposChiTietHoaDon = new AllRepository<ChiTietHoaDon>(context, context.ChiTietHoaDons);
@@ -49,6 +57,8 @@ namespace AppAPI.Services
             context = new AssignmentDBContext();
             _iGioHangServices = new GioHangServices();
             this.context = context;
+            _mailService = EmailService;
+            _env = env;
 
         }
 
@@ -222,7 +232,9 @@ namespace AppAPI.Services
                 return false;
             }
         }
-        public DonMuaSuccessViewModel CreateHoaDon(List<ChiTietHoaDonViewModel> chiTietHoaDons, HoaDonViewModel hoaDon)
+        public async Task<DonMuaSuccessViewModel> CreateHoaDon(
+     List<ChiTietHoaDonViewModel> chiTietHoaDons,
+     HoaDonViewModel hoaDon)
         {
             var result = new DonMuaSuccessViewModel();
 
@@ -232,33 +244,45 @@ namespace AppAPI.Services
             using var transaction = context.Database.BeginTransaction();
             try
             {
+                // Tạo lịch sử trạng thái
                 var lichSu = CreateLichSuHoaDon(hoaDon.TrangThai);
+
+                // Lấy địa chỉ giao hàng
                 string diaChi = ResolveDiaChi(hoaDon);
+
+                // Tạo entity hóa đơn
                 var hoaDonEntity = BuildHoaDonEntity(hoaDon, lichSu.ID, diaChi);
+
+                // Áp dụng voucher nếu có
                 ApplyVoucherIfAvailable(hoaDon, hoaDonEntity, result);
 
                 context.HoaDons.Add(hoaDonEntity);
                 context.SaveChanges();
 
+                // Xử lý chi tiết hóa đơn
                 int subtotal = 0;
-                var gioHangList = ProcessChiTietHoaDon(chiTietHoaDons, hoaDonEntity.ID, ref subtotal, transaction, result, hoaDon);
+                var gioHangList = ProcessChiTietHoaDon(
+                    chiTietHoaDons, hoaDonEntity.ID, ref subtotal, transaction, result, hoaDon);
+
                 result.GioHangs = gioHangList;
 
+                // Xử lý tích/tiêu điểm
                 if (hoaDon.IDKhachHang != Guid.Empty)
                 {
                     HandleTichTieuDiem(hoaDon, hoaDonEntity, subtotal, result);
                     result.Login = true;
                 }
 
+                // Xóa giỏ hàng nếu thanh toán thành công
                 if (hoaDon.TrangThai && hoaDon.IDKhachHang != Guid.Empty)
                 {
                     _iGioHangServices.DeleteCart(hoaDon.IDKhachHang);
                 }
 
-
                 context.SaveChanges();
                 transaction.Commit();
 
+                // Gán các thông tin trả về
                 result.ID = hoaDonEntity.ID.ToString();
                 result.Ten = hoaDon.Ten;
                 result.Email = hoaDon.Email;
@@ -270,16 +294,143 @@ namespace AppAPI.Services
                 result.DiemSuDung = hoaDon.Diem ?? 0;
                 result.MaHoaDon = hoaDonEntity.MaHoaDon;
 
+                // ----- Gửi email đơn hàng -----
+                try
+                {
+                    var donMuaChiTiets = gioHangList.Select(g => new DonMuaChiTietViewModel
+                    {
+                        TenSanPham = g.Ten,
+                        TenMau = g.MauSac,
+                        TenKichCo = g.KichCo,
+                        SoLuong = g.SoLuong,
+                        DonGia = g.DonGia ?? 0,
+                        TrangThaiGiaoHang = hoaDon.TrangThai ? 11 : 2
+                    }).ToList();
+
+                    await SendOrderInfoEmail(
+                        hoaDon.Email,
+                        hoaDon.Ten,
+                        result.MaHoaDon,
+                        donMuaChiTiets,
+                        result.DiaChi
+                    );
+                }
+                catch (Exception emailEx)
+                {
+                    // Log lỗi gửi email nhưng không rollback đơn hàng
+                    Console.WriteLine("Lỗi gửi email đơn hàng: " + emailEx.Message);
+                }
 
                 return result;
             }
             catch (Exception ex)
             {
-
                 transaction.Rollback();
                 return ErrorResult("Lỗi hệ thống khi tạo đơn hàng", -999);
             }
         }
+      
+
+
+        private async Task SendOrderInfoEmail(string email, string tenKH, string maDonHang, List<DonMuaChiTietViewModel> items, string diaChiGiaoHang)
+        {
+            // Tính tổng tiền
+            decimal tongTien = items.Sum(i => i.DonGia * i.SoLuong);
+
+            // Lấy trạng thái đơn hàng
+            string GetTrangThai(int status) => status switch
+            {
+                2 => "Chờ xác nhận",
+                11 => "Đã xác nhận",
+                10 => "Chờ đóng hàng",
+                3 => "Đang giao hàng",
+                6 => "Hoàn thành",
+                7 => "Đã hủy",
+                _ => "Không xác định"
+            };
+            string trangThai = GetTrangThai(items.FirstOrDefault()?.TrangThaiGiaoHang ?? 0);
+
+            string subject = $"🛒 Xác nhận đơn hàng {maDonHang} từ ThoiTrangHighpolyShop!";
+
+            // Build bảng sản phẩm
+            string itemRows = "";
+            foreach (var item in items)
+            {
+                itemRows += $@"
+        <tr>
+            <td style='padding:10px; border:1px solid #ddd;'>{item.TenSanPham} ({item.TenMau}, {item.TenKichCo})</td>
+            <td style='padding:10px; border:1px solid #ddd; text-align:center;'>{item.SoLuong}</td>
+            <td style='padding:10px; border:1px solid #ddd; text-align:right;'>{item.DonGia.ToString("N0")}₫</td>
+        </tr>";
+            }
+
+            // HTML email
+            string body = $@"
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<title>Thông tin đơn hàng</title>
+</head>
+<body style='margin:0; padding:0; font-family: Arial,sans-serif; background:#f2f2f2;'>
+    <div style='max-width:600px; margin:30px auto; background:white; border-radius:10px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.1);'>
+        
+        <!-- Header -->
+        <div style='background: linear-gradient(135deg,#ff6b6b,#ee5a24); color:white; text-align:center; padding:30px; position:relative;'>
+            <h1>ThoiTrangHighpolyShop</h1>
+            <p>Đơn hàng của bạn đã được ghi nhận</p>
+        </div>
+
+        <!-- Greeting -->
+        <div style='padding:30px;'>
+            <h2>Chào {tenKH},</h2>
+            <p>Cảm ơn bạn đã đặt hàng! Dưới đây là thông tin chi tiết đơn hàng của bạn:</p>
+            
+            <!-- Order Info -->
+            <div style='margin:20px 0;'>
+                <p><strong>Mã đơn hàng:</strong> {maDonHang}</p>
+                <p><strong>Địa chỉ giao hàng:</strong> {diaChiGiaoHang}</p>
+                <table style='width:100%; border-collapse:collapse; margin-top:10px;'>
+                    <thead>
+                        <tr style='background:#f8f9fa;'>
+                            <th style='padding:10px; border:1px solid #ddd;'>Sản phẩm</th>
+                            <th style='padding:10px; border:1px solid #ddd;'>Số lượng</th>
+                            <th style='padding:10px; border:1px solid #ddd;'>Đơn giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {itemRows}
+                        <tr>
+                            <td colspan='2' style='padding:10px; border:1px solid #ddd; font-weight:bold;'>Tổng tiền</td>
+                            <td style='padding:10px; border:1px solid #ddd; text-align:right; font-weight:bold;'>{tongTien.ToString("N0")}₫</td>
+                        </tr>
+                        <tr>
+                            <td colspan='2' style='padding:10px; border:1px solid #ddd; font-weight:bold;'>Trạng thái</td>
+                            <td style='padding:10px; border:1px solid #ddd; text-align:right; font-weight:bold;'>{trangThai}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style='text-align:center; margin-top:30px;'>
+                <a href='https://localhost:5001' style='background: linear-gradient(135deg,#667eea,#764ba2); color:white; padding:15px 30px; border-radius:25px; text-decoration:none; font-weight:bold; display:inline-block;'>📦 Theo dõi đơn hàng</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style='background:#2c3e50; color:white; text-align:center; padding:20px;'>
+            <p>📧 Đây là email tự động, vui lòng không phản hồi.</p>
+            <p>© 2025 ThoiTrangHighpolyShop</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+            await _mailService.SendEmailAsync(email, subject, body);
+
+        }
+
+
 
         private DonMuaSuccessViewModel ErrorResult(string message, int code)
         {
@@ -319,7 +470,10 @@ namespace AppAPI.Services
             var hoaDon = new HoaDon
             {
                 ID = Guid.NewGuid(),
-                IDKhachHang = vm.IDKhachHang,
+                IDKhachHang = vm.IDKhachHang != null && vm.IDKhachHang != Guid.Empty
+                    ? vm.IDKhachHang
+                    : Guid.Parse("00000000-0000-0000-0000-000000000001"), // GUEST fallback
+               
                 IDPhuongThucTT = vm.IDPhuongThucTT,
                 IDLichSuHD = lichSuId,
                 NgayTao = DateTime.Now,
@@ -534,6 +688,7 @@ namespace AppAPI.Services
                               KhachCanTra = hd.TongTien,
                               LoaiHD = hd.LoaiHoaDon,
                               TrangThai = hd.TrangThaiGiaoHang,
+
                           }).Distinct().ToList();
 
             return result;
@@ -596,7 +751,7 @@ namespace AppAPI.Services
                                   KhachHang = kh == null ? "Khách lẻ" : kh.Ten,
                                   NguoiNhan = hd.TenNguoiNhan != null ? hd.TenNguoiNhan : null,
                                   DiaChi = hd.DiaChi != null ? hd.DiaChi : null,
-                                  SĐT = hd.SDT != null ? hd.SDT : null,
+                                  SDT = hd.SDT != null ? hd.SDT : null,
                                   Email = hd.Email != null ? hd.Email : null,
                                   TienShip = hd.TienShip != null ? hd.TienShip : null,
                                   TrangThai = hd.TrangThaiGiaoHang,
@@ -630,6 +785,88 @@ namespace AppAPI.Services
                               }).AsNoTracking().FirstOrDefault();
 
                 return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        public ChiTietHoaDonQL GetCTHDByMa(string maHoaDon)
+        {
+            try
+            {
+                var result = (from hd in context.HoaDons
+                              join nv in context.NhanViens on hd.IDNhanVien equals nv.ID into nvGroup
+                              from nv in nvGroup.DefaultIfEmpty()
+                              join lstd in context.LichSuTichDiems on hd.ID equals lstd.IDHoaDon into lstdGroup
+                              from lstd in lstdGroup.DefaultIfEmpty()
+                              join kh in context.KhachHangs on lstd.MaKhachHang equals kh.MaKhachHang into khGroup
+                              from kh in khGroup.DefaultIfEmpty()
+                              join pt in context.PhuongThucThanhToans on hd.IDPhuongThucTT equals pt.IDPTTT
+                              where hd.MaHoaDon == maHoaDon
+                              select new ChiTietHoaDonQL
+                              {
+                                  Id = hd.ID,
+                                  MaHD = hd.MaHoaDon,
+                                  NgayTao = hd.NgayTao,
+                                  NgayThanhToan = hd.NgayThanhToan,
+                                  NgayNhanHang = hd.NgayNhanHang,
+                                  PTTT = pt.TenPTTT,
+                                  NhanVien = nv != null ? nv.Ten : null,
+                                  LoaiHD = hd.LoaiHoaDon,
+                                  KhachHang = kh == null ? "Khách lẻ" : kh.Ten,
+                                  NguoiNhan = hd.TenNguoiNhan,
+                                  DiaChi = hd.DiaChi,
+                                  SDT = hd.SDT,
+                                  Email = hd.Email,
+                                  TienShip = hd.TienShip,
+                                  TrangThai = hd.TrangThaiGiaoHang,
+                                  KhachCanTra = hd.TongTien,
+                                  TienKhachTra = (hd.TrangThaiGiaoHang == 6 || pt.TenPTTT == "VNPay" && hd.TrangThaiGiaoHang != 7) ? hd.TongTien : 0,
+                                  GhiChu = hd.GhiChu,
+                                  TruTieuDiem = (from lstd2 in context.LichSuTichDiems
+                                                 join qdd in context.QuyDoiDiems on lstd2.IDQuyDoiDiem equals qdd.ID
+                                                 where lstd2.IDHoaDon == hd.ID && lstd2.TrangThai == 0
+                                                 select lstd2.Diem * qdd.TiLeTieuDiem).FirstOrDefault(),
+                                  voucher = (from vc in context.Vouchers
+                                             where vc.ID == hd.IDVoucher
+                                             select new Voucher
+                                             {
+                                                 ID = vc.ID,
+                                                 Ten = vc.Ten,
+                                                 GiaTri = vc.GiaTri,
+                                                 TrangThai = vc.TrangThai,
+                                                 HinhThucGiamGia = vc.HinhThucGiamGia,
+                                             }).FirstOrDefault(),
+                                  listsp = (from cthd in context.ChiTietHoaDons
+                                            join ctsp in context.ChiTietSanPhams on cthd.IDCTSP equals ctsp.ID
+                                            join ms in context.MauSacs on ctsp.IDMauSac equals ms.ID
+                                            join kc in context.KichCos on ctsp.IDKichCo equals kc.ID
+                                            join sp in context.SanPhams on ctsp.IDSanPham equals sp.ID
+                                            join km in context.KhuyenMais on ctsp.IDKhuyenMai equals km.ID into kmGroup
+                                            from km in kmGroup.DefaultIfEmpty()
+                                            where cthd.IDHoaDon == hd.ID
+                                            select new HoaDonChiTietViewModel
+                                            {
+                                                Id = cthd.ID,
+                                                IdHoaDon = cthd.IDHoaDon,
+                                                IdSP = sp.ID,
+                                                Ten = sp.Ten,
+                                                MaCTSP = ctsp.MaSPChiTiet,
+                                                PhanLoai = ms.Ten + " - " + kc.Ten,
+                                                SoLuong = cthd.SoLuong,
+                                                GiaGoc = ctsp.GiaBan,
+                                                GiaLuu = cthd.DonGia ,
+                                                GiaKM = km == null ? ctsp.GiaBan :
+                                                         (km.TrangThai == 1 ? (int)(ctsp.GiaBan / 100 * (100 - km.GiaTri)) :
+                                                         (km.GiaTri < ctsp.GiaBan ? (ctsp.GiaBan - (int)km.GiaTri) : 0)),
+                                            }).ToList(),
+                                  lstlstd = (from lstd2 in context.LichSuTichDiems
+                                             where lstd2.IDHoaDon == hd.ID
+                                             select lstd2).OrderBy(c => c.TrangThai).ToList()
+                              }).AsNoTracking().FirstOrDefault();
+
+                return result ;
             }
             catch (Exception ex)
             {
@@ -1308,6 +1545,43 @@ namespace AppAPI.Services
                 .ToList();
 
             return new { total, data = result };
+        }
+        public object TraCuuHoaDonChiTiet(string maHoaDon)
+        {
+            var hoaDon = context.HoaDons
+                .Where(h => h.MaHoaDon == maHoaDon)
+                .Select(h => new {
+                    idHoaDon = h.ID,
+                    maHD = h.MaHoaDon,
+                    ngayTao = h.NgayTao,
+                    ngayThanhToan = h.NgayThanhToan,
+                    tenNguoiNhan = h.TenNguoiNhan,
+                    sdt = h.SDT,
+                    email = h.Email,
+                    diaChi = h.DiaChi,
+                    tienShip = h.TienShip,
+                    phuongThucThanhToan = h.PhuongThucThanhToans,
+                    trangThaiGiaoHang = h.TrangThaiGiaoHang,
+                    loaiHoaDon = h.LoaiHoaDon,
+
+                    // lấy chi tiết sản phẩm
+                    chiTiet = h.ChiTietHoaDons.Select(ct => new {
+                        idCTHD = ct.ID,
+                        tenSanPham = ct.ChiTietSanPham.SanPham.Ten,
+                        tenKichCo = ct.ChiTietSanPham.KichCo.Ten,
+                        tenMau = ct.ChiTietSanPham.MauSac.Ten,
+                        duongDan = ct.ChiTietSanPham.SanPham.AnhDaiDien.FirstOrDefault(),
+                        donGia = ct.DonGia,
+                        soLuong = ct.SoLuong,
+                        trangThaiDanhGia = ct.TrangThai
+                    }).ToList()
+                })
+                .FirstOrDefault();
+
+            if (hoaDon == null)
+                return new { message = "Không tìm thấy đơn hàng" };
+
+            return hoaDon;
         }
 
         List<HoaDon> IHoaDonService.LichSuGiaoDich(Guid idNguoiDung)
