@@ -323,29 +323,41 @@ namespace AppView.Controllers
             return View();
         }
 
-        #endregion
+		#endregion
 
-        //Tam
-        [HttpGet]
-        public async Task<IActionResult> ThongKeAdmin(string startDate, string endDate)
-        {
-            try
-            {
-                if (startDate == null || endDate == null)
-                {
-                    startDate = DateTime.Now.AddDays(-7).ToString();
-                    endDate = DateTime.Now.ToString();
-                }
-                var response = await _httpClient.GetAsync("https://localhost:7095/api/ThongKe/ThongKe?startDate=" + startDate + "&endDate=" + endDate);
-                var lst = JsonConvert.DeserializeObject<ThongKeViewModel>(response.Content.ReadAsStringAsync().Result);
-                return View(lst);
-            }
-            catch
-            {
-                return View(new ThongKeViewModel());
-            }
-        }
-        public async Task<FileResult> ExportExcel()
+		//Tam
+		[HttpGet]
+		public async Task<IActionResult> ThongKeAdmin(string startDate, string endDate)
+		{
+			try
+			{
+				if (startDate == null || endDate == null)
+				{
+					startDate = DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd");
+					endDate = DateTime.Now.ToString("yyyy-MM-dd");
+				}
+
+				var response = await _httpClient.GetAsync(
+					$"https://localhost:7095/api/ThongKe/ThongKe?startDate={startDate}&endDate={endDate}"
+				);
+
+				var lst = JsonConvert.DeserializeObject<ThongKeViewModel>(
+					await response.Content.ReadAsStringAsync()
+				);
+
+				// Gán ViewBag từ dữ liệu API nếu cần
+				ViewBag.SoDonHangMoi = lst.SoDonHangMoi;
+				ViewBag.ThongKeSanPham = lst.ThongKeSanPham; // List sản phẩm mới bán gần đây
+
+				return View(lst);
+			}
+			catch
+			{
+				return View(new ThongKeViewModel());
+			}
+		}
+
+		public async Task<FileResult> ExportExcel()
         {
             var response = await _httpClient.GetAsync("https://localhost:7095/api/ThongKe/ThongKeSanPham");
             var lst = JsonConvert.DeserializeObject<List<ThongKeSanPham>>(await response.Content.ReadAsStringAsync());

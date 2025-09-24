@@ -308,8 +308,5 @@ namespace AppView.Controllers
             var cthd = await _httpClient.GetFromJsonAsync<ChiTietHoaDonQL>($"HoaDon/ChiTietHoaDonQL/{idhd}");
             return View("ExportHD", cthd);
         }
-
-      
-
     }
 }

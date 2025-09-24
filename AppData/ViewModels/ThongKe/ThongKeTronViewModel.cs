@@ -9,6 +9,6 @@ namespace AppData.ViewModels.ThongKe
     public class ThongKeTronViewModel
     {
         public string TrangThaiHoaDon { get; set; }
-        public int PhanTram { get; set; }
+        public decimal PhanTram { get; set; }
     }
 }
