@@ -483,14 +483,16 @@
                         </div>
                     </div>
 
-                    <div class="row align-items-center mb-1" id="voucherDiscountRow" style="display: none;">
+                    <div class="row align-items-center mb-1" id="voucherDiscountRow">
                         <div class="col-6">
-                            <small>Giảm giá voucher:</small>
+                            <small>Số tiền giảm (Voucher):</small>
                         </div>
                         <div class="col-6 text-end">
                             <span id="voucherDiscount" class="fw-bold text-success">0 đ</span>
                         </div>
                     </div>
+
+                    
 
                     <div class="row align-items-center mb-1 d-none" id="phiShipRow">
                         <div class="col-6">
@@ -2026,8 +2028,8 @@
     function tuDongTaiVoucher() {
         const tongTien = layTongTienHang();
 
-        // Chỉ tải khi có tổng tiền > 0 và khác lần trước
-        if (tongTien > 0 && tongTien !== lastTongTien) {
+        // Tải lại khi tổng tiền thay đổi (kể cả = 0 để hiển thị voucher không có tối thiểu)
+        if (tongTien !== lastTongTien) {
             lastTongTien = tongTien;
             taiDanhSachVoucher();
         }
@@ -2036,12 +2038,6 @@
     // Hàm tải danh sách voucher khả dụng - da sua 18/9
     async function taiDanhSachVoucher() {
         const tongTien = layTongTienHang();
-
-        if (tongTien <= 0) {
-            $('#voucherSelect').html('<option value="">-- Chưa có sản phẩm --</option>');
-            $('#voucherCount').text('0 voucher').removeClass('bg-success').addClass('bg-secondary');
-            return;
-        }
 
         try {
             if (isFirstLoad) {
@@ -2094,13 +2090,15 @@
             // Tính số tiền giảm thực tế với tổng tiền hiện tại
             const giamThucTe = tinhGiamGiaVoucherWithVoucher(tongTien, voucher);
 
-            const text = `${voucher.maVoucher} - Giảm ${giamThucTe.toLocaleString('vi-VN')}đ`;
+            // Hiển thị thêm min để người bán biết điều kiện
+            const text = `${voucher.maVoucher} - Giảm ${giamThucTe.toLocaleString('vi-VN')}đ` +
+                         (voucher.giaTriToiThieu ? ` (Min ${Number(voucher.giaTriToiThieu).toLocaleString('vi-VN')}đ)` : '');
 
-            select.append($('<option>', {
-                value: voucher.id,
-                text: text,
-                'data-voucher': JSON.stringify(voucher)
-            }));
+            const $o = $('<option>', { value: voucher.id, text: text });
+            // Bind object trực tiếp để không cần parse JSON khi chọn lại
+            $o.data('voucher', voucher);
+            $o.attr('data-voucher', JSON.stringify(voucher));
+            select.append($o);
         });
 
         $('#voucherCount').text(`${vouchers.length} voucher`).removeClass('bg-secondary').addClass('bg-success');
@@ -2115,31 +2113,46 @@
             return;
         }
 
-        const voucherJson = $('#voucherSelect option:selected').data('voucher');
-        if (voucherJson) {
-            try {
-                currentVoucher = JSON.parse(voucherJson);
+        // Lấy object voucher một cách an toàn
+        let voucherObj = null;
+        const $opt = $('#voucherSelect option:selected');
 
-                // Parse lại dữ liệu số
-                currentVoucher.giaTri = typeof currentVoucher.giaTri === 'string' ?
-                                       parseFloat(currentVoucher.giaTri) : currentVoucher.giaTri;
-
-                if (currentVoucher.giaTriToiDa) {
-                    currentVoucher.giaTriToiDa = typeof currentVoucher.giaTriToiDa === 'string' ?
-                                               parseFloat(currentVoucher.giaTriToiDa) : currentVoucher.giaTriToiDa;
-                }
-
-                hienThiThongTinVoucher(currentVoucher);
-                $('#voucherDiscountRow').show();
-                capNhatTongTien();
-
-                toastr.success(`Đã áp dụng voucher ${currentVoucher.maVoucher}`, "Thành công", { timeOut: 2000 });
-
-            } catch (e) {
-                console.error('Lỗi khi parse voucher:', e);
-                toastr.error('Lỗi khi áp dụng voucher', "Lỗi", { timeOut: 3000 });
+        // 1) Ưu tiên lấy qua jQuery .data nếu đã được bind object trước đó
+        const dataViaJq = $opt.data('voucher');
+        if (dataViaJq) {
+            if (typeof dataViaJq === 'string') {
+                try { voucherObj = JSON.parse(dataViaJq); } catch (_) { /* ignore */ }
+            } else if (typeof dataViaJq === 'object') {
+                voucherObj = dataViaJq;
             }
         }
+
+        // 2) Nếu vẫn chưa có, đọc thuộc tính và parse JSON string
+        if (!voucherObj) {
+            const dataAttr = $opt.attr('data-voucher');
+            if (dataAttr && typeof dataAttr === 'string') {
+                try { voucherObj = JSON.parse(dataAttr); } catch (_) { /* ignore */ }
+            }
+        }
+        if (!voucherObj && Array.isArray(availableVouchers)) {
+            voucherObj = availableVouchers.find(v => (v.id || v.ID) === selectedId);
+        }
+
+        if (!voucherObj) {
+            toastr.error('Không lấy được thông tin voucher', 'Lỗi');
+            return;
+        }
+
+        // Chuẩn hóa dữ liệu số
+        voucherObj.giaTri = typeof voucherObj.giaTri === 'string' ? parseFloat(voucherObj.giaTri) : (voucherObj.giaTri || 0);
+        voucherObj.giaTriToiDa = voucherObj.giaTriToiDa ? (typeof voucherObj.giaTriToiDa === 'string' ? parseFloat(voucherObj.giaTriToiDa) : voucherObj.giaTriToiDa) : 0;
+        voucherObj.giaTriToiThieu = voucherObj.giaTriToiThieu ? (typeof voucherObj.giaTriToiThieu === 'string' ? parseFloat(voucherObj.giaTriToiThieu) : voucherObj.giaTriToiThieu) : 0;
+
+        // Giao cho capNhatTongTien kiểm tra điều kiện và trừ tiền
+        currentVoucher = voucherObj;
+        hienThiThongTinVoucher(currentVoucher);
+        capNhatTongTien();
+        toastr.success(`Đã áp dụng voucher ${currentVoucher.maVoucher || currentVoucher.MaVoucher}`, 'Thành công', { timeOut: 1500 });
     }
 
     // Hàm hiển thị thông tin voucher - da sua 18/9
@@ -2253,6 +2266,27 @@
         return tinhGiamGiaVoucherWithVoucher(tongTienHang, currentVoucher);
     }
 
+    // Parse ngày an toàn (hỗ trợ dd/MM/yyyy hoặc ISO). Trả về Date hoặc null
+    function parseDateSafe(value) {
+        if (!value) return null;
+        try {
+            if (typeof value === 'string') {
+                // dd/MM/yyyy
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+                    const [d, m, y] = value.split('/').map(Number);
+                    const dt = new Date(y, m - 1, d);
+                    if (!isNaN(dt.getTime())) return dt;
+                }
+                // ISO hoặc định dạng parse được
+                const dt2 = new Date(value);
+                if (!isNaN(dt2.getTime())) return dt2;
+            } else if (value instanceof Date && !isNaN(value.getTime())) {
+                return value;
+            }
+        } catch (e) { }
+        return null; // coi như không ràng thời gian nếu không parse được
+    }
+
     // Hàm lấy tổng tiền hàng từ giỏ hàng (FIXED)
     function layTongTienHang() {
         const activeTab = $(".tabs-box .tab.active");
@@ -2314,7 +2348,14 @@
 
             const idHoaDon = activeTab.find("span").attr("value");
             const tongTienHang = layTongTienHang();
-            const giamGiaVoucher = tinhGiamGiaVoucher(tongTienHang);
+            // Tính giảm theo voucher (ưu tiên đơn giản: chỉ ràng min để tránh sai lệch do format ngày)
+            let giamGiaVoucher = 0;
+            if (currentVoucher) {
+                const min = currentVoucher.giaTriToiThieu ? Number(currentVoucher.giaTriToiThieu) : 0;
+                if (!min || tongTienHang >= min) {
+                    giamGiaVoucher = tinhGiamGiaVoucher(tongTienHang);
+                }
+            }
             const isGiaoHang = $("#giaoHang").is(":checked");
             const isChuyenKhoan = $("#hinhThucThanhToan").val() === "chuyenkhoan";
 
@@ -2332,13 +2373,8 @@
             // Cập nhật giao diện
             $('#tongTien').text(tongTienHang.toLocaleString('vi-VN') + ' đ');
 
-            // Hiển thị thông tin voucher
-            if (currentVoucher && giamGiaVoucher > 0) {
-                $('#voucherDiscount').text('-' + giamGiaVoucher.toLocaleString('vi-VN') + ' đ');
-                $('#voucherDiscountRow').show();
-            } else {
-                $('#voucherDiscountRow').hide();
-            }
+            // Cập nhật số tiền giảm (luôn hiển thị, 0đ nếu không đủ điều kiện)
+            $('#voucherDiscount').text('-' + giamGiaVoucher.toLocaleString('vi-VN') + ' đ');
 
             // Hiển thị phí ship nếu có giao hàng
             if (isGiaoHang) {
@@ -2407,6 +2443,12 @@
         // Tải lại voucher khi thêm/xóa sản phẩm
         $(document).on('ajaxComplete', function() {
             setTimeout(tuDongTaiVoucher, 300);
+        });
+
+        // Luôn refresh danh sách voucher khi người dùng mở dropdown
+        $('#voucherSelect').on('focus click', function() {
+            isFirstLoad = false;
+            taiDanhSachVoucher();
         });
     });
 
