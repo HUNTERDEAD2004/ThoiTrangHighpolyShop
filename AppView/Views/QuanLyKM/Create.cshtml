@@ -4,6 +4,13 @@
     ViewData["Title"] = "THÊM KHUYẾN MÃI";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
 }
+@if (TempData["AlertMessage"] != null)
+{
+    <div class="alert alert-@(TempData["AlertType"]?.ToString() == "success" ? "success" : "danger") alert-dismissible fade show fw-bold text-uppercase shadow-sm" role="alert">
+        @TempData["AlertMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <div class="container mt-4 text-uppercase">
     <h3 class="text-center fw-bold mb-4 text-dark">THÊM KHUYẾN MÃI</h3>
@@ -80,7 +87,44 @@
         </div>
     </form>
 </div>
+<style>
+    input.form-control,
+    select.form-control {
+        border-radius: 0;
+        box-shadow: none;
+    }
 
+        input.form-control:focus {
+            border-color: #212529;
+            box-shadow: 0 0 0 0.2rem rgba(33, 37, 41, 0.25);
+        }
+
+    .btn-dark:hover {
+        background-color: #343a40;
+        color: #fff;
+    }
+
+    .text-uppercase {
+        letter-spacing: 0.5px;
+    }
+
+    .alert {
+        font-size: 14px;
+        letter-spacing: 0.5px;
+    }
+
+    .alert-success {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #badbcc;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+    }
+</style>
 @section Scripts {
     <script>
         function generateRandomCode() {
@@ -97,23 +141,4 @@
 
     @await Html.PartialAsync("_ValidationScriptsPartial")
 
-}
-input.form-control,
-select.form-control {
-    border-radius: 0;
-    box-shadow: none;
-}
-
-input.form-control:focus {
-    border-color: #212529;
-    box-shadow: 0 0 0 0.2rem rgba(33, 37, 41, 0.25);
-}
-
-.btn-dark:hover {
-    background-color: #343a40;
-    color: #fff;
-}
-
-.text-uppercase {
-    letter-spacing: 0.5px;
 }

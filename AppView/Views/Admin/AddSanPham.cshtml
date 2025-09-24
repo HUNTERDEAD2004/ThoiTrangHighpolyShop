@@ -2,7 +2,7 @@
 
 <h1 class="mb-4 text-center">Thêm sản phẩm</h1>
 <hr />
-<form asp-action="AddSanPham" enctype="multipart/form-data" id="formAddSanPham" onsubmit="return disableSubmit(this)">
+<form asp-action="AddSanPham" enctype="multipart/form-data" id="formAddSanPham" >
     <div class="row">
         <!-- Cột trái -->
         <div class="col-md-6">
@@ -79,6 +79,7 @@
         <input type="submit" value=" Thêm sản phẩm" class="btn btn-secondary px-4 py-2" />
     </div>
 </form>
+<div id="toastMessage" style="position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 6px; display: none; color: #fff; z-index: 9999;"></div>
 
 <style>
     .form-group {
@@ -155,41 +156,44 @@
     });
 
     // --- Tạo mới Chất liệu ---
-    function taoMoiChatLieu() {
+     function taoMoiChatLieu() {
         const ten = prompt("Nhập tên chất liệu mới:");
         if (!ten) return;
 
-        $.post("/Admin/TaoChatLieuMoiTuSanPham" + { ten: ten }, function (res) {
-            if (res.success) {
+        $.post("/Admin/TaoChatLieuMoiTuSanPham", { ten: ten, trangThai: 1 }, function (res) {
+            console.log(res); // ✅ log để debug
+            if (res.success && res.data) {
                 alert("Thêm thành công!");
-                $.get("/Admin/GetAllChatLieu", function (data) {
-                    const select = $("#ChatLieuID");
-                    select.empty().append('<option value="">-- Chọn chất liệu --</option>');
-                    data.forEach(x => {
-                        select.append(`<option value="${x.id}" ${x.ten === ten ? 'selected' : ''}>${x.ten}</option>`);
-                    });
-                });
+                $("#ChatLieuID").append(`<option value="${res.data.id}" selected>${res.data.ten}</option>`);
             } else {
-                alert("Thêm thất bại!");
+                alert(res.message || "Thêm thất bại!");
             }
         });
     }
 
     // --- Tạo mới Kích cỡ ---
-    function taoMoiKichCo() {
+                  function taoMoiKichCo() {
         const ten = prompt("Nhập kích cỡ mới:");
-        if (!ten) return;
+        if (!ten || !ten.trim()) {
+            alert("Tên kích cỡ không được để trống!");
+            return;
+        }
 
-        $.post("/Admin/TaoKichCoTuSanPhamAsync", { ten: ten }, function (res) {
-            if (res.success) {
-                alert("Đã thêm!");
-                $.get("/Admin/GetAllKichCo", function (data) {
-                    lstKichCo = data;
+        $.post("/Admin/TaoKichCoMoiTuSanPham", { ten: ten.trim() }, function(res) {
+            if (res.success && res.data) {
+                alert("Thêm kích cỡ thành công!");
+                // gọi lại API GetAllKichCo và render
+                $.get("/Admin/GetAllKichCo", function(list) {
+                    lstKichCo = list.map(x => ({ id: x.id, ten: x.ten }));
                     $("#lstKichCo").empty();
                     countKichCo = 0;
                     themBienTheKichCo();
                 });
+            } else {
+                alert(res.message || "Thêm thất bại!");
             }
+        }).fail(function(xhr) {
+            alert("Lỗi kết nối: " + (xhr.responseText || xhr.statusText));
         });
     }
 
@@ -219,20 +223,16 @@
     }
 
     // --- Tạo mới Loại sản phẩm ---
-    function taoMoiLoaiSP() {
+        function taoMoiLoaiSP() {
         const ten = prompt("Nhập tên loại sản phẩm:");
         if (!ten) return;
 
-        $.post("/LoaiSP/save", { ten: ten }, function (res) {
-            if (res.success) {
+        $.post("/Admin/TaoLoaiSanPhamMoi", { ten: ten, trangThai: 1 }, function (res) {
+            if (res.success && res.data) {
                 alert("Thêm thành công!");
-                $.get("/Admin/GetAllLoaiSanPham", function (data) {
-                    const select = $("#LoaiSPID");
-                    select.empty().append('<option value="">-- Chọn loại sản phẩm --</option>');
-                    data.forEach(x => {
-                        select.append(`<option value="${x.id}" ${x.ten === ten ? 'selected' : ''}>${x.ten}</option>`);
-                    });
-                });
+                $("#LoaiSPID").append(`<option value="${res.data.id}" selected>${res.data.ten}</option>`);
+            } else {
+                alert(res.message || "Thêm thất bại!");
             }
         });
     }
@@ -292,7 +292,52 @@
         }
         return true;
     }
+        function showMessage(message, type = 'success') {
+        const toast = $("#toastMessage");
+        toast.stop(true, true);
+        toast.text(message);
 
+        switch(type) {
+            case 'success': toast.css('background-color', '#28a745'); break;
+            case 'error': toast.css('background-color', '#dc3545'); break;
+            case 'warning': toast.css('background-color', '#ffc107; color:#212529'); break;
+            default: toast.css('background-color', '#17a2b8'); break;
+        }
+
+        toast.fadeIn(400).delay(3000).fadeOut(400);
+    }
+
+        $("#formAddSanPham").submit(function(e){
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const submitBtn = $(this).find('input[type="submit"], button[type="submit"]');
+        submitBtn.prop("disabled", true).val("Đang xử lý...");
+
+        $.ajax({
+            url: $(this).attr("action"),
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(res){
+                if(res.success){
+                    showMessage(res.message, "success");
+                    $("#formAddSanPham")[0].reset();
+                    setTimeout(() => window.location.href = "/Admin/ProductManager", 1200);
+                } else {
+                    showMessage(res.message, "error");
+                    submitBtn.prop("disabled", false).val("Thêm sản phẩm");
+                }
+            },
+            error: function(){
+                showMessage("Lỗi kết nối!", "error");
+                submitBtn.prop("disabled", false).val("Thêm sản phẩm");
+            }
+        });
+    });
+
+  
 </script>
 
 @section Scripts {

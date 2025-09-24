@@ -126,20 +126,21 @@ namespace AppView.Controllers
                 string apiURL = $"https://localhost:7095/api/LoaiSP/save";
                 var content = new StringContent(JsonConvert.SerializeObject(lsp), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync(apiURL, content);
-                if (response.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Show");
-                }
-                ViewBag.ErrorMessage = "Loại sản phẩm này đã có trong danh sách";
-                return View();
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-        }
-        public async Task<IActionResult> Details(Guid id)
+				if (response.IsSuccessStatusCode)
+				{
+					return Json(new { success = true, message = "Thêm loại sản phẩm thành công!" });
+				}
+				else
+				{
+					return Json(new { success = false, message = "Loại sản phẩm này đã có trong danh sách" });
+				}
+			}
+			catch (Exception ex)
+			{
+				return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
+			}
+		}
+		public async Task<IActionResult> Details(Guid id)
         {
 
             string apiUrl = $"https://localhost:7095/api/LoaiSP/getById/{id}";
@@ -183,26 +184,24 @@ namespace AppView.Controllers
 
                 var response = await _httpClient.PutAsync(apiUrl, content);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Show");
-                }
-                else if (response.StatusCode == HttpStatusCode.BadRequest)
-                {
-                    ViewBag.ErrorMessage = "Loại sản phẩm này đã có trong danh sách";
-                    return View();
-                }
-                else
-                {
-                    return View();
-                }
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-        }
+				if (response.IsSuccessStatusCode)
+				{
+					return Json(new { success = true, message = "Cập nhật loại sản phẩm thành công!" });
+				}
+				else if (response.StatusCode == HttpStatusCode.BadRequest)
+				{
+					return Json(new { success = false, message = "Loại sản phẩm này đã tồn tại trong danh sách" });
+				}
+				else
+				{
+					return Json(new { success = false, message = "Cập nhật thất bại!" });
+				}
+			}
+			catch (Exception)
+			{
+				return Json(new { success = false, message = "Có lỗi hệ thống!" });
+			}
+		}
 
         [HttpGet]
         public async Task<IActionResult> GetLoaiSpById(Guid id, int ProductPage = 1)

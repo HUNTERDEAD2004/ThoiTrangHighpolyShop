@@ -58,16 +58,16 @@ namespace AppView.Controllers
                             .ToList();
                     }
 
-                    // Lọc theo loại sản phẩm (multi-select)
-                    if (!string.IsNullOrEmpty(filter.loaiSP))
-                    {
-                        lstSanpham = lstSanpham
-                            .Where(x => x.LoaiSP != null && x.LoaiSP == filter.loaiSP)
-                            .ToList();
-                    }
+					// Lọc theo loại sản phẩm (multi-select)
+					if (!string.IsNullOrEmpty(filter.loaiSP))
+					{
+						lstSanpham = lstSanpham
+							.Where(x => x.LoaiSP != null && x.LoaiSP == filter.loaiSP)
+							.ToList();
+					}
 
-                    // Lọc theo chất liệu
-                    if (filter.chatLieu != null && filter.chatLieu.Any())
+					// Lọc theo chất liệu
+					if (filter.chatLieu != null && filter.chatLieu.Any())
                     {
                         lstSanpham = lstSanpham
                             .Where(x => x.ChatLieu != null && filter.chatLieu.Contains(x.ChatLieu))
@@ -177,77 +177,135 @@ namespace AppView.Controllers
                 return Json(new List<MauSac>());
             }
         }
-        public async Task<MauSac?> TaoMauMoiTuSanPham(string ten, string ma, int trangThai)
-        {
-            try
-            {
-                var requestData = new
-                {
-                    ten = ten,
-                    ma = ma,
-                    trangthai = 1
-                };
+		[HttpPost]
+		public async Task<JsonResult> TaoMauMoiTuSanPham(string ten, string ma, int trangThai = 1)
+		{
+			try
+			{
+				// Gọi API đúng kiểu query string vì AppAPI không nhận JSON
+				var url = $"MauSac/ThemMauSac?ten={Uri.EscapeDataString(ten)}&ma={Uri.EscapeDataString(ma)}&trangthai={trangThai}";
 
-                var response = await _httpClient.PostAsJsonAsync("MauSac/AddMauSac", requestData);
+				// Gửi POST với body rỗng
+				var response = await _httpClient.PostAsync(url, null);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var mau = await response.Content.ReadFromJsonAsync<MauSac>();
-                    return mau;
-                }
+				if (response.IsSuccessStatusCode)
+				{
+					var mau = await response.Content.ReadFromJsonAsync<MauSac>();
+					if (mau != null)
+					{
+						return Json(new { success = true, data = mau });
+					}
+					return Json(new { success = false, message = "API trả về null" });
+				}
 
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-        public async Task<ChatLieu?> TaoChatLieuMoiTuSanPham(string ten, int trangThai)
-        {
-            try
-            {
-                var requestData = new
-                {
-                    ten = ten,
-                    trangthai = 1
-                };
+				var error = await response.Content.ReadAsStringAsync();
+				return Json(new { success = false, message = "API lỗi: " + error });
+			}
+			catch (Exception ex)
+			{
+				return Json(new { success = false, message = "Lỗi: " + ex.Message });
+			}
+		}
 
-                var response = await _httpClient.PostAsJsonAsync("ChatLieu/AddChatLieu", requestData);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var chatLieu = await response.Content.ReadFromJsonAsync<ChatLieu>();
-                    return chatLieu;
-                }
+		[HttpPost]
+		public async Task<JsonResult> TaoChatLieuMoiTuSanPham(string ten, int trangThai)
+		{
+			try
+			{
+				string apiUrl = $"ChatLieu/ThemChatLieu?ten={ten}&trangthai={trangThai}";
+				var response = await _httpClient.PostAsync(apiUrl, null);
 
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-        public async Task<KichCo?> TaoKichCoTuSanPhamAsync(string tenKichCo)
-        {
-            try
-            {
-                var data = new { ten = tenKichCo }; // API của bạn chỉ cần tên
+				if (response.IsSuccessStatusCode)
+				{
+					var chatLieu = await response.Content.ReadFromJsonAsync<ChatLieu>();
+					return Json(new { success = true, data = chatLieu });
+				}
 
-                var response = await _httpClient.PostAsJsonAsync($"{_httpClient.BaseAddress}KichCo/AddKichCo", data);
+				return Json(new { success = false, message = "API thêm chất liệu thất bại." });
+			}
+			catch (Exception ex)
+			{
+				return Json(new { success = false, message = "Lỗi: " + ex.Message });
+			}
+		}
 
-                if (!response.IsSuccessStatusCode)
-                    return null;
+		[HttpPost]
+		public async Task<IActionResult> TaoLoaiSanPhamMoi(string ten, int trangThai = 1)
+		{
+			if (string.IsNullOrWhiteSpace(ten))
+				return Json(new { success = false, message = "Tên loại sản phẩm không được để trống" });
 
-                var kichCo = await response.Content.ReadFromJsonAsync<KichCo>();
-                return kichCo;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-        public JsonResult GetAllKichCo()
+			try
+			{
+				var lsp = new LoaiSPRequest
+				{
+					ID = Guid.NewGuid(),
+					Ten = ten.Trim(),
+					TrangThai = trangThai
+				};
+
+				string apiURL = $"https://localhost:7095/api/LoaiSP/save";
+				var content = new StringContent(JsonConvert.SerializeObject(lsp), Encoding.UTF8, "application/json");
+				var response = await _httpClient.PostAsync(apiURL, content);
+
+				if (response.IsSuccessStatusCode)
+				{
+					return Json(new { success = true, data = new { id = lsp.ID, ten = lsp.Ten } });
+				}
+
+				return Json(new { success = false, message = "Loại sản phẩm đã tồn tại hoặc lỗi API" });
+			}
+			catch (Exception ex)
+			{
+				return Json(new { success = false, message = ex.Message });
+			}
+		}
+
+
+		public async Task<KichCo?> TaoKichCoTuSanPhamAsync(string tenKichCo)
+		{
+			try
+			{
+				if (string.IsNullOrWhiteSpace(tenKichCo))
+					return null;
+
+				// Gọi API đúng kiểu query string
+				string url = $"{_httpClient.BaseAddress}KichCo/ThemKichCo?ten={Uri.EscapeDataString(tenKichCo)}&trangthai=1";
+
+				var response = await _httpClient.PostAsync(url, null);
+
+				if (!response.IsSuccessStatusCode)
+					return null;
+
+				// Nếu API trả về đối tượng KichCo, deserialize
+				var kichCo = await response.Content.ReadFromJsonAsync<KichCo>();
+				return kichCo;
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+		[HttpPost]
+		public async Task<JsonResult> TaoKichCoMoiTuSanPham(string ten)
+		{
+			if (string.IsNullOrWhiteSpace(ten))
+				return Json(new { success = false, message = "Tên kích cỡ không được để trống" });
+
+			var kichCoMoi = await TaoKichCoTuSanPhamAsync(ten);
+
+			if (kichCoMoi != null)
+			{
+				// Trả về dữ liệu đầy đủ để JS xử lý
+				return Json(new { success = true, data = new { id = kichCoMoi.ID, ten = kichCoMoi.Ten } });
+			}
+
+			return Json(new { success = false, message = "Thêm kích cỡ thất bại hoặc đã tồn tại" });
+		}
+
+		public JsonResult GetAllKichCo()
         {
             try
             {
@@ -293,49 +351,45 @@ namespace AppView.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> AddSanPham(IFormFile file, SanPhamRequest sanPhamRequest)
-        {
-            try
-            {
-                string wwwrootPath = _hostEnvironment.WebRootPath;
-                var filePath = await _iFileService.AddFile(file, wwwrootPath);
+		[HttpPost]
+		public async Task<IActionResult> AddSanPham(IFormFile file, SanPhamRequest sanPhamRequest)
+		{
+			try
+			{
+				string wwwrootPath = _hostEnvironment.WebRootPath;
+				var filePath = await _iFileService.AddFile(file, wwwrootPath);
 
-                var request = new SanPhamRequest
-                {
-                    Ten = sanPhamRequest.Ten,
-                    AnhDaiDien = filePath,
-                    MoTa = sanPhamRequest.MoTa,
-                    IDChatLieu = sanPhamRequest.IDChatLieu,
-                    IDKichCos = sanPhamRequest.IDKichCos,
-                    IDMauSacs = sanPhamRequest.IDMauSacs,
-                    IDLoaiSP = sanPhamRequest.IDLoaiSP,
-                };
+				var request = new SanPhamRequest
+				{
+					Ten = sanPhamRequest.Ten,
+					AnhDaiDien = filePath,
+					MoTa = sanPhamRequest.MoTa,
+					IDChatLieu = sanPhamRequest.IDChatLieu,
+					IDKichCos = sanPhamRequest.IDKichCos,
+					IDMauSacs = sanPhamRequest.IDMauSacs,
+					IDLoaiSP = sanPhamRequest.IDLoaiSP,
+				};
 
-                request.IDMauSacs?.RemoveAll(id => XoaMau(id));
-                request.IDKichCos?.RemoveAll(id => XoaSize(id));
+				request.IDMauSacs?.RemoveAll(id => XoaMau(id));
+				request.IDKichCos?.RemoveAll(id => XoaSize(id));
 
-                var response = await _httpClient.PostAsJsonAsync($"{_httpClient.BaseAddress}SanPham/AddSanPham", request);
+				var response = await _httpClient.PostAsJsonAsync($"{_httpClient.BaseAddress}SanPham/AddSanPham", request);
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    _iFileService.DeleteFile(filePath, wwwrootPath);
-                    TempData["AlertType"] = "danger";
-                    TempData["AlertMessage"] = "Tạo sản phẩm thất bại.";
-                    return RedirectToAction("ProductManager");
-                }
+				if (!response.IsSuccessStatusCode)
+				{
+					_iFileService.DeleteFile(filePath, wwwrootPath);
+					return Json(new { success = false, message = "Tạo sản phẩm thất bại." });
+				}
 
-                TempData["AlertType"] = "success";
-                TempData["AlertMessage"] = "Tạo sản phẩm thành công!";
-                return RedirectToAction("ProductManager");
-            }
-            catch
-            {
-                TempData["AlertType"] = "danger";
-                TempData["AlertMessage"] = "Đã xảy ra lỗi khi tạo sản phẩm.";
-                return RedirectToAction("ProductManager");
-            }
-        }
-        [HttpGet]
+				return Json(new { success = true, message = "Tạo sản phẩm thành công!" });
+			}
+			catch (Exception ex)
+			{
+				return Json(new { success = false, message = "Đã xảy ra lỗi khi tạo sản phẩm." });
+			}
+		}
+
+		[HttpGet]
         public IActionResult ProductDetail(string idSanPham)
         {
             TempData["IDSanPham"] = idSanPham;
@@ -756,17 +810,20 @@ namespace AppView.Controllers
             try
             {
                 var response = _httpClient.PutAsJsonAsync("SanPham/UpdateSanPham", request).Result;
-                if (response.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("ProductManager");
-                }
-                else return BadRequest();
-            }
-            catch
-            {
-                return BadRequest();
-            }
-        }
+				if (response.IsSuccessStatusCode)
+				{
+					return Json(new { success = true, message = "Cập nhật sản phẩm thành công!" });
+				}
+				else
+				{
+					return Json(new { success = false, message = "Cập nhật sản phẩm thất bại!" });
+				}
+			}
+			catch
+			{
+				return Json(new { success = false, message = "Có lỗi hệ thống!" });
+			}
+		}
         [HttpPost]
         public async Task<IActionResult> UploadImages(List<IFormFile> images)
         {

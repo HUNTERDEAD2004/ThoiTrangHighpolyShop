@@ -11,39 +11,26 @@
 
 <div class="row">
     <div class="row mb-4" style="margin: 5px">
-    <!-- FORM TÌM KIẾM -->
-    <div class="col-md-4 d-flex justify-content-start">
-        <form asp-action="TimKiemTenKM" asp-controller="QuanLyKM" method="get" style="width: 100%;">
-            <div class="input-group">
-                <input class="form-control text-uppercase" type="text" name="TenKM" placeholder="TÌM THEO TÊN" autocomplete="off" />
-                <button type="submit" class="btn btn-secondary text-white text-uppercase">
-                    <i class="fas fa-search"></i> TÌM KIẾM
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- BỘ LỌC TRẠNG THÁI -->
-    <div class="col-md-4 d-flex justify-content-center">
-        <select class="form-control custom-select text-uppercase" id="statusFilterKM" onchange="filterKMByStatus()">
-            <option value="">CHỌN TRẠNG THÁI</option>
-            <option value="0">HOẠT ĐỘNG</option>
-            <option value="2">ĐÃ HUỶ</option>
-        </select>
-    </div>
-
     <!-- NÚT TẠO MỚI -->
-    <div class="col-md-4 d-flex justify-content-end">
-        <a class="btn btn-dark text-white px-4 py-2 custom-hover text-uppercase" asp-action="Create">
+        <div class="col-md-12 d-flex justify-content-end">
+            <a class="btn btn-dark text-white px-4 py-2 custom-hover text-uppercase" asp-action="Create">
             <i class="fa fa-plus me-2"></i> TẠO KHUYẾN MÃI
         </a>
     </div>
-</div>
-    <!-- LEFT FORM: DANH SÁCH KHUYẾN MÃI -->
-    <div class="col-md-5">
-        <div class="card">
-            <div class="card-header text-uppercase fw-bold">
-                Danh sách khuyến mãi
+    </div>
+    <!--  DANH SÁCH KHUYẾN MÃI -->
+    <div class="col-md-7 d-flex flex-column">
+        <div class="card flex-fill h-100">
+            <div class="card-header text-uppercase fw-bold d-flex justify-content-between align-items-center">
+                <span>Danh sách khuyến mãi</span>
+                <!-- Tìm kiếm khuyến mãi -->
+                <div class="d-flex" style="max-width:250px;">
+                    <input id="searchKM" class="form-control form-control-sm text-uppercase me-2"
+                           type="text" placeholder="Tìm KM..." autocomplete="off" onkeyup="searchKM()" />
+                    <button type="button" class="btn btn-sm btn-secondary text-white text-uppercase" onclick="searchKM()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
             </div>
             <div class="card-body p-2">
                 <!-- BẢNG KHUYẾN MÃI -->
@@ -51,7 +38,7 @@
                     <table class="table table-bordered table-hover align-middle text-uppercase mb-0">
                         <thead class="table-light text-center">
                             <tr>
-                                <th><input type="checkbox" id="checkAllKM" /></th> <!-- Thêm cột check all -->
+                                <th><input type="checkbox" id="checkAllKM" /></th>
                                 <th>STT</th>
                                 <th>MÃ</th>
                                 <th>TÊN</th>
@@ -132,12 +119,21 @@
         </div>
     </div>
 
-    <!-- RIGHT FORM: DANH SÁCH SẢN PHẨM -->
-    <div class="col-md-7">
-        <div class="card">
-            <div class="card-header text-uppercase fw-bold">Danh sách sản phẩm</div>
+    <!-- DANH SÁCH SẢN PHẨM -->
+    <div class="col-md-5 d-flex flex-column">
+        <div class="card flex-fill h-100">
+            <div class="card-header text-uppercase fw-bold d-flex justify-content-between align-items-center">
+                <span>Danh sách sản phẩm</span>
+                <!-- Tìm kiếm sản phẩm -->
+                <div class="d-flex" style="max-width:250px;">
+                    <input id="searchSP" class="form-control form-control-sm text-uppercase me-2" type="text" placeholder="Tìm sản phẩm..." autocomplete="off" />
+                    <button type="button" class="btn btn-sm btn-secondary text-white text-uppercase" onclick="searchProduct()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
             <div class="card-body p-2">
-                <div class="table-responsive" style="max-height: 600px; overflow-y:auto;">
+                <div class="table-responsive" style="max-height: 500px; overflow-y:auto;">
                     <table class="table table-bordered table-hover align-middle text-uppercase mb-0">
                         <thead class="table-light text-center">
                             <tr>
@@ -147,8 +143,6 @@
                                 <th>MÃ</th>
                                 <th>Ảnh</th>
                                 <th>GIÁ BÁN</th>
-                                <th>SỐ LƯỢNG</th>
-                                <th>LOẠI</th>
                                 <th>TRẠNG THÁI</th>
                             </tr>
                         </thead>
@@ -356,17 +350,14 @@
                         var anh = item.anh ? item.anh : "/img/product/default.jpg";
                         var trangThai = item.trangThai == 1 ? "Hoạt động" : "Không hoạt động";
                         var color = item.trangThai == 1 ? "green" : "red";
-
                         $("#list_products").append(`
                             <tr>
                                 <td><input type="checkbox" value="${item.id}" /></td>
                                 <td>${i + 1}</td>
                                 <td>${item.ten}</td>
                                 <td>${item.ma}</td>
-                                <td><img src="${anh}" style="width:70px;height:80px" /></td>
+                                <td><img src="${anh}" style="width:60px;height:70px" /></td>
                                 <td>${item.giaBan}</td>
-                                <td>${item.soLuong}</td>
-                                    <td>${item.loaiSP ?? ""}</td>
                                 <td style="color:${color}">${trangThai}</td>
                             </tr>
                         `);
@@ -467,12 +458,35 @@ $('#formCTSP').submit(function (e) {
         }
     });
 });
+//
+function searchKM() {
+    let keyword = $("#searchKM").val().toLowerCase();
+    $("#kmTableBody tr").filter(function () {
+        $(this).toggle($(this).text().toLowerCase().indexOf(keyword) > -1);
+    });
+}
 
+function searchProduct() {
+    let keyword = $("#searchSP").val().toLowerCase();
+    $("#list_products tr").filter(function () {
+        $(this).toggle($(this).text().toLowerCase().indexOf(keyword) > -1);
+    });
+}
 
 </script>
 
 <!-- STYLE TUỲ CHỈNH -->
 <style>
+    .card {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-body {
+        flex: 1;
+        overflow-y: auto;
+    }
+
     .table th, .table td {
         vertical-align: middle;
         font-size: 0.875rem;
@@ -513,4 +527,11 @@ $('#formCTSP').submit(function (e) {
         color: #fff !important;
         box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
+
+    #list_products td,
+    #list_products th {
+        font-size: 0.8rem;
+        padding: 4px 6px;
+    }
+
 </style>

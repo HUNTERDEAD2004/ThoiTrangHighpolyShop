@@ -19,5 +19,6 @@ namespace AppData.ViewModels
         public int pageSize { get; set; }
         public int? minPrice { get; set; }
         public int? maxPrice { get; set; }
-    }
+
+	}
 }

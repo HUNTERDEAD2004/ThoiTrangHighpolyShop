@@ -106,8 +106,13 @@ namespace AppView.Controllers
                     var response = await _httpClient.PostAsync(apiUrl, null);
                     if (response.IsSuccessStatusCode)
                     {
-                        return RedirectToAction("Show");
-                    }
+						// Đặt thông báo thành công vào TempData
+						TempData["AlertMessage"] = "Thêm màu sắc thành công!";
+						TempData["AlertType"] = "success";
+
+						// Redirect về trang danh sách Show
+						return RedirectToAction("Create");
+					}
                     else if (response.StatusCode == HttpStatusCode.BadRequest)
                     {
                         ViewBag.ErrorMessage = "Màu sắc này đã có trong danh sách";

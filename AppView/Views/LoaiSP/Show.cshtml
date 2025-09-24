@@ -8,28 +8,50 @@
     int stt = 1;
     string searchData = "";
 }
+@* @if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+} *@
 
 <h1>
     <b>Danh sách loại sản phẩm</b>
 </h1>
-<div class="row align-items-center mb-3 px-2">
-    <div class="col-md-6">
-        <a class="btn btn-secondary text-white px-4 py-2" asp-action="Create">
-            <i class="fa fa-plus"></i> Thêm mới
-        </a>
-    </div>
-    <div class="col-md-6 d-flex justify-content-end">
-        <form asp-action="TimKiemLoaiSPTheoTen" asp-controller="LoaiSP" method="get" enctype="multipart/form-data" class="d-flex gap-2">
-            <input class="form-control" type="text" name="Ten" placeholder="Tìm kiếm theo tên" autocomplete="off" />
-            <input class="btn btn-secondary text-white" type="submit" value="Tìm kiếm" />
+<div class="row mb-4" style="margin: 5px">
+    <!-- Thanh tìm kiếm bên trái -->
+    <div class="col-md-4 d-flex justify-content-start">
+        <form asp-action="TimKiemLoaiSPTheoTen" asp-controller="LoaiSP" method="get" enctype="multipart/form-data" style="width: 100%;">
+            <div class="input-group">
+                <input class="form-control" type="text" name="Ten" placeholder="Tìm kiếm theo tên" autocomplete="off" />
+                <button type="submit" class="btn btn-secondary text-white">
+                    <i class="fas fa-search"></i> Tìm kiếm
+                </button>
+            </div>
         </form>
     </div>
 
-    <div id="searchErrorMessage"
-         class="alert alert-warning mt-2"
-         role="alert"
-         style="display: @(ViewData["SearchError"] != null ? "block" : "none");">
-        @ViewData["SearchError"]
+    <!-- Bộ lọc trạng thái nằm ở giữa -->
+    <div class="col-md-4 d-flex justify-content-center">
+        <select class="form-control custom-select" id="statusFilter" onchange="filterByStatus()">
+            <option value="">Chọn trạng thái</option>
+            <option value="1">Hoạt động</option>
+            <option value="0">Không hoạt động</option>
+        </select>
+    </div>
+
+    <!-- Nút Thêm mới nằm bên phải -->
+    <div class="col-md-4 d-flex justify-content-end">
+        <a class="btn btn-dark text-white px-4 py-2 custom-hover" asp-action="Create">Thêm mới</a>
     </div>
 </div>
 <table class="table table-bordered table-hover">
@@ -128,27 +150,10 @@
     </button>
 </div>
 <style>
-    .table th, .table td {
-        vertical-align: middle;
-        font-size: 0.875rem;
-    }
-
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-
-    .btn-group .btn {
-        margin: 0 2px;
-    }
-
-    .badge {
-        font-size: 0.75rem;
-        padding: 0.35em 0.65em;
-    }
-    /* Header table đen chữ trắng */
+    /* Header table màu trắng */
     .table thead th {
-        background-color: #000; /* nền đen */
-        color: #fff; /* chữ trắng */
+        background-color: #ffffff; /* nền trắng */
+        color: #000; /* chữ đen */
         text-align: center;
     }
 
@@ -213,5 +218,24 @@
             window.location.href = url;
         }
     });
+    // Bộ lọc theo trạng thái
+    function filterByStatus() {
+        var status = document.getElementById("statusFilter").value;
+        var rows = document.querySelectorAll("tbody tr"); // không cần id
+
+        rows.forEach(function (row) {
+            var statusCellText = row.querySelector("td:nth-child(3)").innerText.trim();
+
+            if (status === "") { // chọn tất cả
+                row.style.display = "";
+            } else if (status === "1" && statusCellText.includes("Hoạt động")) {
+                row.style.display = "";
+            } else if (status === "0" && statusCellText.includes("Không hoạt động")) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
 
 </script>

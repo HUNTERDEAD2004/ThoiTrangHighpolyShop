@@ -127,21 +127,19 @@
                                         <div>
                                             @if (listLoaiSP != null)
                                             {
-                                                <div id="LoaiSpFilter" onchange="LocSort()">
+                                                <div id="LoaiSpFilter">
                                                     @foreach (var item in listLoaiSP)
                                                     {
-                                                        <label>
+                                                        <label style="margin-right:10px; cursor:pointer;">
                                                             <input type="radio"
-                                                                   class="btn-check"
-                                                                   id="btn-check-outlined_@item.ID"
-                                                                   autocomplete="off"
                                                                    name="loaiSP"
-                                                                   val="@item.ID">
-                                                            <span class="btn btn-outline-primary"
-                                                                  for="btn-check-outlined_@item.ID">@item.Ten</span>
+                                                                   value="@item.Ten"
+                                                                   style="display:none;"> <!-- ẩn radio -->
+                                                            <span class="btn-category">@item.Ten</span>
                                                         </label>
                                                     }
                                                 </div>
+
                                             }
                                         </div>
                                     </div>
@@ -398,13 +396,14 @@
         var valuesort = sort.value;
         return valuesort;
     }
-    function LocSort(){
+        function LocSort() {
         $("#pagination-demo").twbsPagination('destroy');
+        pageIndex = 1;
         loadsp();
     }
-    function filterLoaiSP() {
+            function filterLoaiSP() {
         var selected = $('#LoaiSpFilter input[type="radio"]:checked');
-        return selected.length > 0 ? [selected.attr('val')] : [];
+        return selected.length > 0 ? [selected.val()] : [];
     }
     function filterMauSac() {
         var checkboxes = $('#filter-color input[type="checkbox"]:checked')
@@ -442,24 +441,26 @@
         var name = document.getElementById("search").value
         return name
     }
-    document.querySelectorAll(
-        'input[type=radio][name=loaiSP]').forEach((elem) => {
-            elem.addEventListener('click', allowUncheck);
-            // only needed if elem can be pre-checked
-            elem.previous = elem.checked;
-        });
+        document.querySelectorAll('#LoaiSpFilter input[type=radio]').forEach(radio => {
+    radio.previousChecked = radio.checked;
+    radio.addEventListener('click', function() {
+        if (this.previousChecked) {
+            this.checked = false; // bỏ chọn radio
+        }
+        LocSort();
+        // update trạng thái previousChecked
+        document.querySelectorAll('#LoaiSpFilter input[type=radio]').forEach(r => r.previousChecked = r.checked);
+    });
+});
 
     function allowUncheck(e) {
         if (this.previous) {
             this.checked = false;
-            $("#pagination-demo").twbsPagination('destroy');
-            loadsp();
+            LocSort();
         }
-        // need to update previous on all elements of this group
-        // (either that or store the id of the checked element)
-        document.querySelectorAll(
-            `input[type=radio][name=${this.name}]`).forEach((elem) => {
-                elem.previous = elem.checked;
-            });
+        document.querySelectorAll(`input[type=radio][name=${this.name}]`).forEach((elem) => {
+            elem.previous = elem.checked;
+        });
     }
+
 </script>

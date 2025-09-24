@@ -3,6 +3,7 @@ using AppData.ViewModels;
 using AppData.ViewModels.DTO;
 using AppView.PhanTrang;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Security.Claims;
@@ -137,7 +138,7 @@ namespace AppView.Controllers
 
         // Tìm kiếm KH theo Ten hoặc SDT
         [HttpGet]
-        public async Task<IActionResult> GetAllKHTheoTimKiem(string? Ten, string? SDT, int ProductPage = 1)
+        public async Task<IActionResult> GetAllKHTheoTimKiem(string? Ten, string? SDT, string? SortOrder, int ProductPage = 1)
         {
             string apiUrl = $"https://localhost:7095/api/KhachHang/TimKiemKH?Ten={Ten?.Trim()}&SDT={SDT?.Trim()}";
             var response = await httpClients.GetAsync(apiUrl);
@@ -157,8 +158,18 @@ namespace AppView.Controllers
                 TrangThai = x.TrangThai,
                 DiemTich = x.DiemTich
             }).ToList();
-
-            return View("GetAllKhachHang", new PhanTrangKhachHang
+			switch (SortOrder)
+			{
+				case "ten_asc":
+					khViewModel = khViewModel.OrderBy(x => x.Ten).ToList();
+					break;
+				case "ten_desc":
+					khViewModel = khViewModel.OrderByDescending(x => x.Ten).ToList();
+					break;
+				default:
+					break;
+			}
+			return View("GetAllKhachHang", new PhanTrangKhachHang
             {
                 listkh = khViewModel.Skip((ProductPage - 1) * PageSize).Take(PageSize),
                 PagingInfo = new PagingInfo

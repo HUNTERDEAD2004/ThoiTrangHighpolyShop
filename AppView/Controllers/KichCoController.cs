@@ -91,21 +91,21 @@ namespace AppView.Controllers
                 kc.TrangThai = 1;
                 string apiUrl = $"https://localhost:7095/api/KichCo/ThemKichCo?ten={kc.Ten}";
                 var reponsen = await _httpClient.PostAsync(apiUrl, null);
-                if (reponsen.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Show");
-                }
-                else if (reponsen.StatusCode == HttpStatusCode.BadRequest)
-                {
-                    ViewBag.ErrorMessage = "Kích cỡ này đã có trong danh sách";
-                    return View();
-                }
-                return View(kc);
-            }
-            catch
+				if (reponsen.IsSuccessStatusCode)
+				{
+					return Json(new { success = true, message = "Thêm kích cỡ thành công!" });
+				}
+				else if (reponsen.StatusCode == HttpStatusCode.BadRequest)
+				{
+					return Json(new { success = false, message = "Kích cỡ này đã có trong danh sách!" });
+				}
+
+				return Json(new { success = false, message = "Đã có lỗi xảy ra!" });
+			}
+            catch(Exception ex)
             {
-                return Redirect("https://localhost:5001/");
-            }
+				return Json(new { success = false, message = "Lỗi: " + ex.Message });
+			}
         }
 
         [HttpGet]
@@ -142,22 +142,22 @@ namespace AppView.Controllers
                 string apiUrl = $"https://localhost:7095/api/KichCo/{id}?ten={nv.Ten}";
                 var content = new StringContent(JsonConvert.SerializeObject(nv), Encoding.UTF8, "application/json");
                 var reponsen = await _httpClient.PutAsync(apiUrl, content);
-                if (reponsen.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Show");
-                }
-                else if (reponsen.StatusCode == HttpStatusCode.BadRequest)
-                {
-                    ViewBag.ErrorMessage = "Kích cỡ này đã có trong danh sách";
-                    return View();
-                }
-                return View(nv);
-            }
-            catch
-            {
-                return Redirect("https://localhost:5001/");
-            }
-        }
+				if (reponsen.IsSuccessStatusCode)
+				{
+					return Json(new { success = true, message = "Cập nhật kích cỡ thành công!" });
+				}
+				else if (reponsen.StatusCode == HttpStatusCode.BadRequest)
+				{
+					return Json(new { success = false, message = "Kích cỡ này đã tồn tại trong danh sách" });
+				}
+
+				return Json(new { success = false, message = "Cập nhật thất bại!" });
+			}
+			catch
+			{
+				return Json(new { success = false, message = "Có lỗi hệ thống!" });
+			}
+		}
         public async Task<IActionResult> Delete(Guid id)
         {
             string apiUrl = $"https://localhost:7095/api/KichCo/{id}";

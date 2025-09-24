@@ -247,23 +247,9 @@
                                             <span>Quản lý Voucher</span>
                                         </a>
                                     </li>
-                                    <li>
-                                        <a asp-controller="QuyDoiDiem" asp-action="GetAllQuyDoiDiem"
-                                           class="@(currentController == "QuyDoiDiem" ? "active" : "")">
-                                            <i class="bi bi-circle"></i>
-                                            <span>Quy đổi điểm</span>
-                                        </a>
-                                    </li>
                                 </ul>
                             </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link collapsed @(currentController == "VaiTro" ? "active" : "")"
-                                   asp-controller="VaiTro" asp-action="GetAllVaiTro">
-                                    <i class="bi bi-person-badge"></i>
-                                    <span>Vai trò</span>
-                                </a>
-                            </li>
 
                             <li class="nav-item">
                                 <a class="nav-link collapsed @(currentController == "NhanVien" || currentController == "KhachHang" ? "active" : "")"

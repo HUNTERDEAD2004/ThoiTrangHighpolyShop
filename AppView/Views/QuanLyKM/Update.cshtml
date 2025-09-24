@@ -70,30 +70,31 @@
         </div>
     </form>
 </div>
+<style>
+    input.form-control,
+    textarea.form-control {
+        border-radius: 0;
+        box-shadow: none;
+    }
 
+        input.form-control:focus,
+        textarea.form-control:focus {
+            border-color: #212529;
+            box-shadow: 0 0 0 0.2rem rgba(33, 37, 41, 0.25);
+        }
+
+    .btn-success:hover {
+        background-color: #218838;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+
+    .text-uppercase {
+        letter-spacing: 0.5px;
+    }
+</style>
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
-}
-input.form-control,
-textarea.form-control {
-    border-radius: 0;
-    box-shadow: none;
-}
-
-input.form-control:focus,
-textarea.form-control:focus {
-    border-color: #212529;
-    box-shadow: 0 0 0 0.2rem rgba(33, 37, 41, 0.25);
-}
-
-.btn-success:hover {
-    background-color: #218838;
-}
-
-.btn-secondary:hover {
-    background-color: #5a6268;
-}
-
-.text-uppercase {
-    letter-spacing: 0.5px;
 }

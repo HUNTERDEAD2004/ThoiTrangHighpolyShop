@@ -95,23 +95,24 @@ namespace AppView.Controllers
                 mauSac.TrangThai = 1;
                 string apiUrl = $"https://localhost:7095/api/ChatLieu/ThemChatLieu?ten={mauSac.Ten}";
                 var reponsen = await _httpClient.PostAsync(apiUrl, null);
-                if (reponsen.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Show");
-                }
-                else if (reponsen.StatusCode == HttpStatusCode.BadRequest)
-                {
-                    ViewBag.ErrorMessage = "Chất liệu này đã có trong danh sách";
-                    return View();
-                }
-                return View(mauSac);
-            }
-            catch
-            {
-                return Redirect("https://localhost:5001/");
-            }
+				if (reponsen.IsSuccessStatusCode)
+				{
+					// Trả về JSON, không redirect
+					return Json(new { success = true, message = "Thêm chất liệu thành công!" });
+				}
+				else if (reponsen.StatusCode == HttpStatusCode.BadRequest)
+				{
+					return Json(new { success = false, message = "Chất liệu này đã có trong danh sách!" });
+				}
 
-        }
+				return Json(new { success = false, message = "Đã xảy ra lỗi!" });
+			}
+			catch (Exception ex)
+			{
+				return Json(new { success = false, message = "Lỗi: " + ex.Message });
+			}
+
+		}
 
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
@@ -142,20 +143,22 @@ namespace AppView.Controllers
                 var content = new StringContent(JsonConvert.SerializeObject(nv), Encoding.UTF8, "application/json");
                 var reponsen = await _httpClient.PutAsync(apiUrl, content);
 
-                if (reponsen.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Show");
-                }
-                else if (reponsen.StatusCode == HttpStatusCode.BadRequest)
-                {
-                    ViewBag.ErrorMessage = "Chất liệu này đã có trong danh sách";
-                    return View();
-                }
-                return View(nv);
-            }
-            catch { return Redirect("https://localhost:5001/"); }
+				if (reponsen.IsSuccessStatusCode)
+				{
+					return Json(new { success = true, message = "Cập nhật chất liệu thành công!" });
+				}
+				else if (reponsen.StatusCode == HttpStatusCode.BadRequest)
+				{
+					return Json(new { success = false, message = "Chất liệu này đã có trong danh sách" });
+				}
 
-        }
+				return Json(new { success = false, message = "Cập nhật thất bại!" });
+			}
+			catch
+			{
+				return Json(new { success = false, message = "Có lỗi hệ thống!" });
+			}
+		}
         public async Task<IActionResult> Delete(Guid id)
         {
             string apiUrl = $"https://localhost:7095/api/ChatLieu/{id}";
