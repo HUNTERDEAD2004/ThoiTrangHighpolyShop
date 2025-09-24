@@ -9,7 +9,7 @@
     {
         loginInfor = JsonConvert.DeserializeObject<LoginViewModel>(Context.Session.GetString("LoginInfor"));
     }
-    ViewData["Title"] = "Quản lý khách hàng";
+    ViewData["Title"] = "Danh sách khách hàng";
     Layout = "~/Views/Shared/_LayoutForAdmin.cshtml";
     int stt = 1;
 }
