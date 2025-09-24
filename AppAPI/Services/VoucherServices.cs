@@ -123,7 +123,10 @@ namespace AppAPI.Services
         {
             var now = DateTime.Now;
 
-            var query = _allRepository.GetAll()
+            // Eager load UserVouchers to correctly filter private vouchers by customer
+            var queryable = context.Vouchers
+                .Include(v => v.UserVouchers)
+                .AsNoTracking()
                 .Where(x =>
                     x.TrangThai == 1 &&
                     x.SoLuong > 0 &&
@@ -132,14 +135,13 @@ namespace AppAPI.Services
                     tongTien >= x.GiaTriToiThieu
                 );
 
-            query = query.Where(x =>
+            queryable = queryable.Where(x =>
                 x.IsPublic == true ||
                 (x.IsPublic == false && userId != null &&
-                 x.UserVouchers.Any(vu => vu.IDKhachHang == userId))
+                 x.UserVouchers != null && x.UserVouchers.Any(vu => vu.IDKhachHang == userId))
             );
 
-            // ✅ Sắp xếp voucher có giá trị giảm cao nhất lên đầu
-            return query
+            return queryable
                 .OrderByDescending(x => x.GiaTri)
                 .ToList();
         }

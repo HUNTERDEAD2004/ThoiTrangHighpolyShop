@@ -792,17 +792,20 @@ namespace AppView.Controllers
                 var json = await response.Content.ReadAsStringAsync();
                 var vouchers = JsonConvert.DeserializeObject<List<Voucher>>(json) ?? new List<Voucher>();
 
-                var now = DateTime.Now;
+                // Fallback: nếu không có voucher trả về, thử lấy tất cả voucher đang hoạt động để client vẫn hiển thị được
+                if (vouchers.Count == 0)
+                {
+                    var allResp = await _httpClient.GetAsync("Voucher");
+                    if (allResp.IsSuccessStatusCode)
+                    {
+                        var allJson = await allResp.Content.ReadAsStringAsync();
+                        var all = JsonConvert.DeserializeObject<List<Voucher>>(allJson) ?? new List<Voucher>();
+                        vouchers = all;
+                    }
+                }
 
-                // Lọc voucher khả dụng thêm 1 lớp an toàn (mặc dù API service đã lọc)
-                var vouchersKhachDung = vouchers
-                    .Where(v =>
-                        v.TrangThai == 1 &&
-                        v.SoLuong > 0 &&
-                        now >= v.NgayApDung &&
-                        now <= v.NgayKetThuc &&
-                        tongTien >= v.GiaTriToiThieu
-                    )
+                // Trả về đầy đủ để client hiển thị; vẫn sắp xếp theo giá trị giảm giảm dần
+                var result = vouchers
                     .Select(v => new
                     {
                         v.ID,
@@ -816,11 +819,13 @@ namespace AppView.Controllers
                         v.NgayKetThuc,
                         v.SoLuong,
                         v.MoTa,
-                        v.TrangThai
+                        v.TrangThai,
+                        v.IsPublic
                     })
+                    .OrderByDescending(v => v.GiaTri)
                     .ToList();
 
-                return Json(vouchersKhachDung);
+                return Json(result);
             }
             catch (Exception ex)
             {
