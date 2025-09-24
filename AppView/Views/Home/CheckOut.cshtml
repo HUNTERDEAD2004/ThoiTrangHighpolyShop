@@ -151,11 +151,14 @@
                             <div class="checkout__input">
                                 <label for="pttt">Phương thức thanh toán</label>
                                 <div style="box-shadow:0 0 0 1px #d9d9d9;border-radius:0.25rem">
+                                    <!-- COD -->
                                     <div style="display:flex!important;align-items:center;padding:0.8rem">
                                         <input type="radio" name="pttt" value="COD" style="margin-bottom: 0px;width:20px;" />
                                         <img style="padding-left:0.75rem" src="https://hstatic.net/0/0/global/design/seller/image/payment/cod.svg?v=6">
                                         <p style="margin-bottom: 0px;padding-left: 10px;">Thanh toán khi giao hàng (COD)</p>
                                     </div>
+
+                                    <!-- VNPay -->
                                     <div style="border-top: 1px solid #d9d9d9;display:flex!important;align-items:center;padding:0.8rem">
                                         <input type="radio" name="pttt" value="VNPay" style="margin-bottom: 0px;width:20px" />
                                         <div style="width:40px;height:40px;margin-left:0.75rem;border:1px solid #d9d9d9;border-radius:0.25rem">
@@ -163,12 +166,20 @@
                                         </div>
                                         <p style="margin-bottom: 0px;padding-left: 10px;">Chuyển khoản qua VNPay</p>
                                     </div>
-                                </div>
 
-                                <div id="pttt-error" style="display:none;color:red">Vui lòng chọn phương thức thanh toán</div>
+                                    <!-- MoMo -->
+                                    <div style="border-top: 1px solid #d9d9d9;display:flex!important;align-items:center;padding:0.8rem">
+                                        <input type="radio" name="pttt" value="Momo" style="margin-bottom: 0px;width:20px" />
+                                        <div style="width:40px;height:40px;margin-left:0.75rem;border:1px solid #d9d9d9;border-radius:0.25rem">
+                                            <img style="width:30px;height:30px;margin:5px" src="/img/icon/momo.png">
+                                        </div>
+                                        <p style="margin-bottom: 0px;padding-left: 10px;">Thanh toán qua MoMo</p>
+                                    </div>
+                                </div>
 
                                 <div id="pttt-error" style="display:none;color:red; font-size:12px;">Vui lòng chọn phương thức thanh toán</div>
                             </div>
+
                         </div>
                     </div>
                     <div class="row">

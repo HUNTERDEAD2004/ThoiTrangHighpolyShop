@@ -6,6 +6,10 @@ using AppData.ViewModels.Mail;
 using AppData.ViewModels.QLND;
 using AppData.ViewModels.SanPham;
 using AppData.ViewModels.VNPay;
+using AppView.IServices;
+using AppView.Models;
+using AppView.Models.Momo;
+using AppView.Services;
 using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using JetBrains.Annotations;
@@ -34,12 +38,14 @@ namespace AppView.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly HttpClient _httpClient;
+        private readonly IMomoService _momoService;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IMomoService momoService)
         {
             _logger = logger;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri("https://localhost:7095/api/");
+            _momoService = momoService;
         }
         public async Task<IActionResult> Index()
         {
@@ -1771,6 +1777,8 @@ namespace AppView.Controllers
         {
             return View();
         }
+
+        [HttpPost]
         [HttpPost]
         public async Task<string> Order([FromBody] HoaDonViewModel hoaDon)
         {
@@ -1780,6 +1788,7 @@ namespace AppView.Controllers
                 List<ChiTietHoaDonViewModel> lstChiTietHoaDon = new List<ChiTietHoaDonViewModel>();
                 string temp = TempData.Peek("ListBienThe") as string;
                 string trangThai = TempData.Peek("TrangThai") as string;
+
                 foreach (var item in JsonConvert.DeserializeObject<List<GioHangRequest>>(temp))
                 {
                     ChiTietHoaDonViewModel chiTietHoaDon = new ChiTietHoaDonViewModel();
@@ -1788,20 +1797,25 @@ namespace AppView.Controllers
                     chiTietHoaDon.DonGia = item.DonGia.Value;
                     lstChiTietHoaDon.Add(chiTietHoaDon);
                 }
+
                 hoaDon.ChiTietHoaDons = lstChiTietHoaDon;
                 hoaDon.TrangThai = Convert.ToBoolean(trangThai);
+
                 var session = HttpContext.Session.GetString("LoginInfor");
                 if (session != null)
                 {
                     hoaDon.IDKhachHang = JsonConvert.DeserializeObject<LoginViewModel>(session).Id;
                 }
+
                 TempData.Remove("TongTien");
                 TempData.Remove("Quantity");
+
                 // 3. Gán ID phương thức thanh toán
                 hoaDon.IDPhuongThucTT = hoaDon.PhuongThucThanhToan switch
                 {
                     "COD" => Guid.Parse("DD56B0D5-721D-4CD3-A20A-CEB190755E26"),
                     "VNPay" => Guid.Parse("761881CC-2324-4760-9628-6ED287A59AC7"),
+                    "Momo" => Guid.Parse("f29cd85d-0251-4b50-8867-6a88891417f6"),
                     _ => Guid.Empty
                 };
 
@@ -1819,7 +1833,7 @@ namespace AppView.Controllers
                         TempData.Remove("TongTien");
                         TempData.Remove("Quantity");
 
-                        return "https://localhost:5001/Home/CheckOutSuccess";
+                        return Url.Action("CheckOutSuccess", "Home", null, Request.Scheme);
                     }
 
                     return "";
@@ -1830,18 +1844,20 @@ namespace AppView.Controllers
                 {
                     TempData["HoaDon"] = JsonConvert.SerializeObject(hoaDon);
 
-                    string returnUrl = "https://localhost:5001/Home/PaymentCallBack";
+                    string returnUrl = Url.Action("PaymentCallBack", "Home", null, Request.Scheme);
                     string url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
                     string tmnCode = "NJJ0R8FS";
                     string hashSecret = "BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW";
                     string ip = HttpContext.Connection.RemoteIpAddress?.ToString();
 
+                    var ticksId = DateTime.Now.Ticks;
+
                     var order = new OrderInfo
                     {
-                        OrderId = DateTime.Now.Ticks,
+                        OrderId = ticksId,
                         Amount = hoaDon.TongTien,
                         CreatedDate = DateTime.Now,
-                        OrderDesc = $"Thanh toán đơn hàng #{DateTime.Now.Ticks}",
+                        OrderDesc = $"Thanh toán đơn hàng #{ticksId}",
                         BankCode = "VNPAYQR"
                     };
 
@@ -1862,6 +1878,31 @@ namespace AppView.Controllers
                     vnpay.AddRequestData("vnp_BankCode", "");
 
                     return check = vnpay.CreateRequestUrl(url, hashSecret);
+                }
+
+                // 6. Xử lý Momo - ĐÃ SỬA
+                if (hoaDon.PhuongThucThanhToan == "Momo")
+                {
+                    TempData["HoaDon"] = JsonConvert.SerializeObject(hoaDon);
+
+                    var ticksId = DateTime.Now.Ticks;
+
+                    var momoModel = new OrderInfoModel
+                    {
+                        FullName = hoaDon.TenNguoiNhan ?? "Khách hàng",
+                        Amount = (double)hoaDon.TongTien,
+                        OrderInfo = $"Thanh toán đơn hàng {ticksId}",
+                        OrderId = ticksId.ToString(),
+                        BusinessType = 1 // 🔹 Thêm BusinessType để chọn return URL
+                    };
+
+                    var momoResult = await _momoService.CreatePaymentAsync(momoModel);
+                    if (momoResult != null && momoResult.ErrorCode == 0)
+                    {
+                        return momoResult.PayUrl; // redirect qua momo
+                    }
+
+                    return "";
                 }
 
                 return check;
@@ -1949,6 +1990,79 @@ namespace AppView.Controllers
                 return BadRequest();
             }
         }
+
+        [HttpGet]
+        public IActionResult PaymentCallBackMomo()
+        {
+            try
+            {
+                var query = Request.Query;
+                if (query.Count == 0) return BadRequest("Không có dữ liệu callback từ Momo");
+
+                // Lấy tham số Momo gửi về
+                string partnerCode = query["partnerCode"];
+                string accessKey = query["accessKey"];
+                string requestId = query["requestId"];
+                string amount = query["amount"];
+                string orderId = query["orderId"];
+                string orderInfo = query["orderInfo"];
+                string orderType = query["orderType"];
+                string transId = query["transId"];
+                string message = query["message"];
+                string localMessage = query["localMessage"];
+                string responseTime = query["responseTime"];
+                string errorCode = query["errorCode"];
+                string payType = query["payType"];
+                string extraData = query["extraData"];
+                string signature = query["signature"];
+
+                // Build rawHash để verify
+                var rawHash = $"partnerCode={partnerCode}&accessKey={accessKey}&requestId={requestId}&amount={amount}&orderId={orderId}&orderInfo={orderInfo}&orderType={orderType}&transId={transId}&message={message}&localMessage={localMessage}&responseTime={responseTime}&errorCode={errorCode}&payType={payType}&extraData={extraData}";
+
+                string secretKey = "K951B6PE1waDMi640xX08PD3vg6EkVlz"; // thay bằng config
+                string computedSignature = ComputeHmacSha256(rawHash, secretKey);
+
+                if (computedSignature != signature)
+                    return BadRequest("Sai chữ ký Momo");
+
+                if (errorCode == "0") // Thanh toán thành công
+                {
+                    TempData.Remove("TongTien");
+                    TempData.Remove("Quantity");
+
+                    var hoaDon = JsonConvert.DeserializeObject<HoaDonViewModel>(TempData["HoaDon"].ToString());
+                    hoaDon.NgayThanhToan = DateTime.Now;
+                    hoaDon.TrangThaiGiaoHang = 3;
+
+                    var response = _httpClient.PostAsJsonAsync("HoaDon", hoaDon).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        TempData["CheckOutSuccess"] = response.Content.ReadAsStringAsync().Result;
+                        if (!hoaDon.TrangThai) Response.Cookies.Delete("Cart");
+                        TempData["SoLuong"] = "0";
+
+                        return RedirectToAction("CheckOutSuccess");
+                    }
+                    else return BadRequest("Không lưu được hóa đơn sau khi thanh toán Momo");
+                }
+                else
+                {
+                    return BadRequest($"Thanh toán Momo thất bại. Code: {errorCode}, Message: {message}");
+                }
+            }
+            catch
+            {
+                return BadRequest("Lỗi xử lý callback Momo");
+            }
+        }
+
+        private static string ComputeHmacSha256(string rawData, string key)
+        {
+            using var hmac = new System.Security.Cryptography.HMACSHA256(Encoding.UTF8.GetBytes(key));
+            var hashValue = hmac.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+            return BitConverter.ToString(hashValue).Replace("-", "").ToLower();
+        }
+
         [HttpGet]
         public IActionResult CheckOutSuccess()
         {

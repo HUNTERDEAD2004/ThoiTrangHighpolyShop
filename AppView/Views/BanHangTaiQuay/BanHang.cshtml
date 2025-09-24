@@ -594,56 +594,121 @@
     </div>
 </div>
 
-<!-- Modal Tạo Khách Hàng -->
+<!-- Modal Tạo Khách Hàng Nhanh (Đã cập nhật đầy đủ) -->
 <div class="modal fade" id="modalTaoKhachHang" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header py-2">
-                <h6 class="modal-title mb-0">Tạo khách hàng nhanh</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary py-2">
+                <h6 class="modal-title text-white mb-0">Tạo khách hàng nhanh</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-3">
                 <div id="validatekh" class="text-danger mb-2 small"></div>
-                <form id="formTaoKhachHang">
-                    <div class="row g-2 mb-2">
+
+                <form id="formTaoKhachHang" class="needs-validation" novalidate>
+                    <div class="row g-3">
+                        <!-- Cột trái -->
                         <div class="col-md-6">
-                            <input type="text" class="form-control form-control-sm" id="inputTenKhachHang" placeholder="Tên khách hàng" required>
-                        </div>
-                        <div class="col-md-6">
-                            <input type="text" class="form-control form-control-sm" id="inputSDT" placeholder="Số điện thoại">
-                        </div>
-                    </div>
-                    <div class="row g-2 mb-2">
-                        <div class="col-md-6">
-                            <input type="email" class="form-control form-control-sm" id="inputEmail" placeholder="Email">
-                        </div>
-                        <div class="col-md-6">
-                            <input type="date" class="form-control form-control-sm" id="inputNgaySinh">
-                        </div>
-                    </div>
-                    <div class="row g-2 mb-2">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center">
-                                <span class="me-2 small">Giới tính:</span>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="gioitinh" id="nam" value="1" checked>
-                                    <label class="form-check-label small" for="nam">Nam</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="gioitinh" id="nu" value="0">
-                                    <label class="form-check-label small" for="nu">Nữ</label>
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold">Tên khách hàng <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm" id="inputTenKhachHang"
+                                       placeholder="Nhập tên khách hàng" required>
+                                <div class="invalid-feedback">Vui lòng nhập tên khách hàng</div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control form-control-sm" id="inputEmail"
+                                       placeholder="example@email.com" required>
+                                <div class="invalid-feedback">Vui lòng nhập email hợp lệ</div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm" id="inputSDT"
+                                       placeholder="0123456789" required>
+                                <div class="invalid-feedback">Vui lòng nhập số điện thoại</div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold">Ngày sinh</label>
+                                <input type="date" class="form-control form-control-sm" id="inputNgaySinh">
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold">Giới tính</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="gioitinh" id="nam" value="1" checked>
+                                        <label class="form-check-label small" for="nam">Nam</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="gioitinh" id="nu" value="0">
+                                        <label class="form-check-label small" for="nu">Nữ</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Cột phải - Địa chỉ -->
                         <div class="col-md-6">
-                            <input type="text" class="form-control form-control-sm" id="inputDiaChi" placeholder="Địa chỉ">
+                            <div class="address-section">
+                                <div class="address-section-title">Địa chỉ</div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                    <select class="form-select form-select-sm" id="modalTinh" required>
+                                        <option value="" disabled selected>Chọn tỉnh/thành</option>
+                                    </select>
+                                    <div class="invalid-feedback">Vui lòng chọn tỉnh/thành phố</div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold">Quận/Huyện <span class="text-danger">*</span></label>
+                                    <select class="form-select form-select-sm" id="modalHuyen" required disabled>
+                                        <option value="" disabled selected>Chọn quận/huyện</option>
+                                    </select>
+                                    <div class="invalid-feedback">Vui lòng chọn quận/huyện</div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold">Phường/Xã <span class="text-danger">*</span></label>
+                                    <select class="form-select form-select-sm" id="modalXa" required disabled>
+                                        <option value="" disabled selected>Chọn phường/xã</option>
+                                    </select>
+                                    <div class="invalid-feedback">Vui lòng chọn phường/xã</div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                                    <textarea class="form-control form-control-sm" id="modalDiaChiChiTiet"
+                                              rows="2" placeholder="Số nhà, tên đường..." required></textarea>
+                                    <div class="invalid-feedback">Vui lòng nhập địa chỉ chi tiết</div>
+                                </div>
+                            </div>
+
+                            <!-- Trạng thái (ẩn) -->
+                            <div class="mb-2" hidden>
+                                <label class="form-label small fw-bold">Trạng thái</label>
+                                <select class="form-select form-select-sm" id="modalTrangThai">
+                                    <option value="1" selected>Hoạt động</option>
+                                    <option value="0">Không hoạt động</option>
+                                </select>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3 py-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <small>Hệ thống sẽ tự động tạo mã khách hàng và mật khẩu.</small>
                     </div>
                 </form>
             </div>
             <div class="modal-footer py-2">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" id="btn-saveKH" class="btn btn-primary btn-sm">Lưu</button>
+                <button type="button" id="btn-saveKH" class="btn btn-primary btn-sm">
+                    <i class="bi bi-check-lg me-1"></i> Lưu
+                </button>
             </div>
         </div>
     </div>
@@ -1282,11 +1347,6 @@
         }
     }
 
-    function taoKhachHangNhanh() {
-        const modal = new bootstrap.Modal(document.getElementById('modalTaoKhachHang'));
-        modal.show();
-    }
-
     // Biến toàn cục lưu thông tin khách hàng mặc định
     const KHACH_LE = {
         id: "e106c66d-f18d-4609-8a38-08e09d68e78c",
@@ -1776,65 +1836,6 @@
             e.preventDefault();
             $(this).blur(); // Kích hoạt sự kiện blur
         }
-    });
-
-    // ===== Tạo khách hàng nhanh =====
-    $(document).on("click", "#btn-saveKH", function () {
-        let tenKhachHang = $("#inputTenKhachHang").val().trim();
-        let sdt = $("#inputSDT").val().trim();
-        let email = $("#inputEmail").val().trim();
-        let ngaySinh = $("#inputNgaySinh").val();
-        let gioiTinh = $("input[name='gioitinh']:checked").val();
-        let diaChi = $("#inputDiaChi").val().trim();
-
-        if (!tenKhachHang) {
-            $("#validatekh").text("Tên khách hàng không được để trống!");
-            return;
-        }
-
-        // Validate số điện thoại
-        const phoneRegex = /^(0[35789])+([0-9]{8})$/;
-        if (sdt && !phoneRegex.test(sdt)) {
-            $("#validatekh").text("Số điện thoại không hợp lệ!");
-            return;
-        }
-
-        $("#validatekh").text("");
-
-        let khachHang = {
-            Ten: tenKhachHang,
-            GioiTinh: gioiTinh,
-            NgaySinh: ngaySinh,
-            Email: email,
-            DiaChi: diaChi,
-            SDT: sdt
-        };
-
-        $.ajax({
-            url: "/BanHangTaiQuay/AddKhachHang",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(khachHang),
-            success: function (response) {
-                if (response.success) {
-                    toastr.success("Thêm khách hàng thành công!");
-
-                    // Gán tên KH vào đúng input chọn khách hàng
-                    $("#formGiaoHangContainer input.form-control").val(tenKhachHang);
-                    $("#tenNguoiNhan").val(tenKhachHang);
-                    $("#sdtNguoiNhan").val(sdt);
-
-                    // Ẩn modal + reset form
-                    $("#modalTaoKhachHang").modal("hide");
-                    $("#formTaoKhachHang")[0].reset();
-                } else {
-                    toastr.error(response.message || "Thêm khách hàng thất bại!");
-                }
-            },
-            error: function () {
-                toastr.error("Có lỗi xảy ra khi thêm khách hàng!");
-            }
-        });
     });
 
     // ===== Thanh toán hóa đơn (SỬA LẠI PHẦN XỬ LÝ RESPONSE) =====
@@ -2660,4 +2661,212 @@
         $('#tienKhachDua').val('0');
         $('#tienThua').text('0 đ');
     }
+
+    // ===== XỬ LÝ MODAL TẠO KHÁCH HÀNG NHANH =====
+
+    // Biến lưu trữ thông tin địa chỉ cho modal
+    let modalTinh = "";
+    let modalHuyen = "";
+    let modalXa = "";
+
+    // Mở modal tạo khách hàng nhanh
+    function taoKhachHangNhanh() {
+        // Reset form
+        $("#formTaoKhachHang")[0].reset();
+        $("#validatekh").text("");
+
+        // Load danh sách tỉnh/thành
+        loadTinhThanhModal();
+
+        // Reset trạng thái validation
+        $(".form-control, .form-select").removeClass("is-invalid");
+
+        const modal = new bootstrap.Modal(document.getElementById('modalTaoKhachHang'));
+        modal.show();
+    }
+
+    // Load tỉnh/thành cho modal
+    function loadTinhThanhModal() {
+        $.ajax({
+            type: "GET",
+            url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/province",
+            headers: { token: GHN_TOKEN },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                $('#modalTinh').empty().append('<option value="" disabled selected>Chọn tỉnh/thành</option>');
+                for (var i = 0; i < data.data.length; i++) {
+                    var rows = `<option value="${data.data[i].ProvinceID}">${data.data[i].ProvinceName}</option>`;
+                    $('#modalTinh').append(rows);
+                }
+                $('#modalTinh').prop('disabled', false);
+            },
+            error: function (reponse) {
+                console.error("Lỗi khi tải tỉnh/thành:", reponse);
+                $('#modalTinh').html('<option value="">Lỗi tải dữ liệu</option>');
+            }
+        });
+    }
+
+    // Load quận/huyện cho modal
+    function loadQuanHuyenModal(provinceId) {
+        if (!provinceId) {
+            $('#modalHuyen').empty().append('<option value="" disabled selected>Chọn quận/huyện</option>').prop('disabled', true);
+            $('#modalXa').empty().append('<option value="" disabled selected>Chọn phường/xã</option>').prop('disabled', true);
+            return;
+        }
+
+        modalTinh = $("#modalTinh option:selected").text();
+
+        $.ajax({
+            type: "GET",
+            url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/district",
+            headers: { token: GHN_TOKEN },
+            data: { province_id: provinceId },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                $('#modalHuyen').empty().append('<option value="" disabled selected>Chọn quận/huyện</option>').prop('disabled', false);
+                for (var i = 0; i < data.data.length; i++) {
+                    var rows = `<option value="${data.data[i].DistrictID}">${data.data[i].DistrictName}</option>`;
+                    $('#modalHuyen').append(rows);
+                }
+                $('#modalXa').empty().append('<option value="" disabled selected>Chọn phường/xã</option>').prop('disabled', true);
+            },
+            error: function (reponse) {
+                console.error("Lỗi khi tải quận/huyện:", reponse);
+                $('#modalHuyen').html('<option value="">Lỗi tải dữ liệu</option>');
+            }
+        });
+    }
+
+    // Load phường/xã cho modal
+    function loadXaPhuongModal(districtId) {
+        if (!districtId) {
+            $('#modalXa').empty().append('<option value="" disabled selected>Chọn phường/xã</option>').prop('disabled', true);
+            return;
+        }
+
+        modalHuyen = $("#modalHuyen option:selected").text();
+
+        $.ajax({
+            type: "GET",
+            url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward",
+            headers: { token: GHN_TOKEN },
+            data: { district_id: districtId },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                $('#modalXa').empty().append('<option value="" disabled selected>Chọn phường/xã</option>').prop('disabled', false);
+                for (var i = 0; i < data.data.length; i++) {
+                    var rows = `<option value="${data.data[i].WardCode}">${data.data[i].WardName}</option>`;
+                    $('#modalXa').append(rows);
+                }
+            },
+            error: function (reponse) {
+                console.error("Lỗi khi tải phường/xã:", reponse);
+                $('#modalXa').html('<option value="">Lỗi tải dữ liệu</option>');
+            }
+        });
+    }
+
+    // Xử lý sự kiện cho modal
+    $(document).ready(function() {
+        // Sự kiện change cho tỉnh/thành modal
+        $('#modalTinh').change(function() {
+            loadQuanHuyenModal($(this).val());
+            $(this).removeClass('is-invalid');
+        });
+
+        // Sự kiện change cho quận/huyện modal
+        $('#modalHuyen').change(function() {
+            loadXaPhuongModal($(this).val());
+            $(this).removeClass('is-invalid');
+        });
+
+        // Sự kiện change cho phường/xã modal
+        $('#modalXa').change(function() {
+            modalXa = $("#modalXa option:selected").text();
+            $(this).removeClass('is-invalid');
+        });
+
+        // Real-time validation
+        $('.form-control').on('input', function() {
+            $(this).removeClass('is-invalid');
+        });
+
+        // Xử lý lưu khách hàng
+        $(document).on("click", "#btn-saveKH", function () {
+            // Check cứng 2 trường bắt buộc
+            if (!$("#inputTenKhachHang").val().trim()) {
+                toastr.warning("Vui lòng nhập tên khách hàng");
+                return;
+            }
+
+            if (!$("#inputSDT").val().trim()) {
+                toastr.warning("Vui lòng nhập số điện thoại");
+                return;
+            }
+
+            // Thu thập dữ liệu
+            let khachHang = {
+                Ten: $("#inputTenKhachHang").val().trim(),
+                Email: $("#inputEmail").val().trim(),
+                SDT: $("#inputSDT").val().trim(),
+                NgaySinh: $("#inputNgaySinh").val(),
+                GioiTinh: $("input[name='gioitinh']:checked").val(),
+                Tinh: modalTinh,
+                Huyen: modalHuyen,
+                Xa: modalXa,
+                Quan: $("#modalHuyen").val(), // Lưu ID quận/huyện
+                DiaChiChiTiet: $("#modalDiaChiChiTiet").val().trim(),
+                TrangThai: $("#modalTrangThai").val() || 1
+            };
+
+            // Hiển thị loading
+            const $btn = $(this);
+            const originalText = $btn.html();
+            $btn.html('<span class="spinner-border spinner-border-sm" role="status"></span> Đang lưu...');
+            $btn.prop('disabled', true);
+
+            // Gọi API tạo khách hàng
+            $.ajax({
+                url: "/BanHangTaiQuay/AddKhachHang",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(khachHang),
+                success: function (response) {
+                    $btn.html(originalText);
+                    $btn.prop('disabled', false);
+
+                    if (response.success) {
+                        toastr.success("Thêm khách hàng thành công!");
+
+                        // Cập nhật thông tin khách hàng vào form bán hàng
+                        if (response.data && response.data.id) {
+                            const newCustomer = {
+                                id: response.data.id,
+                                ten: khachHang.Ten,
+                                sdt: khachHang.SDT,
+                                email: khachHang.Email
+                            };
+
+                            chonKhachHang(newCustomer);
+                        }
+
+                        // Đóng modal
+                        $("#modalTaoKhachHang").modal("hide");
+
+                    } else {
+                        toastr.error(response.message || "Thêm khách hàng thất bại!");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $btn.html(originalText);
+                    $btn.prop('disabled', false);
+                    toastr.error("Có lỗi xảy ra khi thêm khách hàng: " + error);
+                }
+            });
+        });
+    });
 </script>

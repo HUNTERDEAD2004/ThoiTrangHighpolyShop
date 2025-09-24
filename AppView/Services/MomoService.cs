@@ -17,10 +17,59 @@ namespace AppView.Services
         {
             _options = options;
         }
+        //public async Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model)
+        //{
+        //    // ✅ Không dùng DateTime.UtcNow.Ticks nữa
+        //    // Nếu OrderId rỗng thì gán Guid mới
+        //    if (string.IsNullOrEmpty(model.OrderId))
+        //    {
+        //        model.OrderId = Guid.NewGuid().ToString();
+        //    }
+
+        //    model.OrderInfo = "Khách hàng: " + model.FullName + ". Nội dung: " + model.OrderInfo;
+
+        //    // raw data theo đúng format Momo
+        //    var rawData =
+        //        $"partnerCode={_options.Value.PartnerCode}" +
+        //        $"&accessKey={_options.Value.AccessKey}" +
+        //        $"&requestId={model.OrderId}" +   // requestId = luôn Guid string
+        //        $"&amount={model.Amount}" +
+        //        $"&orderId={model.OrderId}" +     // orderId = Guid hóa đơn
+        //        $"&orderInfo={model.OrderInfo}" +
+        //        $"&returnUrl={_options.Value.ReturnUrl}" +
+        //        $"&notifyUrl={_options.Value.NotifyUrl}" +
+        //        $"&extraData=";
+
+        //    var signature = ComputeHmacSha256(rawData, _options.Value.SecretKey);
+
+        //    var client = new RestClient(_options.Value.MomoApiUrl);
+        //    var request = new RestRequest() { Method = Method.Post };
+        //    request.AddHeader("Content-Type", "application/json; charset=UTF-8");
+
+        //    var requestData = new
+        //    {
+        //        accessKey = _options.Value.AccessKey,
+        //        partnerCode = _options.Value.PartnerCode,
+        //        requestType = _options.Value.RequestType,
+        //        notifyUrl = _options.Value.NotifyUrl,
+        //        returnUrl = _options.Value.ReturnUrl,
+        //        orderId = model.OrderId,          // gửi Guid
+        //        amount = model.Amount.ToString(),
+        //        orderInfo = model.OrderInfo,
+        //        requestId = model.OrderId,        // requestId = cùng giá trị Guid
+        //        extraData = "",
+        //        signature = signature
+        //    };
+
+        //    request.AddParameter("application/json", JsonConvert.SerializeObject(requestData), ParameterType.RequestBody);
+
+        //    var response = await client.ExecuteAsync(request);
+        //    var momoResponse = JsonConvert.DeserializeObject<MomoCreatePaymentResponseModel>(response.Content);
+
+        //    return momoResponse;
+        //}
         public async Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model)
         {
-            // ✅ Không dùng DateTime.UtcNow.Ticks nữa
-            // Nếu OrderId rỗng thì gán Guid mới
             if (string.IsNullOrEmpty(model.OrderId))
             {
                 model.OrderId = Guid.NewGuid().ToString();
@@ -28,15 +77,21 @@ namespace AppView.Services
 
             model.OrderInfo = "Khách hàng: " + model.FullName + ". Nội dung: " + model.OrderInfo;
 
-            // raw data theo đúng format Momo
+            // Chọn return URL dựa trên BusinessType
+            string returnUrl = model.BusinessType switch
+            {
+                1 => _options.Value.ReturnUrl1,              
+                _ => _options.Value.ReturnUrl
+            };
+
             var rawData =
                 $"partnerCode={_options.Value.PartnerCode}" +
                 $"&accessKey={_options.Value.AccessKey}" +
-                $"&requestId={model.OrderId}" +   // requestId = luôn Guid string
+                $"&requestId={model.OrderId}" +
                 $"&amount={model.Amount}" +
-                $"&orderId={model.OrderId}" +     // orderId = Guid hóa đơn
+                $"&orderId={model.OrderId}" +
                 $"&orderInfo={model.OrderInfo}" +
-                $"&returnUrl={_options.Value.ReturnUrl}" +
+                $"&returnUrl={returnUrl}" + // Sử dụng URL đã chọn
                 $"&notifyUrl={_options.Value.NotifyUrl}" +
                 $"&extraData=";
 
@@ -52,11 +107,11 @@ namespace AppView.Services
                 partnerCode = _options.Value.PartnerCode,
                 requestType = _options.Value.RequestType,
                 notifyUrl = _options.Value.NotifyUrl,
-                returnUrl = _options.Value.ReturnUrl,
-                orderId = model.OrderId,          // gửi Guid
+                returnUrl = returnUrl, // Sử dụng URL đã chọn
+                orderId = model.OrderId,
                 amount = model.Amount.ToString(),
                 orderInfo = model.OrderInfo,
-                requestId = model.OrderId,        // requestId = cùng giá trị Guid
+                requestId = model.OrderId,
                 extraData = "",
                 signature = signature
             };
@@ -68,7 +123,6 @@ namespace AppView.Services
 
             return momoResponse;
         }
-
         public MomoExecuteResponseModel PaymentExecuteAsync(IQueryCollection collection)
         {
             var amount = collection.First(s => s.Key == "amount").Value;

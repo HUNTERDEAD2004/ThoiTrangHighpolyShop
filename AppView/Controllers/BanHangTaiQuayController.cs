@@ -831,68 +831,50 @@ namespace AppView.Controllers
 
         //Thêm nhanh khách hàng
         [HttpPost]
-        public async Task<IActionResult> AddKhachHang(KhachHang request)
+        public async Task<IActionResult> AddKhachHang([FromBody] KhachHangViewModel request)
         {
             try
             {
-                KhachHang khview = new KhachHang();
-                khview.IDKhachHang = Guid.NewGuid();
-                khview.SDT = request.SDT;
-                khview.Email = request.Email;
-                khview.Ten = request.Ten;
-                khview.NgaySinh = request.NgaySinh;
-                khview.GioiTinh = request.GioiTinh;
-                khview.Password = khview.MaKhachHang.ToString().Substring(0, 8);
-                khview.TrangThai = 1;
-                khview.DiemTich = 0;
-                var lstkh = await _httpClient.GetFromJsonAsync<List<KhachHang>>("KhachHang");
-                if (request.SDT != null && lstkh.Any(c => c.SDT != null && c.SDT.Trim().Equals(request.SDT.Trim())))
+                if (request == null) return BadRequest();
+                // Validate cơ bản
+                if (string.IsNullOrWhiteSpace(request.Ten))
+                    return Json(new { success = false, message = "Tên khách hàng không được để trống" });
+
+                if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains("@"))
+                    return Json(new { success = false, message = "Email không hợp lệ" });
+
+                if (string.IsNullOrWhiteSpace(request.SDT) || request.SDT.Length < 10)
+                    return Json(new { success = false, message = "Số điện thoại không hợp lệ" });
+
+                if (string.IsNullOrWhiteSpace(request.DiaChiChiTiet))
+                    return Json(new { success = false, message = "Địa chỉ chi tiết không được để trống" });
+
+                // Gửi sang API - API sẽ lo generate MaKH, Password, tạo giỏ hàng, gửi mail
+                var url = $"https://localhost:7095/api/KhachHang?isAdmin=true";
+                var response = await _httpClient.PostAsJsonAsync(url, request);
+
+                if (response.IsSuccessStatusCode)
                 {
-                    return Json(new { success = false, message = "Số điện thoại đã được sử dụng" });
-                }
-                if (request.Email != null && lstkh.Any(c => c.Email != null && c.Email.Trim().Equals(request.Email.Trim())))
-                {
-                    return Json(new { success = false, message = "Email đã được sử dụng" });
+                    var khach = await response.Content.ReadFromJsonAsync<KhachHang>();
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Thêm khách hàng thành công. Thông tin đăng nhập đã được gửi qua email.",
+                        data = new { id = khach.IDKhachHang, ten = khach.Ten, sdt = khach.SDT, email = khach.Email }
+                    });
                 }
                 else
                 {
-                    var url = $"https://localhost:7095/api/QuanLyNguoiDung/AddNhanhKH";
-                    var response = await _httpClient.PostAsJsonAsync(url, khview);
-                    if (response.IsSuccessStatusCode) // Thêm khách hàng thành công -> tạo lịch sử tích điểm
-                    {
-                        var qdd = await _httpClient.GetFromJsonAsync<List<QuyDoiDiem>>("QuyDoiDiem");
-                        var idqdd = qdd.FirstOrDefault(c => c.TrangThai != 0).ID;
-                        var kh = new KhachHang();
-                        if (request.SDT != null)
-                        {
-                            kh = await _httpClient.GetFromJsonAsync<KhachHang>($"KhachHang/getBySDT?sdt={request.SDT}");
-                        }
-                        else if (request.Email != null)
-                        {
-                            kh = await _httpClient.GetFromJsonAsync<KhachHang>($"KhachHang/getBySDT?sdt={request.Email}");
-                        }
-
-                        var IDHD = request.MaKhachHang; // Luu tam idhd qua idkh
-                                                        // ktra hd đã có lstd 
-                        var checkexist = await _httpClient.GetFromJsonAsync<bool>($"HoaDon/CheckLSGDHD/{IDHD}");
-                        if (checkexist == true) // Tồn tại-> xóa
-                        {
-                            var lstdexist = await _httpClient.GetFromJsonAsync<LichSuTichDiem>($"HoaDon/LichSuGiaoDich/{IDHD}");
-                            var deletelstd = await _httpClient.DeleteAsync($"LichSuTichDiem/{lstdexist.ID}");
-                        }
-                        string apiUrl = $"https://localhost:7095/api/LichSuTichDiem?diem=0&trangthai=1&IdKhachHang={kh.MaKhachHang}&IdQuyDoiDiem={idqdd}&IdHoaDon={IDHD}";
-                        var lstdresponse = await _httpClient.PostAsync(apiUrl, null);
-                        return Json(new { success = true, message = "Thêm khách hàng thành công" });
-
-                    }
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return Json(new { success = false, message = $"Lỗi từ API: {errorContent}" });
                 }
-                return Json(new { success = false, message = "Thêm khách hàng thất bại" });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Thêm khách hàng thất bại" });
+                return Json(new { success = false, message = $"Có lỗi xảy ra: {ex.Message}" });
             }
         }
+
         //Sửa khách hàng
         public async Task<IActionResult> UpdateKHinHD(string idkh, string idhd)
         {

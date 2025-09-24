@@ -341,11 +341,15 @@ namespace AppAPI.Services
             {
                 "COD" => Guid.Parse("DD56B0D5-721D-4CD3-A20A-CEB190755E26"),
                 "VNPay" => Guid.Parse("761881CC-2324-4760-9628-6ED287A59AC7"),
+                "Momo" => Guid.Parse("f29cd85d-0251-4b50-8867-6a88891417f6"),
                 _ => Guid.Empty
             };
 
-            // Nếu là VNPay thì gán mặc định trạng thái = 11 (Đã xác nhận), còn lại = 2 (Chờ xác nhận)
-            hoaDon.TrangThaiGiaoHang = vm.PhuongThucThanhToan == "VNPay" ? 11 : 2;
+            // Nếu là VNPay hoặc Momo thì gán trạng thái = 11, còn lại = 2
+            hoaDon.TrangThaiGiaoHang =
+                (vm.PhuongThucThanhToan == "VNPay" || vm.PhuongThucThanhToan == "Momo")
+                ? 11
+                : 2;
 
             return hoaDon;
         }
@@ -598,7 +602,12 @@ namespace AppAPI.Services
                                   TrangThai = hd.TrangThaiGiaoHang,
                                   //ThueVAT = hd.ThueVAT,
                                   KhachCanTra = hd.TongTien,
-                                  TienKhachTra = (hd.TrangThaiGiaoHang == 6 || pt.TenPTTT == "VNPay" && hd.TrangThaiGiaoHang != 7) ? hd.TongTien : 0,
+                                  TienKhachTra =
+    (hd.TrangThaiGiaoHang == 6
+     || ((pt.TenPTTT == "VNPay" || pt.TenPTTT == "Momo") && hd.TrangThaiGiaoHang != 7))
+    ? hd.TongTien
+    : 0,
+
                                   GhiChu = hd.GhiChu,
                                   TruTieuDiem = (from lstd in context.LichSuTichDiems
                                                  join qdd in context.QuyDoiDiems on lstd.IDQuyDoiDiem equals qdd.ID
