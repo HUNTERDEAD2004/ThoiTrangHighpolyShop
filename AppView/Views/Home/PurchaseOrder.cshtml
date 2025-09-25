@@ -53,6 +53,7 @@
 
 <section style="background-color: #eee;">
     <div class="container py-5">
+        <!-- Breadcrumb -->
         <div class="row mb-4">
             <div class="col">
                 <nav aria-label="breadcrumb" class="bg-light rounded-3 p-3">
@@ -64,7 +65,7 @@
             </div>
         </div>
 
-        <!-- FILTER -->
+        <!-- Filter -->
         <div class="row">
             <div class="col">
                 <div onchange="LocHoaDon()" id="navbar">
@@ -90,7 +91,7 @@
             </div>
         </div>
 
-        <!-- SEARCH -->
+        <!-- Search -->
         <div class="VrgkXA">
             <svg width="19px" height="19px" viewBox="0 0 19 19">
                 <g stroke-width="1" fill="none">
@@ -105,7 +106,7 @@
             <input id="search" oninput="LocHoaDon()" placeholder="Bạn có thể tìm kiếm mã hóa đơn" />
         </div>
 
-        <!-- TABLE -->
+        <!-- Table -->
         <div id="AllHoaDon">
             <table class="table table-bordered bg-white">
                 <thead class="thead-light">
@@ -123,7 +124,7 @@
             </table>
         </div>
 
-        <!-- PAGINATION -->
+        <!-- Pagination -->
         <div class="row">
             <div class="col-lg-12 text-center">
                 <ul id="pagination-demo" class="pagination justify-content-center" style="display: none;"></ul>
@@ -149,23 +150,21 @@
             FilterHoaDon();
         }
 
-              function FilterHoaDon() {
+        function FilterHoaDon() {
             pageIndex = 1;
 
             var status = $('input[name="menu"]:checked').val();
             var keyword = $('#search').val();
 
-            var data = {
-                TrangThaiGiaoHang: status,
-                page: pageIndex,
-                pageSize: pagesize,
-                maHoaDon: keyword // CHỈ sửa dòng này
-            };
-
             $.ajax({
                 url: "https://localhost:7095/api/HoaDon/tra-cuu",
                 type: "GET",
-                data: data,
+                data: {
+                    TrangThaiGiaoHang: status,
+                    page: pageIndex,
+                    pageSize: pagesize,
+                    maHoaDon: keyword
+                },
                 success: function (response) {
                     $('#DShoaDon').empty();
 
@@ -175,19 +174,24 @@
                         return;
                     }
 
-                    for (let i = 0; i < response.data.length; i++) {
+                    response.data.forEach(function(item) {
                         let row = `
                         <tr>
-                            <th><a href="PurchaseOrderDetail?idHoaDon=${response.data[i].idHoaDon}">${response.data[i].maHD}</a></th>
-                            <td>${response.data[i].ngaytao1}</td>
-                            <td>${response.data[i].ngaythanhtoan1 || 'Chờ xử lý'}</td>
-                            <td>${response.data[i].ngaynhanhang1 || 'Chờ xử lý'}</td>
-                            <td>${Intl.NumberFormat().format(response.data[i].tongTien)} VNĐ</td>
-                            <td>${getTrangThaiLabel(response.data[i].trangThaiGiaoHang)}</td>
-                            <td>${response.data[i].loaiHoaDon === 0 ? 'Mua hàng online' : 'Mua hàng tại quầy'}</td>
+                            <th>
+                                <form method="post" action="/Home/TraCuuDonHang" style="display:inline;">
+                                    <input type="hidden" name="maHoaDon" value="${item.maHD}" />
+                                    <button type="submit" class="btn btn-link p-0">${item.maHD}</button>
+                                </form>
+                            </th>
+                            <td>${item.ngaytao1}</td>
+                            <td>${item.ngaythanhtoan1 || 'Chờ xử lý'}</td>
+                            <td>${item.ngaynhanhang1 || 'Chờ xử lý'}</td>
+                            <td>${Intl.NumberFormat().format(item.tongTien)} VNĐ</td>
+                            <td>${getTrangThaiLabel(item.trangThaiGiaoHang)}</td>
+                            <td>${item.loaiHoaDon === 0 ? 'Mua hàng online' : 'Mua hàng tại quầy'}</td>
                         </tr>`;
                         $('#DShoaDon').append(row);
-                    }
+                    });
 
                     paginghd(response.total, function () {
                         FilterHoaDon();
@@ -228,7 +232,7 @@
             });
         }
 
-            function getTrangThaiLabel(status) {
+        function getTrangThaiLabel(status) {
             switch (status) {
                 case 2: return 'Chờ xác nhận';
                 case 11: return 'Đã xác nhận';
@@ -241,6 +245,5 @@
                 default: return 'Không xác định';
             }
         }
-
     </script>
 }
