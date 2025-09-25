@@ -310,7 +310,7 @@
                                 </div>
                                 <div class="product__item__text">
                                     <h6>${item.ten}</h6>
-                                    <a onclick="${addCartAction}" class="add-cart" style="cursor:pointer"> + Thêm vào giỏ hàng </a>
+                                        <a href="/Home/ProductDetail?idSanPham=${item.id}" class="add-cart" style="cursor:pointer">Mua ngay</a>
                                     <div class="stars-outer"><div class="stars-inner"></div><span class="number-rating"></span></div>
                                     <h5>${Intl.NumberFormat().format(item.giaBan)} VNĐ</h5>
                                     ${delPrice}
