@@ -4,37 +4,190 @@
     ViewData["Title"] = "Kết quả thanh toán";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body text-center p-5">
-                    @if (Model.Success)
-                    {
-                        <div class="text-success mb-4">
-                            <i class="bi bi-check-circle-fill" style="font-size: 4rem;"></i>
-                        </div>
-                        <h3 class="text-success">Thanh toán thành công!</h3>
-                        <p class="text-muted">@Model.Message</p>
+<style>
+    .payment-result-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        padding: 20px 0;
+    }
 
-                        <div class="mt-4 p-3 bg-light rounded">
-                            <p><strong>Mã đơn hàng:</strong> @Model.OrderId</p>
-                            <p><strong>Số tiền:</strong> @Model.Amount đ</p>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-danger mb-4">
-                            <i class="bi bi-x-circle-fill" style="font-size: 4rem;"></i>
-                        </div>
-                        <h3 class="text-danger">Thanh toán thất bại</h3>
-                        <p class="text-muted">@Model.Message</p>
-                    }
+    .result-card {
+        border: none;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
 
-                    <div class="mt-4">
-                        <a asp-controller="BanHangTaiQuay" asp-action="BanHang" class="btn btn-primary">
-                            <i class="bi bi-arrow-left"></i> Quay lại bán hàng
-                        </a>
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .success-icon {
+        color: #28a745;
+        animation: bounce 1s ease-in-out;
+    }
+
+    .error-icon {
+        color: #dc3545;
+        animation: shake 0.5s ease-in-out;
+    }
+
+    .payment-details {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #28a745;
+    }
+
+        .payment-details.error {
+            border-left-color: #dc3545;
+        }
+
+    .btn-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+
+        40% {
+            transform: translateY(-10px);
+        }
+
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-5px);
+        }
+
+        75% {
+            transform: translateX(5px);
+        }
+    }
+
+    .status-badge {
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .success-badge {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .error-badge {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+
+<div class="payment-result-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card result-card">
+                    <div class="card-body text-center p-5">
+                        @if (Model.Success)
+                        {
+                            <!-- Phần thành công giữ nguyên -->
+                            <div class="text-success mb-4">
+                                <i class="bi bi-check-circle-fill success-icon" style="font-size: 5rem;"></i>
+                            </div>
+                            <span class="status-badge success-badge mb-3">
+                                <i class="bi bi-check-lg me-2"></i>THÀNH CÔNG
+                            </span>
+                            <h3 class="text-success mb-3">Thanh toán thành công!</h3>
+                            <p class="text-muted mb-4">@Model.Message</p>
+
+                            <div class="payment-details text-start">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Mã đơn hàng:</strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <span class="fw-bold text-primary">@Model.OrderId</span>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <strong>Số tiền:</strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <span class="fw-bold text-success">@(decimal.Parse(Model.Amount).ToString("N0")) đ</span>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <strong>Thời gian:</strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <span class="text-muted">@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 d-grid gap-2">
+                                <a asp-controller="BanHangTaiQuay" asp-action="BanHang" class="btn btn-custom">
+                                    <i class="bi bi-arrow-left me-2"></i>Quay lại bán hàng
+                                </a>
+                                <button onclick="inHoaDon('@Model.OrderId')" class="btn btn-outline-primary">
+                                    <i class="bi bi-printer me-2"></i>In hóa đơn
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Phần thất bại giữ nguyên -->
+                            <div class="text-danger mb-4">
+                                <i class="bi bi-x-circle-fill error-icon" style="font-size: 5rem;"></i>
+                            </div>
+                            <span class="status-badge error-badge mb-3">
+                                <i class="bi bi-x-lg me-2"></i>THẤT BẠI
+                            </span>
+                            <h3 class="text-danger mb-3">Thanh toán thất bại</h3>
+                            <p class="text-muted mb-4">@Model.Message</p>
+
+                            <div class="payment-details error text-start">
+                                <p class="mb-2"><i class="bi bi-info-circle me-2"></i>Vui lòng thử lại hoặc liên hệ hỗ trợ</p>
+                                <p class="mb-0 text-muted small">Mã lỗi: @Model.OrderId</p>
+                            </div>
+
+                            <div class="mt-4 d-grid">
+                                <a asp-controller="BanHangTaiQuay" asp-action="BanHang" class="btn btn-custom">
+                                    <i class="bi bi-arrow-left me-2"></i>Quay lại bán hàng
+                                </a>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -43,8 +196,38 @@
 </div>
 
 <script>
-    // Chuyển về trang BanHang sau 5 giây
-    setTimeout(function() {
-        window.location.href = '@Url.Action("BanHang", "BanHangTaiQuay")';
-    }, 2000);
+    // Hàm in hóa đơn - ĐÃ SỬA
+    function inHoaDon(orderId) {
+        const printUrl = `/QuanLyHoaDon/PrintHD/${orderId}`;
+        const printWindow = window.open(printUrl, '_blank', 'width=800,height=600');
+
+        if (printWindow) {
+            printWindow.focus();
+            // Tự động in sau 1 giây
+            setTimeout(() => {
+                printWindow.print();
+            }, 1000);
+        } else {
+            alert('Vui lòng cho phép popup để in hóa đơn!');
+        }
+    }
+
+    // Tự động in khi thanh toán thành công - ĐÃ SỬA
+    @if (Model.Success)
+    {
+            <text>
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    inHoaDon('@Model.OrderId');
+                }, 3000);
+            });
+            </text>
+    }
+
+    // Tự động chuyển hướng sau 10 giây - ĐÃ SỬA
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            window.location.href = '@Url.Action("BanHang", "BanHangTaiQuay")';
+        }, 10000);
+    });
 </script>

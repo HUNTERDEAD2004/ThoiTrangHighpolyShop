@@ -292,6 +292,46 @@
         .toast {
             color: white; /* Màu chữ trắng */
         }
+
+        .bg-light {
+            background-color: #f8f9fa !important;
+        }
+
+        .form-select:disabled {
+            background-color: #f8f9fa;
+            opacity: 1;
+        }
+
+        .address-locked {
+            border-left: 3px solid #28a745;
+            background-color: #f8fff9;
+        }
+
+        /* Thêm style cho trạng thái khóa */
+        .form-control:disabled, .form-select:disabled {
+            cursor: not-allowed;
+        }
+
+        /* Thêm vào phần CSS hiện có */
+        #khachHangDisplay {
+            font-weight: 600;
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+        }
+
+            #khachHangDisplay:focus {
+                border-color: #4154f1;
+                box-shadow: 0 0 0 0.2rem rgba(65, 84, 241, 0.25);
+            }
+
+        .btn-outline-secondary {
+            border-color: #dee2e6;
+        }
+
+            .btn-outline-secondary:hover {
+                background-color: #f8f9fa;
+                border-color: #4154f1;
+            }
     </style>
 }
 
@@ -362,20 +402,21 @@
       
             <div class="col-md-4">
                 <div class="box-section">
-                    <div class="mb-2">
-                        <label class="section-title">Khách Hàng</label>
-                        <div class="input-group input-group-sm">
-                            <input type="text" class="form-control form-control-sm" id="khachHangDisplay"
-                                   placeholder="Chọn khách hàng" readonly value="khachle">
-                            <input type="hidden" id="khachHangId" value="e106c66d-f18d-4609-8a38-08e09d68e78c">
-                            <button class="btn btn-outline-secondary" type="button" onclick="moModalKhachHang()">
-                                <i class="bi bi-person"></i>
-                            </button>
-                            <button class="btn btn-outline-secondary" type="button" onclick="taoKhachHangNhanh()">
-                                <i class="bi bi-plus"></i>
-                            </button>
-                        </div>
+                <!-- Cập nhật phần hiển thị khách hàng -->
+                <div class="mb-2">
+                    <label class="section-title">Khách Hàng</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control form-control-lg fw-bold" id="khachHangDisplay"
+                               placeholder="Chọn khách hàng" readonly value="khachle" style="font-size: 1.1rem; height: 45px;">
+                        <input type="hidden" id="khachHangId" value="e106c66d-f18d-4609-8a38-08e09d68e78c">
+                        <button class="btn btn-outline-secondary" type="button" onclick="moModalKhachHang()" style="height: 45px;">
+                            <i class="bi bi-person"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary" type="button" onclick="taoKhachHangNhanh()" style="height: 45px;">
+                            <i class="bi bi-plus"></i>
+                        </button>
                     </div>
+                </div>
 
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <div class="fw-bold">Giao hàng</div>
@@ -386,20 +427,24 @@
 
                     <!-- Form giao hàng (ẩn mặc định) -->
                     <div id="formGiaoHang" style="display: none;" class="compact-form">
+                        <!-- Cập nhật phần thông tin người nhận -->
                         <div class="address-section">
                             <div class="address-section-title">Thông tin người nhận</div>
 
                             <div class="mb-2">
-                                <input type="text" class="form-control form-control-sm" id="tenNguoiNhan" placeholder="Tên người nhận">
+                                <input type="text" class="form-control form-control-lg fw-bold" id="tenNguoiNhan"
+                                       placeholder="Tên người nhận" style="font-size: 1.1rem; height: 45px;">
                                 <div class="invalid-feedback">Vui lòng nhập tên</div>
                             </div>
 
                             <div class="mb-2">
-                                <input type="text" class="form-control form-control-sm" id="sdtNguoiNhan" placeholder="Số điện thoại">
+                                <input type="text" class="form-control form-control-lg" id="sdtNguoiNhan"
+                                       placeholder="Số điện thoại" style="font-size: 1.1rem; height: 45px;">
                                 <div class="invalid-feedback">Số điện thoại không hợp lệ</div>
                             </div>
                         </div>
 
+                        <!-- Cập nhật phần địa chỉ giao hàng (bỏ nút nhập thủ công) -->
                         <div class="address-section">
                             <div class="address-section-title">Địa chỉ giao hàng</div>
 
@@ -435,17 +480,10 @@
                                 <div class="invalid-feedback">Vui lòng nhập địa chỉ</div>
                             </div>
                         </div>
-                        @* 
-                    <div class="alert alert-info mt-2 py-2" id="phiShipResult" style="display: none;">
-                        <small>Phí ship: <span id="phiShipValue">0</span> VNĐ</small>
-                    </div> *@
                     </div>
                 </div>
             </div>
-
-            
-        
-        
+ 
         <!-- Form Thanh toán -->
         <div class="col-md-8">
             <div class="box-section">
@@ -883,7 +921,7 @@
         }
     });
 
-    // Hàm hiển thị/ẩn form giao hàng
+    // ===== Sửa lại hàm toggleGiaoHangForm để reset khi ẩn form =====
     function toggleGiaoHangForm() {
         const checkbox = document.getElementById("giaoHang");
         const form = document.getElementById("formGiaoHang");
@@ -892,10 +930,12 @@
         // Reset form khi ẩn
         if (!checkbox.checked) {
             resetFormGiaoHang();
+            resetKhoaDiaChi(); // Reset trạng thái khóa
         }
     }
 
-    // Reset form giao hàng
+
+    // ===== Sửa lại hàm resetFormGiaoHang để bao gồm reset khóa =====
     function resetFormGiaoHang() {
         $('#tenNguoiNhan').val('');
         $('#sdtNguoiNhan').val('');
@@ -905,7 +945,11 @@
         $('#diaChiChiTiet').val('');
         $('#phiShipResult').hide();
         phiShip = 0;
+
+        // Reset trạng thái khóa
+        resetKhoaDiaChi();
     }
+
 
     // ===== Sửa hàm tinhPhiShipTuDong =====
     function tinhPhiShipTuDong() {
@@ -1109,7 +1153,7 @@
         });
     }
 
-    // Validate form giao hàng
+    // ===== Sửa lại hàm validateFormGiaoHang để kiểm tra cả trạng thái khóa =====
     function validateFormGiaoHang() {
         let isValid = true;
 
@@ -1159,7 +1203,7 @@
         return `${diaChiChiTiet}, ${xa}, ${huyen}, ${tinh}`;
     }
 
-    // Hàm xử lý thay đổi hình thức thanh toán (FIXED) - da fix 23/9
+    // ===== Sửa hàm onHinhThucThanhToanChange để ẩn trường tiền mặt khi chọn Momo =====
     function onHinhThucThanhToanChange() {
         const selectedValue = $("#hinhThucThanhToan").val();
         const isMomo = selectedValue === "momo";
@@ -1302,7 +1346,157 @@
         $("#modalKhachHang").modal("show");
     }
 
-    // ===== Load địa chỉ khách hàng =====
+    // ===== Chọn địa chỉ từ danh sách (ĐÃ CẬP NHẬT) =====
+    function chonDiaChiTuDanhSach() {
+        const selectedOption = $("#selectDiaChi option:selected");
+
+        // Reset nếu chọn option rỗng
+        if (!selectedOption.val()) {
+            resetKhoaDiaChi();
+            return;
+        }
+
+        // Lấy dữ liệu từ data attributes
+        const diaChiChiTiet = selectedOption.data('diachict') || '';
+        const tinhValue = selectedOption.data('tinh') || '';
+        const huyenValue = selectedOption.data('huyen') || '';
+        const xaValue = selectedOption.data('xa') || '';
+
+        // Điền thông tin vào form
+        $("#diaChiChiTiet").val(diaChiChiTiet);
+
+        // Khóa các trường địa chỉ
+        khoaCacTruongDiaChi();
+
+        // Tìm và chọn tỉnh/thành phố phù hợp
+        if (tinhValue) {
+            const tinhOption = $(`#tinhThanh option:contains('${tinhValue}')`).first();
+            if (tinhOption.length) {
+                tinhOption.prop('selected', true);
+                tinh = tinhValue;
+
+                // Load quận/huyện và tiếp tục xử lý
+                loadQuanHuyenVaChonDiaChi(tinhValue, huyenValue, xaValue);
+            }
+        }
+    }
+
+    // ===== Cập nhật hàm khoaCacTruongDiaChi (bỏ phần hiển thị nút) =====
+    function khoaCacTruongDiaChi() {
+        $('#tinhThanh').prop('disabled', true);
+        $('#quanHuyen').prop('disabled', true);
+        $('#xaPhuong').prop('disabled', true);
+
+        // Thêm class để thể hiện trạng thái khóa
+        $('#tinhThanh, #quanHuyen, #xaPhuong').addClass('bg-light');
+    }
+
+    // ===== Cập nhật hàm moKhoaCacTruongDiaChi (bỏ phần ẩn nút) =====
+    function moKhoaCacTruongDiaChi() {
+        $('#tinhThanh').prop('disabled', false);
+        $('#quanHuyen').prop('disabled', false);
+        $('#xaPhuong').prop('disabled', false);
+
+        // Xóa class thể hiện trạng thái khóa
+        $('#tinhThanh, #quanHuyen, #xaPhuong').removeClass('bg-light');
+    }
+
+    // ===== Hàm reset trạng thái khóa =====
+    function resetKhoaDiaChi() {
+        moKhoaCacTruongDiaChi();
+
+        // Reset các giá trị về mặc định
+        $('#tinhThanh').val('');
+        $('#quanHuyen').val('').prop('disabled', true);
+        $('#xaPhuong').val('').prop('disabled', true);
+        $('#diaChiChiTiet').val('');
+
+        tinh = "";
+        huyen = "";
+        xa = "";
+    }
+
+    // ===== Hàm load quận/huyện và chọn địa chỉ tự động =====
+    function loadQuanHuyenVaChonDiaChi(tinhValue, huyenValue, xaValue) {
+        const provinceId = $("#tinhThanh").val();
+
+        $.ajax({
+            type: "GET",
+            url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/district",
+            headers: { token: GHN_TOKEN },
+            data: { province_id: provinceId },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                $('#quanHuyen').empty().append('<option value="">-- Chọn quận/huyện --</option>').prop('disabled', true);
+
+                for (var i = 0; i < data.data.length; i++) {
+                    var rows = `<option value="${data.data[i].DistrictID}">${data.data[i].DistrictName}</option>`;
+                    $('#quanHuyen').append(rows);
+                }
+
+                // Tìm và chọn quận/huyện
+                if (huyenValue) {
+                    const huyenOption = $(`#quanHuyen option:contains('${huyenValue}')`).first();
+                    if (huyenOption.length) {
+                        huyenOption.prop('selected', true);
+                        huyen = huyenValue;
+                        $('#quanHuyen').prop('disabled', true); // Khóa sau khi chọn
+
+                        // Load xã/phường
+                        loadXaPhuongVaChonDiaChi(huyenValue, xaValue);
+                    }
+                }
+            },
+            error: function (reponse) {
+                console.error("Lỗi khi tải quận/huyện:", reponse);
+                moKhoaCacTruongDiaChi(); // Mở khóa nếu có lỗi
+            }
+        });
+    }
+
+    // ===== Hàm load xã/phường và chọn địa chỉ tự động =====
+    function loadXaPhuongVaChonDiaChi(huyenValue, xaValue) {
+        const districtId = $("#quanHuyen").val();
+
+        $.ajax({
+            type: "GET",
+            url: "https://online-gateway.ghn.vn/shiip/public-api/master-data/ward",
+            headers: { token: GHN_TOKEN },
+            data: { district_id: districtId },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                $('#xaPhuong').empty().append('<option value="">-- Chọn xã/phường --</option>').prop('disabled', true);
+
+                for (var i = 0; i < data.data.length; i++) {
+                    var rows = `<option value="${data.data[i].WardCode}">${data.data[i].WardName}</option>`;
+                    $('#xaPhuong').append(rows);
+                }
+
+                // Tìm và chọn xã/phường
+                if (xaValue) {
+                    const xaOption = $(`#xaPhuong option:contains('${xaValue}')`).first();
+                    if (xaOption.length) {
+                        xaOption.prop('selected', true);
+                        xa = xaValue;
+                        $('#xaPhuong').prop('disabled', true); // Khóa sau khi chọn
+
+                        // Tự động tính phí ship sau khi điền đầy đủ địa chỉ
+                        setTimeout(() => {
+                            tinhPhiShipTuDong();
+                        }, 500);
+                    }
+                }
+            },
+            error: function (reponse) {
+                console.error("Lỗi khi tải xã/phường:", reponse);
+                moKhoaCacTruongDiaChi(); // Mở khóa nếu có lỗi
+            }
+        });
+    }
+
+    // ===== Sửa hàm loadDiaChiKhachHang để thêm data attributes =====
     function loadDiaChiKhachHang(idKhachHang) {
         $.ajax({
             url: `https://localhost:7095/api/DiaChi/khachhang/${idKhachHang}/diachi`,
@@ -1311,7 +1505,12 @@
                 let html = '<option value="">-- Chọn địa chỉ --</option>';
                 if (dsDiaChi && dsDiaChi.length > 0) {
                     dsDiaChi.forEach(dc => {
-                        html += `<option value="${dc.idDiaChi}" ${dc.isDefault ? "selected" : ""}>
+                        html += `<option value="${dc.idDiaChi}"
+                                    data-diachict="${dc.diaChiChiTiet || ''}"
+                                    data-tinh="${dc.tinh || ''}"
+                                    data-huyen="${dc.huyen || ''}"
+                                    data-xa="${dc.xa || ''}"
+                                    ${dc.isDefault ? "selected" : ""}>
                                     ${dc.diaChiChiTiet}, ${dc.xa}, ${dc.huyen}, ${dc.tinh}
                                  </option>`;
                     });
@@ -1323,59 +1522,6 @@
                 $("#selectDiaChi").html('<option value="">-- Không có địa chỉ --</option>');
             }
         });
-    }
-
-    // ===== Chọn địa chỉ từ danh sách =====
-    function chonDiaChiTuDanhSach() {
-        const selectedOption = $("#selectDiaChi option:selected");
-        if (!selectedOption.val()) return; // Không làm gì nếu chọn option rỗng
-
-        // Lấy dữ liệu từ data attributes
-        const diaChiChiTiet = selectedOption.data('diachict') || '';
-        const tinhValue = selectedOption.data('tinh') || '';
-        const huyenValue = selectedOption.data('huyen') || '';
-        const xaValue = selectedOption.data('xa') || '';
-
-        // Điền thông tin vào form
-        $("#diaChiChiTiet").val(diaChiChiTiet);
-
-        // Tìm và chọn tỉnh/thành phố phù hợp
-        if (tinhValue) {
-            const tinhOption = $(`#tinhThanh option:contains('${tinhValue}')`).first();
-            if (tinhOption.length) {
-                tinhOption.prop('selected', true);
-                tinh = tinhValue;
-                loadQuanHuyen(); // Load quận/huyện sau khi chọn tỉnh
-
-                // Đợi một chút để load quận/huyện xong rồi chọn
-                setTimeout(() => {
-                    if (huyenValue) {
-                        const huyenOption = $(`#quanHuyen option:contains('${huyenValue}')`).first();
-                        if (huyenOption.length) {
-                            huyenOption.prop('selected', true);
-                            huyen = huyenValue;
-                            loadXaPhuong(); // Load xã/phường sau khi chọn huyện
-
-                            // Đợi một chút để load xã/phường xong rồi chọn
-                            setTimeout(() => {
-                                if (xaValue) {
-                                    const xaOption = $(`#xaPhuong option:contains('${xaValue}')`).first();
-                                    if (xaOption.length) {
-                                        xaOption.prop('selected', true);
-                                        xa = xaValue;
-
-                                        // Tự động tính phí ship sau khi điền đầy đủ địa chỉ
-                                        setTimeout(() => {
-                                            tinhPhiShipTuDong();
-                                        }, 500);
-                                    }
-                                }
-                            }, 300);
-                        }
-                    }
-                }, 300);
-            }
-        }
     }
 
     // Biến toàn cục lưu thông tin khách hàng mặc định
@@ -1399,7 +1545,7 @@
     // Biến toàn cục khách hàng hiện tại
     let currentKhachHang = KHACH_LE;
 
-    // Chọn khách hàng
+    // ===== Thêm sự kiện khi thay đổi khách hàng =====
     function chonKhachHang(khachHang) {
         if (!khachHang) khachHang = KHACH_LE;
 
@@ -1409,6 +1555,9 @@
         $("#khachHangId").val(khachHang.id);
         $("#tenNguoiNhan").val(khachHang.ten);
         $("#sdtNguoiNhan").val(khachHang.sdt);
+
+        // Reset trạng thái địa chỉ trước khi load mới
+        resetKhoaDiaChi();
 
         if (khachHang.id !== KHACH_LE.id) {
             loadDiaChiKhachHang(khachHang.id);
@@ -1430,9 +1579,10 @@
         chonKhachHang(khachHang);
     });
 
-    // Hàm reset khách hàng về mặc định
+    // ===== Sửa lại hàm resetKhachHang để reset cả địa chỉ =====
     function resetKhachHang() {
         chonKhachHang(KHACH_LE);
+        resetKhoaDiaChi(); // Reset trạng thái khóa địa chỉ
     }
 
     // Gọi reset khách hàng khi trang load
@@ -1973,6 +2123,12 @@
                     } else {
                         // Là thanh toán tiền mặt
                         toastr.success(response.message || "Thanh toán thành công!");
+
+                        // Gọi hàm in hóa đơn sau khi thanh toán thành công
+                        setTimeout(function() {
+                            inHoaDon(idHoaDon);
+                        }, 1000);
+
                         resetFormAfterPayment();
                     }
                 } else {
@@ -1989,6 +2145,40 @@
                 toastr.error("Có lỗi xảy ra khi thanh toán: " + (xhr.responseJSON?.message || error));
             }
         });
+    }
+
+    // ===== Hàm in hóa đơn =====
+    function inHoaDon(idHoaDon) {
+        // Sử dụng đường dẫn ExportPDF thay vì PrintHD
+        const printUrl = `/QuanLyHoaDon/PrintHD/${idHoaDon}`;
+
+        // Mở tab mới để tải PDF
+        const printWindow = window.open(printUrl, '_blank');
+
+        if (printWindow) {
+            printWindow.focus();
+            // PDF sẽ tự động download, không cần xử lý in thủ công
+            toastr.success("Đang tải hóa đơn PDF...", "Thông báo", { timeOut: 2000 });
+        } else {
+            toastr.error("Không thể mở cửa sổ in. Vui lòng cho phép popup!", "Lỗi", { timeOut: 3000 });
+        }
+    }
+
+        // ===== Hàm in hóa đơn thay thế (nếu cần) =====
+    function inHoaDonAlternative(idHoaDon) {
+        // Tạo link download trực tiếp
+        const downloadUrl = `/QuanLyHoaDon/ExportPDF/${idHoaDon}`;
+
+        // Tạo thẻ a để download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.target = '_blank';
+        link.download = `HoaDon_${idHoaDon}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toastr.success("Đang tải hóa đơn PDF...", "Thông báo", { timeOut: 2000 });
     }
 
     // Hàm mở modal chi tiết sản phẩm
@@ -2532,8 +2722,9 @@
         });
     });
 
-    // ===== CẢI THIỆN TÍNH PHÍ SHIP =====
+        // ===== Sửa lại hàm tinhPhiShipTuDong để xử lý trạng thái khóa =====
     function tinhPhiShipTuDong() {
+        // Kiểm tra xem có bật giao hàng không
         if (!$("#giaoHang").is(":checked")) {
             phiShip = 0;
             $('#phiShip').text('0 đ');
@@ -2542,8 +2733,8 @@
             return;
         }
 
-        // Validate địa chỉ giao hàng
-        if (!validateDiaChiGiaoHang()) {
+        // Validate form giao hàng
+        if (!validateFormGiaoHang()) {
             phiShip = 0;
             $('#phiShip').text('0 đ');
             $('#phiShipRow').addClass('d-none');
@@ -2551,8 +2742,8 @@
             return;
         }
 
-        const wardCode = $("#xaPhuong").val();
-        const districtId = $("#quanHuyen").val();
+        var wardCode = $("#xaPhuong").val();
+        var districtId = $("#quanHuyen").val();
 
         if (!wardCode || !districtId) {
             phiShip = 0;
@@ -2562,7 +2753,7 @@
             return;
         }
 
-        // Tính trọng lượng dựa trên sản phẩm trong giỏ hàng
+        // ĐẢM BẢO LUÔN CÓ ID HÓA ĐƠN TRƯỚC KHI TÍNH TOÁN
         const activeTab = $(".tabs-box .tab.active");
         if (!activeTab.length) {
             phiShip = 0;
@@ -2573,7 +2764,26 @@
         }
 
         const idHoaDon = activeTab.find("span").attr("value");
-        const totalWeight = tinhTrongLuongGioHang(idHoaDon);
+
+        // Tính tổng trọng lượng từ giỏ hàng
+        let totalWeight = 0;
+
+        // Kiểm tra xem giỏ hàng có tồn tại không
+        const gioHangElement = $(`.gioHangContent[data-id="${idHoaDon}"]`);
+        if (gioHangElement.length === 0) {
+            totalWeight = 1000; // 1kg mặc định
+        } else {
+            // Tính trọng lượng dựa trên số lượng sản phẩm trong giỏ hàng
+            $(`.gioHangContent[data-id="${idHoaDon}"] tr`).each(function() {
+                const soLuong = parseInt($(this).find('.so-luong-sp').val()) || 0;
+                totalWeight += soLuong * 500; // Mỗi sản phẩm 500g
+            });
+
+            // Nếu không có sản phẩm, sử dụng trọng lượng mặc định
+            if (totalWeight === 0) {
+                totalWeight = 1000; // 1kg mặc định
+            }
+        }
 
         // Hiển thị trạng thái đang tính phí
         $('#phiShip').html('<i class="bi bi-arrow-repeat spinner"></i> Đang tính...');
@@ -2587,7 +2797,7 @@
                 "Content-Type": "application/json"
             },
             data: {
-                from_district_id: 1454, // ID quận của cửa hàng
+                from_district_id: 1454, // ID quận nơi shop đặt
                 service_type_id: 2,
                 to_district_id: districtId,
                 to_ward_code: wardCode,
@@ -2603,16 +2813,25 @@
                     phiShip = data.data.total;
                     $('#phiShip').text(phiShip.toLocaleString('vi-VN') + ' đ');
                     $('#phiShipRow').removeClass('d-none');
+
+                    // Cập nhật tổng tiền
                     capNhatTongTien();
+
                     toastr.success("Đã tính phí ship thành công", "Thông báo", { timeOut: 2000 });
                 } else {
                     console.error("Lỗi tính phí ship:", data.message);
-                    hienThiLoiPhiShip();
+                    $('#phiShip').text('0 đ');
+                    phiShip = 0;
+                    capNhatTongTien();
+                    toastr.error("Không thể tính phí ship", "Lỗi", { timeOut: 3000 });
                 }
             },
             error: function (xhr, status, error) {
                 console.error("Lỗi khi tính phí ship:", error);
-                hienThiLoiPhiShip();
+                $('#phiShip').text('0 đ');
+                phiShip = 0;
+                capNhatTongTien();
+                toastr.error("Lỗi kết nối khi tính phí ship", "Lỗi", { timeOut: 3000 });
             }
         });
     }
@@ -2717,12 +2936,15 @@
         });
     }
 
+    // ===== Sửa hàm resetFormAfterPayment để không reset khi in =====
     function resetFormAfterPayment() {
-        // Reset form sau khi thanh toán thành công
+        // Chỉ reset form, không reset hóa đơn vì cần in
         xoaVoucher();
         resetFormGiaoHang();
         $("#giaoHang").prop("checked", false);
         toggleGiaoHangForm();
+
+        // Load lại danh sách hóa đơn chờ (tạo hóa đơn mới)
         loadHDCHO();
 
         // Reset các giá trị thanh toán
@@ -2938,6 +3160,34 @@
                     toastr.error("Có lỗi xảy ra khi thêm khách hàng: " + error);
                 }
             });
+        });
+    });
+
+    // ===== Cập nhật sự kiện cho các trường địa chỉ =====
+    $(document).ready(function() {
+        // Sự kiện khi chọn địa chỉ từ dropdown
+        $('#selectDiaChi').change(function() {
+            chonDiaChiTuDanhSach();
+        });
+
+        // Sự kiện khi thay đổi các trường địa chỉ
+        $('#tinhThanh, #quanHuyen, #xaPhuong, #diaChiChiTiet').change(function() {
+            capNhatTongTien();
+
+            const addressInfo = kiemTraDiaChi();
+            if (!addressInfo) return;
+
+            clearTimeout(window.shipTimeout);
+            window.shipTimeout = setTimeout(function() {
+                if (addressInfo.hasRequiredAddress) {
+                    tinhPhiShipTuDong();
+                } else {
+                    phiShip = 0;
+                    $('#phiShip').text('0 đ');
+                    $('#phiShipRow').addClass('d-none');
+                    capNhatTongTien();
+                }
+            }, 500);
         });
     });
 </script>
