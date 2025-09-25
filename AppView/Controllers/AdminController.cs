@@ -105,10 +105,16 @@ namespace AppView.Controllers
                         case "6":
                             lstSanpham = lstSanpham.OrderBy(x => x.Ten).ToList();
                             break;
-                    }
+						case "7":
+							lstSanpham = lstSanpham
+								.OrderByDescending(x => x.NgayTao ?? DateTime.MinValue)
+								.ThenByDescending(x => Convert.ToInt32(x.Ma.Substring(2))) // fallback khi NgayTao giống nhau
+								.ToList();
+							break;
+					}
 
-                    // Phân trang
-                    var model = lstSanpham
+					// Phân trang
+					var model = lstSanpham
                         .Skip((filter.page - 1) * filter.pageSize)
                         .Take(filter.pageSize)
                         .ToList();
