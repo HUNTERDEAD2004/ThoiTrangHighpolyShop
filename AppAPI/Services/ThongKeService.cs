@@ -62,16 +62,16 @@ namespace AppAPI.Services
                 var end = Convert.ToDateTime(endDate);
 
                 // Sửa
-                List<HoaDon> lstHoaDon = context.HoaDons.Where(x => (x.TrangThaiGiaoHang == 6 || x.TrangThaiGiaoHang == 7 || x.TrangThaiGiaoHang == 5) && x.NgayThanhToan >= start && x.NgayThanhToan <= end).ToList();
+                List<HoaDon> lstHoaDon = context.HoaDons.Where(x => (x.TrangThaiGiaoHang == 6 || x.TrangThaiGiaoHang == 12 ) && x.NgayThanhToan >= start && x.NgayThanhToan <= end).ToList();
 				// End
 				decimal tongHoaDonTron = lstHoaDon.Count();
 
 				// Lấy biểu đồ cột
-				foreach (var hoaDon in lstHoaDon.Where(x => x.TrangThaiGiaoHang == 6))
-                {
-                    lstChiTietHoaDon.AddRange(context.ChiTietHoaDons.Where(x => x.IDHoaDon == hoaDon.ID));
-                }
-                List<ThongKeCotViewModel> thongKeCot = (from a in lstChiTietHoaDon
+				foreach (var hoaDon in lstHoaDon) 
+				{
+					lstChiTietHoaDon.AddRange(context.ChiTietHoaDons.Where(x => x.IDHoaDon == hoaDon.ID));
+				}
+				List<ThongKeCotViewModel> thongKeCot = (from a in lstChiTietHoaDon
                                                         group a by a.IDCTSP into g
                                                         select new ThongKeCotViewModel()
                                                         {
@@ -104,10 +104,11 @@ namespace AppAPI.Services
 
 				// Lấy biểu đồ tròn
 				List<ThongKeTronViewModel> thongKeTron = (from a in lstHoaDon
+														  where a.TrangThaiGiaoHang == 6 || a.TrangThaiGiaoHang == 12
 														  group a by a.TrangThaiGiaoHang into g
 														  select new ThongKeTronViewModel()
 														  {
-															  TrangThaiHoaDon = g.Key == 6 ? "Thành công" : g.Key == 5 ? "Hoàn trả" : "Hủy",
+															  TrangThaiHoaDon = g.Key == 6 ? "Thành công" : "Giao hàng thất bại",
 															  PhanTram = tongHoaDonTron == 0 ? 0 : ((decimal)g.Count() * 100 / tongHoaDonTron),
 														  }).ToList();
 

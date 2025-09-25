@@ -19,5 +19,6 @@ namespace AppData.ViewModels.SanPham
         public string? LoaiSP { get; set; }
         public int TrangThai { get; set; }
         public Guid? IDKhuyenMai { get; set; }
-    }
+		public DateTime? NgayTao { get; set; }
+	}
 }

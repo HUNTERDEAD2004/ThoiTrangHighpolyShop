@@ -9,10 +9,15 @@ namespace AppView.Services
         public async Task<string> AddFile(IFormFile file, string wwwRootPath)
         {
             if (file == null || file.Length == 0) return string.Empty;
-
-            // Tạo tên file duy nhất
-            string fileName = Path.GetFileNameWithoutExtension(file.FileName);
-            string extension = Path.GetExtension(file.FileName);
+			var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+			string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+			if (!allowedExtensions.Contains(extension))
+			{
+				return string.Empty; // hoặc throw exception nếu muốn
+			}
+			// Tạo tên file duy nhất
+			string fileName = Path.GetFileNameWithoutExtension(file.FileName);
+            //string extension = Path.GetExtension(file.FileName);
             string uniqueFileName = $"{fileName}_{DateTime.Now:yyyyMMddHHmmssfff}{extension}";
 
             // Tạo thư mục nếu chưa có

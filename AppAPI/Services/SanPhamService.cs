@@ -1228,91 +1228,97 @@ namespace AppAPI.Services
             var ctsp = _context.ChiTietSanPhams.FirstOrDefault(p => p.ID == idctsp);
             return ctsp.IDSanPham;
         }
-        public async Task<List<HomeProductViewModel>> GetAllSanPhamTrangChu()
-        {
-            // Lấy dữ liệu gốc: sản phẩm + chi tiết + khuyến mãi
-            var dataRaw = await (from sp in _context.SanPhams.AsNoTracking()
-                                 where sp.TrangThai != 0
-                                 join ctsp in _context.ChiTietSanPhams
-                                     .Where(c => c.TrangThai == 1)
-                                     on sp.ID equals ctsp.IDSanPham into ctspGroup
-                                 from ctsp in ctspGroup.DefaultIfEmpty()
+		public async Task<List<HomeProductViewModel>> GetAllSanPhamTrangChu()
+		{
+			// Lấy sản phẩm
+			var sanPhams = await _context.SanPhams
+				.AsNoTracking()
+				.Where(sp => sp.TrangThai != 0)
+				.ToListAsync();
 
-                                 join km in _context.KhuyenMais
-                                     .Where(c => c.NgayKetThuc > DateTime.Now && c.TrangThai != 2)
-                                     on ctsp.IDKhuyenMai equals km.ID into kmGroup
-                                 from km in kmGroup.DefaultIfEmpty()
+			// Lấy khuyến mãi theo sản phẩm (dựa trên ChiTietSanPham)
+			var kmLookup = await (from ctsp in _context.ChiTietSanPhams
+								  where ctsp.TrangThai == 1 && ctsp.IDKhuyenMai != null
+								  join km in _context.KhuyenMais
+									  .Where(k => k.NgayKetThuc > DateTime.Now && k.TrangThai != 2)
+									  on ctsp.IDKhuyenMai equals km.ID
+								  group km by ctsp.IDSanPham into g
+								  select new
+								  {
+									  IDSanPham = g.Key,
+									  KhuyenMai = g.OrderByDescending(x => x.GiaTri).FirstOrDefault()
+								  }).ToDictionaryAsync(x => x.IDSanPham, x => x.KhuyenMai);
 
-                                 select new
-                                 {
-                                     sp,
-                                     ctsp,
-                                     km
-                                 }).ToListAsync();
+			// Lấy giá và số lượng từ ChiTietSanPham
+			var ctspLookup = await (from ctsp in _context.ChiTietSanPhams
+									where ctsp.TrangThai == 1
+									group ctsp by ctsp.IDSanPham into g
+									select new
+									{
+										IDSanPham = g.Key,
+										GiaMin = g.Min(x => x.GiaBan),   // giá nhỏ nhất
+										SoLuong = g.Sum(x => x.SoLuong), // tổng số lượng
+										NgayTao = g.Min(x => x.NgayTao)  // ngày tạo sớm nhất
+									}).ToDictionaryAsync(x => x.IDSanPham, x => x);
 
-            // Lấy sẵn toàn bộ đánh giá để tính SoSao
-            var danhGiaLookup = await (from cthd in _context.ChiTietHoaDons
-                                       join dg in _context.DanhGias on cthd.ID equals dg.ID
-                                       join ctsp in _context.ChiTietSanPhams on cthd.IDCTSP equals ctsp.ID
-                                       group dg by ctsp.IDSanPham into g
-                                       select new
-                                       {
-                                           IDSanPham = g.Key,
-                                           SoSaoTB = (double?)g.Average(x => x.Sao)
-                                       }).ToDictionaryAsync(x => x.IDSanPham, x => x.SoSaoTB);
+			// Lấy sẵn toàn bộ đánh giá để tính SoSao
+			var danhGiaLookup = await (from cthd in _context.ChiTietHoaDons
+									   join dg in _context.DanhGias on cthd.ID equals dg.ID
+									   join ctsp in _context.ChiTietSanPhams on cthd.IDCTSP equals ctsp.ID
+									   group dg by ctsp.IDSanPham into g
+									   select new
+									   {
+										   IDSanPham = g.Key,
+										   SoSaoTB = (double?)g.Average(x => x.Sao)
+									   }).ToDictionaryAsync(x => x.IDSanPham, x => x.SoSaoTB);
 
-            // Lấy sẵn tổng số lượng bán
-            var soLuongBanLookup = await (from h in _context.HoaDons
-                                          where h.TrangThaiGiaoHang == 6 && h.LoaiHoaDon == 0
-                                          join cthd in _context.ChiTietHoaDons on h.ID equals cthd.IDHoaDon
-                                          join ctsp in _context.ChiTietSanPhams on cthd.IDCTSP equals ctsp.ID
-                                          group cthd by ctsp.IDSanPham into g
-                                          select new
-                                          {
-                                              IDSanPham = g.Key,
-                                              SoLuongBan = g.Sum(x => x.SoLuong)
-                                          }).ToDictionaryAsync(x => x.IDSanPham, x => x.SoLuongBan);
+			// Lấy sẵn tổng số lượng bán
+			var soLuongBanLookup = await (from h in _context.HoaDons
+										  where h.TrangThaiGiaoHang == 6 && h.LoaiHoaDon == 0
+										  join cthd in _context.ChiTietHoaDons on h.ID equals cthd.IDHoaDon
+										  join ctsp in _context.ChiTietSanPhams on cthd.IDCTSP equals ctsp.ID
+										  group cthd by ctsp.IDSanPham into g
+										  select new
+										  {
+											  IDSanPham = g.Key,
+											  SoLuongBan = g.Sum(x => x.SoLuong)
+										  }).ToDictionaryAsync(x => x.IDSanPham, x => x.SoLuongBan);
 
-            // Mapping sang ViewModel
-            var result = dataRaw.Select(item =>
-            {
-                var soSao = danhGiaLookup.ContainsKey(item.sp.ID) ? danhGiaLookup[item.sp.ID] : 0;
-                var slBan = soLuongBanLookup.ContainsKey(item.sp.ID) ? soLuongBanLookup[item.sp.ID] : 0;
+			var result = sanPhams.Select(sp =>
+			{
+				var soSao = danhGiaLookup.ContainsKey(sp.ID) ? danhGiaLookup[sp.ID] : 0;
+				var slBan = soLuongBanLookup.ContainsKey(sp.ID) ? soLuongBanLookup[sp.ID] : 0;
+				var km = kmLookup.ContainsKey(sp.ID) ? kmLookup[sp.ID] : null;
+				var ctsp = ctspLookup.ContainsKey(sp.ID) ? ctspLookup[sp.ID] : null;
 
-                // Tính giá bán sau khuyến mãi
-                decimal? giaBan = null;
-                if (item.ctsp != null)
-                {
-                    giaBan = item.ctsp.GiaBan;
-                    if (item.km != null)
-                    {
-                        if (item.km.TrangThai == 1) // Giảm %
-                            giaBan = item.ctsp.GiaBan / 100 * (100 - item.km.GiaTri);
-                        else // Giảm số tiền trực tiếp
-                            giaBan = (item.km.GiaTri < item.ctsp.GiaBan)
-                                ? (item.ctsp.GiaBan - item.km.GiaTri)
-                                : 0;
-                    }
-                }
+				decimal? giaBan = ctsp?.GiaMin ?? 0;
+				if (km != null && giaBan > 0)
+				{
+					if (km.TrangThai == 1) // giảm %
+						giaBan = giaBan / 100 * (100 - km.GiaTri);
+					else // giảm số tiền
+						giaBan = Math.Max(0, giaBan.Value - km.GiaTri);
+				}
 
-                return new HomeProductViewModel
-                {
-                    Id = item.sp.ID,
-                    Ten = item.sp.Ten,
-                    IdCTSP = item.ctsp?.ID,
-                    Anh = item.sp.AnhDaiDien,
-                    SLBan = slBan,
-                    SoSao = soSao,
-                    NgayTao = item.ctsp?.NgayTao,
-                    GiaGoc = item.ctsp?.GiaBan ?? 0,
-                    GiaBan = giaBan,
-                    KhuyenMai = item.km?.GiaTri,
-                    SoLuongSP = item.ctsp?.SoLuong ?? 0
-                };
-            }).ToList();
+				return new HomeProductViewModel
+				{
+					Id = sp.ID,
+					Ten = sp.Ten,
+					Anh = sp.AnhDaiDien,
+					SLBan = slBan,
+					SoSao = soSao,
+					NgayTao = ctsp?.NgayTao,
+					GiaGoc = ctsp?.GiaMin ?? 0,
+					GiaBan = giaBan,
+					KhuyenMai = km?.GiaTri,
+					SoLuongSP = ctsp?.SoLuong ?? 0
+				};
+			}).ToList();
 
-            return result;
-        }
-        #endregion
-    }
+			return result;
+		}
+
+
+		#endregion
+	}
 }

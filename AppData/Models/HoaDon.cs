@@ -31,7 +31,6 @@
          --Hoàn hàng
          * 9-chờ xác nhận hoàn hàng
          * 4-đang hoàn hàng
-         * 5-Hoàn hàng thành công
          --Hủy khi chưa giao
          * 7-Đơn hủy
          * 8-Chờ xác nhận hủy

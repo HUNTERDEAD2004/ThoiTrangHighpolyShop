@@ -180,23 +180,24 @@
     var dataLines = [];
     var labelPies = [];
     var dataPies = [];
-    @{
-        foreach (var x in @Model.BieuDoCot)
-        {
-            @:labelBars.push('@Html.Raw(x.TenSP)')
-            @:dataBars.push(@x.SoLuong)
-        }
-        foreach (var x in Model.BieuDoDuong)
-        {
-            @:labelLines.push('@x.Ngay.ToString("MM/dd/yyyy")')
-            @:dataLines.push(@x.DoanhThu)
-        }
-        foreach (var x in Model.BieuDoTron)
-        {
-            @:labelPies.push('@Html.Raw(x.TrangThaiHoaDon)')
-            @:dataPies.push(@x.PhanTram)
-        }
+        @{
+            foreach (var x in Model.BieuDoCot)
+            {
+                    @:labelBars.push("@x.TenSP");
+                    @:dataBars.push(@x.SoLuong);
+            }
+            foreach (var x in Model.BieuDoDuong)
+            {
+                    @:labelLines.push("@x.Ngay.ToString("yyyy-MM-dd")");
+                    @:dataLines.push(@x.DoanhThu);
+            }
+            foreach (var x in Model.BieuDoTron)
+            {
+                    @:labelPies.push("@x.TrangThaiHoaDon");
+                    @:dataPies.push(@x.PhanTram.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
     }
+
     // ======== Biểu đồ cột / đường (Doanh thu) =========
     var dataDoanhThu = @Html.Raw(JsonConvert.SerializeObject(Model.BieuDoDuong ?? new List<ThongKeDuongViewModel>()));
 
