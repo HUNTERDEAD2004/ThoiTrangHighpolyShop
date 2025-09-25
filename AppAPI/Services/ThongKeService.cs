@@ -43,18 +43,31 @@ namespace AppAPI.Services
                 // Lấy 3 cột đầu
                 var soLuongThanhVien = context.KhachHangs.Count();
                 var soLuongDonHangCho = context.HoaDons.Where(x => x.TrangThaiGiaoHang == 2).Count();
-                var soLuongSanPham = context.ChiTietSanPhams.Sum(x => x.SoLuong);
-                List<ChiTietHoaDon> lstChiTietHoaDon = new List<ChiTietHoaDon>();
+				var soLuongDonHang = context.HoaDons.Count();
+				var soLuongSanPham = context.ChiTietSanPhams.Sum(x => x.SoLuong);
+				// Lấy đơn hàng mới hôm nay
+				var soDonHangMoi = context.HoaDons.Count(x => x.NgayTao.Date == DateTime.Today);
+				// Lấy sản phẩm bán gần đây
+				// Lấy danh sách sản phẩm bán gần đây
+				var thongKeSanPham = ThongKeSanPham() // phương thức hiện tại trả List<ThongKeSanPham>
+					.Select(x => new SanPhamThongKeViewModel
+					{
+						TenSP = x.TenSP,
+						SoLuong = x.SoLuong,
+						DoanhThu = x.DoanhThu
+					})
+					.ToList();
+				List<ChiTietHoaDon> lstChiTietHoaDon = new List<ChiTietHoaDon>();
                 var start = Convert.ToDateTime(startDate);
                 var end = Convert.ToDateTime(endDate);
 
                 // Sửa
                 List<HoaDon> lstHoaDon = context.HoaDons.Where(x => (x.TrangThaiGiaoHang == 6 || x.TrangThaiGiaoHang == 7 || x.TrangThaiGiaoHang == 5) && x.NgayThanhToan >= start && x.NgayThanhToan <= end).ToList();
-                // End
-                var tongHoaDonTron = lstHoaDon.Count();
+				// End
+				decimal tongHoaDonTron = lstHoaDon.Count();
 
-                // Lấy biểu đồ cột
-                foreach (var hoaDon in lstHoaDon.Where(x => x.TrangThaiGiaoHang == 6))
+				// Lấy biểu đồ cột
+				foreach (var hoaDon in lstHoaDon.Where(x => x.TrangThaiGiaoHang == 6))
                 {
                     lstChiTietHoaDon.AddRange(context.ChiTietHoaDons.Where(x => x.IDHoaDon == hoaDon.ID));
                 }
@@ -89,28 +102,31 @@ namespace AppAPI.Services
                     });
                 }
 
-                // Lấy biểu đồ tròn
-                List<ThongKeTronViewModel> thongKeTron = (from a in lstHoaDon
-                                                          group a by a.TrangThaiGiaoHang into g
-                                                          select new ThongKeTronViewModel()
-                                                          {
-                                                              TrangThaiHoaDon = g.Key == 6 ? "Thành công" : g.Key == 5 ? "Hoàn trả" : "Hủy",
-                                                              PhanTram = (g.Count() * 100) / tongHoaDonTron,
-                                                          }).ToList();
+				// Lấy biểu đồ tròn
+				List<ThongKeTronViewModel> thongKeTron = (from a in lstHoaDon
+														  group a by a.TrangThaiGiaoHang into g
+														  select new ThongKeTronViewModel()
+														  {
+															  TrangThaiHoaDon = g.Key == 6 ? "Thành công" : g.Key == 5 ? "Hoàn trả" : "Hủy",
+															  PhanTram = tongHoaDonTron == 0 ? 0 : ((decimal)g.Count() * 100 / tongHoaDonTron),
+														  }).ToList();
 
-                return new ThongKeViewModel()
-                {
-                    SoLuongThanhVien = soLuongThanhVien,
-                    SoLuongDonHang = soLuongDonHangCho,
-                    SoLuongSanPham = soLuongSanPham,
-                    BieuDoCot = thongKeCot,
-                    BieuDoDuong = thongKeDuong.OrderBy(x => x.Ngay).ToList(),
-                    BieuDoTron = thongKeTron,
-                    Start = start.ToString("MM/dd/yyyy"),
-                    End = end.ToString("MM/dd/yyyy")
-                };
-            }
-            catch
+				return new ThongKeViewModel()
+				{
+					SoLuongThanhVien = soLuongThanhVien,
+					SoLuongDonHang = soLuongDonHang,
+					SoLuongSanPham = soLuongSanPham,
+					SoDonHangMoi = soDonHangMoi, // thêm
+					ThongKeSanPham = thongKeSanPham, // thêm
+					BieuDoCot = thongKeCot,
+					BieuDoDuong = thongKeDuong.OrderBy(x => x.Ngay).ToList(),
+					BieuDoTron = thongKeTron,
+					Start = start.ToString("MM/dd/yyyy"),
+					End = end.ToString("MM/dd/yyyy")
+				};
+
+			}
+			catch
             {
                 return new ThongKeViewModel();
             }
