@@ -210,7 +210,22 @@
                             <li>Tiền ship <span id="fee">0 VND</span></li>
                             <li>Tổng tiền <span id="total"></span></li>
                         </ul>
-                        <button onclick="createhoadon()" class="site-btn">XÁC NHẬN</button>
+                        <!-- Điều khoản -->
+                        <div style="margin-top:15px;">
+                            <input type="checkbox" id="chkDieuKhoan" onchange="toggleXacNhan()">
+                            <label for="chkDieuKhoan">
+                                Tôi đồng ý với <a href="/dieu-khoan" target="_blank">điều khoản mua hàng</a>
+                            </label>
+                        </div>
+                  
+
+                        <!-- Nút XÁC NHẬN -->
+                        <button id="btnXacNhan" onclick="createhoadon()" class="site-btn" disabled>
+                            <span id="btnText">XÁC NHẬN</span>
+                            <span id="btnSpinner" class="spinner-border spinner-border-sm" style="display:none;"></span>
+                        </button>
+
+                       
                     </div>
                 </div>
             </div>
@@ -481,9 +496,19 @@
             var diachi = $("#address").val();
             var pttt = $('input[name="pttt"]:checked').val();
             var ghiChu = $("#note").val();
+            let btn = document.getElementById("btnXacNhan");
+    let text = document.getElementById("btnText");
+    let spinner = document.getElementById("btnSpinner");
+
+    // Đổi trạng thái nút sang xoay xoay
+    btn.disabled = true;
+    text.style.display = "none";
+    spinner.style.display = "inline-block";
             $('.invalid-feedback').text('');
             $('.is-invalid').removeClass('is-invalid');
             var hasError = false;
+
+
             if (ten.trim().length == 0) {
                 $('#name').addClass('is-invalid');
                 $('#name').next('.invalid-feedback').text('Không để trống tên');
@@ -566,6 +591,12 @@
                         alert("Không thể gửi đơn hàng: " + xhr.status);
                     }
                 });
+                // Hàm reset nút khi có lỗi
+    function resetButton() {
+        btn.disabled = false;
+        text.style.display = "inline";
+        spinner.style.display = "none";
+    }
             }
         }
 
@@ -689,5 +720,13 @@
         if (total < 0) total = 0;
         document.getElementById("total").innerHTML = total.toLocaleString('it-IT', { style: 'currency', currency: 'VND' });
     }
+        // bật/tắt nút khi tích checkbox
+    function toggleXacNhan() {
+        let chk = document.getElementById("chkDieuKhoan");
+        let btn = document.getElementById("btnXacNhan");
+        btn.disabled = !chk.checked;
+    }
+
+
 
 </script>
