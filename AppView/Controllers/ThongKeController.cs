@@ -320,7 +320,35 @@ namespace AppView.Controllers
             var ThongKeMSSanPhamTheoSoLuong = JsonConvert.DeserializeObject<List<ThongKeMSSanPhamTheoSoLuong>>(apiData7);
             ViewBag.ThongKeMSSanPhamTheoSoLuong = ThongKeMSSanPhamTheoSoLuong;
 
-            return View();
+			//
+			// Lấy tất cả hóa đơn
+			string apiUrlHoaDon = "https://localhost:7095/api/ThongKeView/ThongKeTatCaHoaDon";
+			var responseHoaDon = await _httpClient.GetAsync(apiUrlHoaDon);
+			string apiDataHoaDon = await responseHoaDon.Content.ReadAsStringAsync();
+			var allHoaDon = JsonConvert.DeserializeObject<List<HoaDonViewModel>>(apiDataHoaDon) ?? new List<HoaDonViewModel>();
+
+			// Lọc chỉ 2 trạng thái cần hiển thị
+			var filteredHoaDon = allHoaDon
+				.Where(x => x.TrangThaiGiaoHang == 6 || x.TrangThaiGiaoHang == 12)
+				.ToList();
+
+			int tong2TrangThai = filteredHoaDon.Count;
+
+			// Tạo danh sách ViewModel cho pie chart
+			var thongKeTron = filteredHoaDon
+				.GroupBy(x => x.TrangThaiGiaoHang)
+				.Select(g => new ThongKeTronViewModel
+				{
+					TrangThaiHoaDon = g.Key == 6 ? "Thành công" : "Giao hàng thất bại",
+					PhanTram = tong2TrangThai == 0 ? 0 : ((decimal)g.Count() * 100 / tong2TrangThai)
+				})
+				.ToList();
+
+			// Gán vào ViewBag để View dùng vẽ pie chart
+			ViewBag.BieuDoTron = thongKeTron;
+
+
+			return View();
         }
 
 		#endregion

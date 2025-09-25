@@ -725,7 +725,7 @@ namespace AppView.Controllers
                     GhiChu = $"Đã thanh toán Momo - {momoResult.OrderInfo}",
                     diaChi = !string.IsNullOrEmpty(request.diaChi) ? request.diaChi : "",
                     TongTien = request.TongTien > 0 ? request.TongTien : decimal.Parse(momoResult.Amount),
-                    TrangThai = 6 // Đã thanh toán
+                    TrangThai = 11 // Đã thanh toán
                 };
 
                 var response = await _httpClient.PutAsJsonAsync("HoaDon/UpdateHoaDon", hdrequest);
