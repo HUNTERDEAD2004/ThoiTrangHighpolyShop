@@ -294,6 +294,7 @@ namespace AppAPI.Services
                 result.DiemSuDung = hoaDon.Diem ?? 0;
                 result.MaHoaDon = hoaDonEntity.MaHoaDon;
 
+
                 // ----- Gửi email đơn hàng -----
                 try
                 {
@@ -304,16 +305,21 @@ namespace AppAPI.Services
                         TenKichCo = g.KichCo,
                         SoLuong = g.SoLuong,
                         DonGia = g.DonGia ?? 0,
-                        TrangThaiGiaoHang = hoaDon.TrangThai ? 11 : 2
+                        TrangThaiGiaoHang = hoaDon.TrangThaiGiaoHang
+        
                     }).ToList();
 
                     await SendOrderInfoEmail(
-                        hoaDon.Email,
-                        hoaDon.Ten,
-                        result.MaHoaDon,
-                        donMuaChiTiets,
-                        result.DiaChi
-                    );
+        hoaDon.Email,
+        hoaDon.Ten,
+        result.MaHoaDon,    
+        donMuaChiTiets,      
+        result.DiaChi,       
+        hoaDon.TienShip,
+        hoaDonEntity.TrangThaiGiaoHang
+
+    );
+
                 }
                 catch (Exception emailEx)
                 {
@@ -329,13 +335,25 @@ namespace AppAPI.Services
                 return ErrorResult("Lỗi hệ thống khi tạo đơn hàng", -999);
             }
         }
-      
 
 
-        private async Task SendOrderInfoEmail(string email, string tenKH, string maDonHang, List<DonMuaChiTietViewModel> items, string diaChiGiaoHang)
+
+        private async Task SendOrderInfoEmail(
+    string email,
+    string tenKH,
+    string maDonHang,
+    List<DonMuaChiTietViewModel> items,
+    string diaChiGiaoHang,
+    int tienShip,
+    int trangThaiHoaDon
+// 👈 truyền phí ship từ hóa đơn vào
+)
         {
-            // Tính tổng tiền
-            decimal tongTien = items.Sum(i => i.DonGia * i.SoLuong);
+            // Tạm tính tiền hàng
+            decimal tongTienHang = items.Sum(i => i.DonGia * i.SoLuong);
+
+            // Tổng cộng = tiền hàng + phí ship
+            decimal tongCong = tongTienHang + tienShip;
 
             // Lấy trạng thái đơn hàng
             string GetTrangThai(int status) => status switch
@@ -348,7 +366,8 @@ namespace AppAPI.Services
                 7 => "Đã hủy",
                 _ => "Không xác định"
             };
-            string trangThai = GetTrangThai(items.FirstOrDefault()?.TrangThaiGiaoHang ?? 0);
+            string trangThai = GetTrangThai(trangThaiHoaDon);
+            //string trangThai = GetTrangThai(items.FirstOrDefault()?.TrangThaiGiaoHang ?? 0);
 
             string subject = $"🛒 Xác nhận đơn hàng {maDonHang} từ ThoiTrangHighpolyShop!";
 
@@ -401,8 +420,16 @@ namespace AppAPI.Services
                     <tbody>
                         {itemRows}
                         <tr>
-                            <td colspan='2' style='padding:10px; border:1px solid #ddd; font-weight:bold;'>Tổng tiền</td>
-                            <td style='padding:10px; border:1px solid #ddd; text-align:right; font-weight:bold;'>{tongTien.ToString("N0")}₫</td>
+                            <td colspan='2' style='padding:10px; border:1px solid #ddd; font-weight:bold;'>Tạm tính</td>
+                            <td style='padding:10px; border:1px solid #ddd; text-align:right;'>{tongTienHang.ToString("N0")}₫</td>
+                        </tr>
+                        <tr>
+                            <td colspan='2' style='padding:10px; border:1px solid #ddd; font-weight:bold;'>Phí vận chuyển</td>
+                            <td style='padding:10px; border:1px solid #ddd; text-align:right;'>{tienShip.ToString("N0")}₫</td>
+                        </tr>
+                        <tr>
+                            <td colspan='2' style='padding:10px; border:1px solid #ddd; font-weight:bold; color:red;'>Tổng cộng</td>
+                            <td style='padding:10px; border:1px solid #ddd; text-align:right; font-weight:bold; color:red;'>{tongCong.ToString("N0")}₫</td>
                         </tr>
                         <tr>
                             <td colspan='2' style='padding:10px; border:1px solid #ddd; font-weight:bold;'>Trạng thái</td>
@@ -427,8 +454,8 @@ namespace AppAPI.Services
 </html>";
 
             await _mailService.SendEmailAsync(email, subject, body);
-
         }
+
 
 
 
@@ -491,19 +518,12 @@ namespace AppAPI.Services
                 LoaiHoaDon = 0
             };
 
-            hoaDon.IDPhuongThucTT = vm.PhuongThucThanhToan switch
-            {
-                "COD" => Guid.Parse("DD56B0D5-721D-4CD3-A20A-CEB190755E26"),
+            hoaDon.IDPhuongThucTT = vm.PhuongThucThanhToan switch 
+            { "COD" => Guid.Parse("DD56B0D5-721D-4CD3-A20A-CEB190755E26"),
                 "VNPay" => Guid.Parse("761881CC-2324-4760-9628-6ED287A59AC7"),
-                "Momo" => Guid.Parse("f29cd85d-0251-4b50-8867-6a88891417f6"),
-                _ => Guid.Empty
-            };
-
+                "Momo" => Guid.Parse("f29cd85d-0251-4b50-8867-6a88891417f6"), _ => Guid.Empty };
             // Nếu là VNPay hoặc Momo thì gán trạng thái = 11, còn lại = 2
-            hoaDon.TrangThaiGiaoHang =
-                (vm.PhuongThucThanhToan == "VNPay" || vm.PhuongThucThanhToan == "Momo")
-                ? 11
-                : 2;
+            hoaDon.TrangThaiGiaoHang = (vm.PhuongThucThanhToan == "VNPay" || vm.PhuongThucThanhToan == "Momo") ? 11 : 2;
 
             return hoaDon;
         }

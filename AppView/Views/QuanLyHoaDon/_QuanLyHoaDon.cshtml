@@ -145,9 +145,9 @@
                         <th scope="col">Khách hàng</th>
                         <th scope="col">Trạng thái</th>
                         <th scope="col" class="text-center">Loại HD</th>
-                        <th scope="col" class="text-end">Tổng tiền hàng</th>
+                        <th scope="col" class="text-end d-none">Tổng tiền hàng</th>
                         @*<th scope="col" class="text-end">Voucher</th>*@
-                        <th scope="col" class="text-end">Khách đã trả</th>
+                        <th scope="col" class="text-end d-none">Khách đã trả</th>
                     </tr>
                 </thead>
                 <tbody id="billRecord">
@@ -269,19 +269,23 @@
                 if(response.data.length !== 0){
                      $("#billRecord").empty();
                      var html ='';
-                     if(pageIndexhd ===1 ){
-                          html = `
-                                <tr>
-                                    <td colspan="6" class="text-end fw-bold">
-                                        ${Intl.NumberFormat().format(response.tienhang)}
-                                    </td>
+                       // Chỉ hiển thị dòng tổng nếu có ít nhất một giá trị khác 0
+                      const tienhang = parseFloat(response.tienhang) || 0;
+                const khachtra = parseFloat(response.khachtra) || 0;
 
-                                    <td class="text-end fw-bold">
-                                         ${Intl.NumberFormat().format(response.khachtra)}
-                                    </td>
-                                </tr>
-                                `;
-                     }
+                // CHỈ HIỆN KHI CÓ GIÁ TRỊ LỚN HƠN 0
+                if(pageIndexhd === 1 && (tienhang > 0 || khachtra > 0)){
+                    html = `
+                        <tr>
+                            <td colspan="6" class="text-end d-none fw-bold">
+                                ${Intl.NumberFormat().format(tienhang)}
+                            </td>
+                            <td class="text-end d-none fw-bold">
+                                ${Intl.NumberFormat().format(khachtra)}
+                            </td>
+                        </tr>
+                    `;
+                }
                      for (let i = 0; i < response.data.length; i++) {
                          const thoiGian = response.data[i].thoiGian;
                          const formattedDate = new Date(thoiGian).toLocaleDateString("en-GB");
@@ -303,8 +307,8 @@
                                </td>
                                ${response.data[i].loaiHD === 1 ? `<td class="text-center">Tại quầy</td>` : `<td class="text-center">Website</td>`}
 
-                               <td class="text-end">${Intl.NumberFormat().format(response.data[i].tongTienHang)}</td>
-                               <td class="text-end">${Intl.NumberFormat().format(response.data[i].khachDaTra)}</td>
+                               <td class="text-end d-none">${Intl.NumberFormat().format(response.data[i].tongTienHang)}</td>
+                               <td class="text-end d-none">${Intl.NumberFormat().format(response.data[i].khachDaTra)}</td>
                            </tr>
                          `;
                      }
