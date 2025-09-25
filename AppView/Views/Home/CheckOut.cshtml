@@ -13,6 +13,43 @@
     long tienship = 0;
     Layout = "_Layout";
 }
+<style>
+    /* CSS cho các input và select trong checkout */
+    .checkout__form .checkout__input input,
+    .checkout__form .checkout__input select {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* font đẹp, đồng bộ */
+        font-size: 14px; /* cỡ chữ thống nhất */
+        font-weight: 500; /* đậm vừa phải, không quá nặng */
+        color: #000000; /* màu chữ đen vừa phải */
+        height: 38px; /* chiều cao đồng bộ */
+        padding: 0.375rem 0.75rem; /* padding chuẩn như bootstrap */
+        border: 1px solid #ced4da; /* viền giống input bootstrap */
+        border-radius: 0.25rem; /* bo tròn nhẹ */
+    }
+
+        /* placeholder chữ nhạt hơn */
+        .checkout__form .checkout__input input::placeholder,
+        .checkout__form .checkout__input select option {
+            color: #6c757d; /* xám nhạt */
+            font-weight: 400;
+        }
+
+    /* label đồng bộ */
+    .checkout__form .checkout__input label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #000000;
+    }
+
+    /* nếu muốn hover focus input/select đẹp */
+    .checkout__form .checkout__input input:focus,
+    .checkout__form .checkout__input select:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+</style>
 
 <!-- Breadcrumb Section Begin -->
 <section class="breadcrumb-option">
