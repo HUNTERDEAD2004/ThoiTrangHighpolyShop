@@ -111,6 +111,7 @@ namespace AppAPI.Services
                     MauSac = chiTietSanPham.MauSac,
                     KichCo = chiTietSanPham.KichCo,
                     Anh = chiTietSanPham.Anh,
+
                     HetHang = chiTietSanPham.SoLuong < item.SoLuong ? false : true
                 });
 

@@ -38,6 +38,7 @@
         color: #f7941d;
         font-size: 14px;
     }
+
     #filter-color input[type="checkbox"], #filter-size input[type="checkbox"], #LoaiSpFilter input[type="radio"], #filter-material input[type="checkbox"] {
         display: none;
     }
@@ -85,6 +86,48 @@
     #filter-color label span:hover, #filter-size label span:hover, #filter-material label span:hover, #LoaiSpFilter label span:hover {
         background: black;
         color: white;
+    }
+
+    .product__item {
+        position: relative;
+    }
+
+    .product__item__pic {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .buy-now-btn {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: black;
+        color: white;
+        padding: 6px 15px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        text-decoration: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10; /* Tăng z-index để nổi lên trên */
+    }
+
+    .product__item__pic:hover .buy-now-btn {
+        opacity: 1;
+    }
+
+    .product__item__text {
+        margin-top: 10px;
+        position: relative;
+        z-index: 5; /* Giữ z-index thấp hơn nút mua ngay */
+        background: #fff;
+    }
+
+    .product__item__pic, .product__item__text {
+        position: relative;
     }
 </style>
 <!-- Breadcrumb Section Begin -->
@@ -299,25 +342,25 @@
                         delPrice = `<span style="font-size:14px;color:#3a3b3c;"><del>${Intl.NumberFormat().format(item.giaGoc)} VNĐ</del></span>`;
                     }
 
-                    let html = `
-                        <div class="col-lg-4 col-md-6 col-sm-6">
-                            <div class="product__item ${idShort}">
-                                <div class="product__item__pic set-bg" style="height:300px!important">
-                                    ${label}
-                                    <a href="/Home/ProductDetail?idSanPham=${item.id}">
-                                        <img style="width:260px;height:300px;" src="${item.image}">
-                                    </a>
-                                </div>
-                                <div class="product__item__text">
-                                    <h6>${item.ten}</h6>
-                                        <a href="/Home/ProductDetail?idSanPham=${item.id}" class="add-cart" style="cursor:pointer">Mua ngay</a>
-                                    <div class="stars-outer"><div class="stars-inner"></div><span class="number-rating"></span></div>
-                                    <h5>${Intl.NumberFormat().format(item.giaBan)} VNĐ</h5>
-                                    ${delPrice}
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                        let html = `
+        <div class="col-lg-4 col-md-6 col-sm-6">
+            <div class="product__item ${idShort}">
+                <div class="product__item__pic set-bg" style="height:300px!important">
+                    ${label}
+                    <a href="/Home/ProductDetail?idSanPham=${item.id}">
+                        <img style="width:260px;height:300px;" src="${item.image}">
+                    </a>
+                    <a href="/Home/ProductDetail?idSanPham=${item.id}" class="buy-now-btn">Mua ngay</a>
+                </div>
+                <div class="product__item__text">
+                    <h6 >${item.ten}</h6>
+                    <div class="stars-outer"><div class="stars-inner"></div><span class="number-rating"></span></div>
+                    <h5>${Intl.NumberFormat().format(item.giaBan)} VNĐ</h5>
+                    ${delPrice}
+                </div>
+            </div>
+        </div>
+    `;
 
                     $("#filtered-products").append(html);
                     getRatings(idShort, item.soSao);
