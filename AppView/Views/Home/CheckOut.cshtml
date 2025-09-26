@@ -50,7 +50,6 @@
     }
 
 </style>
-
 <!-- Breadcrumb Section Begin -->
 <section class="breadcrumb-option">
     <div class="container">
@@ -135,18 +134,24 @@
                             <div class="checkout__input">
                                 <label for="address">Địa chỉ</label>
                                 <input type="text" class="form-control" id="address" placeholder="Nhập địa chỉ chi tiết" required>
+
                                 <div class="invalid-feedback">Vui lòng nhập địa chỉ</div>
                             </div>
 
                         </div>
-                        <div class="checkout__input">
-                            <label>Chọn địa chỉ đã lưu</label>
-                            <select id="savedAddress" class="custom-select d-block w-100">
-                                <option value="">-- Chọn địa chỉ --</option>
-                            </select>
-                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-toggle="modal" data-target="#addAddressModal">
-                                + Thêm địa chỉ mới
-                            </button>
+
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-lg-12">
+                            <div class="checkout__input">
+                                <label>Chọn địa chỉ đã lưu</label>
+                                <select id="savedAddress" class="custom-select d-block w-100">
+                                    <option value="">-- Chọn địa chỉ --</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-toggle="modal" data-target="#addAddressModal">
+                                    + Thêm địa chỉ mới
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="modal fade" id="addAddressModal" tabindex="-1" role="dialog">
@@ -254,7 +259,7 @@
                                 Tôi đồng ý với <a href="/dieu-khoan" target="_blank">điều khoản mua hàng</a>
                             </label>
                         </div>
-                  
+
 
                         <!-- Nút XÁC NHẬN -->
                         <button id="btnXacNhan" onclick="createhoadon()" class="site-btn" disabled>
@@ -262,7 +267,7 @@
                             <span id="btnSpinner" class="spinner-border spinner-border-sm" style="display:none;"></span>
                         </button>
 
-                       
+
                     </div>
                 </div>
             </div>
@@ -515,7 +520,7 @@
                     $('#addAddressModal').modal('hide');
                     loadSavedAddresses(); // Update saved addresses without reloading page
                     // Optionally reload page if needed
-                    // location.reload();
+                     location.reload();
                 },
                 error: function () {
                     alert("❌ Không thể thêm địa chỉ");

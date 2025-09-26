@@ -1,6 +1,6 @@
 ﻿@model AppView.PhanTrang.PhanTrangVouchers
 @{
-    ViewData["Title"] = "Quản lý Voucher";
+    ViewData["Title"] = "Danh Sách Voucher";
     int stt = 1;
     var now = DateTime.Now;
 }
@@ -228,10 +228,10 @@
                                     <i class="fa fa-eye"></i>
                                 </a>
 
-                                <!-- Gán khách hàng -->
+                               @*  <!-- Gán khách hàng -->
                                 <button type="button" class="btn btn-primary btn-sm" title="Thêm cho khách hàng" onclick="openAssignModal('@item.Id')">
                                     <i class="fa fa-user-plus"></i>
-                                </button>
+                                </button> *@
 
 
                                 <!-- Xóa -->
