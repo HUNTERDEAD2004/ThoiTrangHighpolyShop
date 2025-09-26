@@ -121,12 +121,14 @@ namespace AppAPI.Services
         {
             try
             {
-                // Lấy khuyến mãi đang áp dụng
+                // Sửa 1: Thêm kiểm tra ngày tháng hợp lệ
+                var currentDate = DateTime.Now;
                 var khuyenMais = _context.KhuyenMais
-                    .Where(x => x.NgayApDung <= DateTime.Now && x.NgayKetThuc > DateTime.Now)
+                    .Where(x => x.NgayApDung != null && x.NgayKetThuc != null &&
+                               x.NgayApDung <= currentDate && x.NgayKetThuc > currentDate)
                     .ToList();
 
-                // Truy vấn sản phẩm + loại sp + chi tiết (LEFT JOIN)
+                // Sửa 2: Thay DateTime.MinValue bằng null hoặc giá trị an toàn
                 var lstSanPham = await (from sp in _context.SanPhams
                                         join loaiSP in _context.LoaiSPs on sp.IDLoaiSP equals loaiSP.ID
                                         join ctsp in _context.ChiTietSanPhams on sp.ID equals ctsp.IDSanPham into ctspJoin
@@ -147,14 +149,13 @@ namespace AppAPI.Services
                                             GiaGoc = ctsp != null ? ctsp.GiaBan : 0,
                                             SoLuong = ctsp != null ? ctsp.SoLuong : 0,
                                             IDKhuyenMai = ctsp != null ? ctsp.IDKhuyenMai : null,
-                                            NgayTao = ctsp != null ? ctsp.NgayTao : DateTime.MinValue,
-                                            soSao = 0 // sẽ tính sau
+                                            NgayTao = ctsp != null ? ctsp.NgayTao : (DateTime?)null, // ← Sửa thành nullable
+                                            soSao = 0
                                         }).ToListAsync();
 
-                // Tính điểm đánh giá và giá khuyến mãi sau khi lấy xong
+                // Phần còn lại giữ nguyên
                 foreach (var item in lstSanPham)
                 {
-                    // Tính sao trung bình
                     var danhGias = (from cthd in _context.ChiTietHoaDons.AsNoTracking()
                                     join ctsp in _context.ChiTietSanPhams.AsNoTracking() on cthd.IDCTSP equals ctsp.ID
                                     join dg in _context.DanhGias.AsNoTracking() on cthd.ID equals dg.ID
@@ -163,7 +164,6 @@ namespace AppAPI.Services
 
                     item.soSao = danhGias.Any() ? danhGias.Average() : 0;
 
-                    // Tính giá sau khuyến mãi
                     if (item.IDKhuyenMai != null)
                     {
                         var khuyenMai = khuyenMais.FirstOrDefault(x => x.ID == item.IDKhuyenMai);
@@ -186,8 +186,11 @@ namespace AppAPI.Services
 
                 return lstSanPham;
             }
-            catch
+            catch (Exception ex)
             {
+                // Sửa 3: Thêm log lỗi chi tiết để debug
+                Console.WriteLine($"Lỗi: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
                 return new List<SanPhamViewModel>();
             }
         }

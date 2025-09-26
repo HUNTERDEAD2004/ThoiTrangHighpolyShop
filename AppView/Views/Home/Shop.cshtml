@@ -295,7 +295,7 @@
 <script src="/js/jquery-3.3.1.min.js"></script>
 <script type="text/javascript">
     var pageIndex = 1;
-    var pagesize = 12;
+    var pagesize = 10;
     $(document).ready(function () {
         loadsp();
     });
@@ -375,22 +375,35 @@
             }
         });
     }
-    function pagingsp(totalrow, callback) {
-        var totalgages = Math.ceil(totalrow / pagesize);
-        //console.log(totalgages);
+        function pagingsp(totalrow, callback) {
+        var totalpages = Math.ceil(totalrow / pagesize);
+
+        // ✔ Thêm điều kiện kiểm tra kỹ hơn:
+        if (!totalpages || isNaN(totalpages) || totalpages <= 0) {
+            $("#pagination-demo").empty();
+            return;
+        }
+
+        $('#pagination-demo').twbsPagination('destroy');
+
         $("#pagination-demo").twbsPagination({
-            totalPages: totalgages,
-            visiblePages: 7,
-            first:'Đầu',
-            last:'Cuối',
-            prev:'Trước',
-            next:'Tiếp',
+            totalPages: totalpages,
+            startPage: pageIndex <= totalpages ? pageIndex : 1,
+            visiblePages: 5,
+            first: 'Đầu',
+            last: 'Cuối',
+            prev: 'Trước',
+            next: 'Tiếp',
             onPageClick: function (event, page) {
-                pageIndex = page;
-                setTimeout(callback, 200);
+                if (pageIndex !== page) {
+                    pageIndex = page;
+                    setTimeout(callback, 200);
+                }
             }
         });
     }
+
+
     function addCartSoLuongBangKhong(){
         toastr.error('Sản phẩm đã hết hàng', 'Error Alert', { timeOut: 300 });
     }

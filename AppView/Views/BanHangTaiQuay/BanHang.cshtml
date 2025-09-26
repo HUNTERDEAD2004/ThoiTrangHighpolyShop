@@ -205,9 +205,12 @@
                 border-color: #b02a37;
         }
 
-        /* Thêm vào phần CSS */
-        .input-group-sm {
-        width: 120px;
+        .input-group .form-control {
+            flex: 1 1 auto; /* cho input chiếm hết không gian còn lại */
+        }
+
+        .input-group .btn {
+            flex: 0 0 auto; /* giữ nút theo kích thước nội dung */
         }
 
         .btn-minus, .btn-plus {
@@ -405,7 +408,7 @@
                 <!-- Cập nhật phần hiển thị khách hàng -->
                 <div class="mb-2">
                     <label class="section-title">Khách Hàng</label>
-                    <div class="input-group input-group-sm">
+                    <div class="input-group input-group-sm" style="max-width: 200px;">
                         <input type="text" class="form-control form-control-lg fw-bold" id="khachHangDisplay"
                                placeholder="Chọn khách hàng" readonly value="khachle" style="font-size: 1.1rem; height: 45px;">
                         <input type="hidden" id="khachHangId" value="e106c66d-f18d-4609-8a38-08e09d68e78c">
