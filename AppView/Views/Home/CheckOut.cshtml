@@ -13,7 +13,44 @@
     long tienship = 0;
     Layout = "_Layout";
 }
+<style>
+    /* CSS cho các input và select trong checkout */
+    .checkout__form .checkout__input input,
+    .checkout__form .checkout__input select {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* font đẹp, đồng bộ */
+        font-size: 14px; /* cỡ chữ thống nhất */
+        font-weight: 500; /* đậm vừa phải, không quá nặng */
+        color: #000000; /* màu chữ đen vừa phải */
+        height: 38px; /* chiều cao đồng bộ */
+        padding: 0.375rem 0.75rem; /* padding chuẩn như bootstrap */
+        border: 1px solid #ced4da; /* viền giống input bootstrap */
+        border-radius: 0.25rem; /* bo tròn nhẹ */
+    }
 
+        /* placeholder chữ nhạt hơn */
+        .checkout__form .checkout__input input::placeholder,
+        .checkout__form .checkout__input select option {
+            color: #6c757d; /* xám nhạt */
+            font-weight: 400;
+        }
+
+    /* label đồng bộ */
+    .checkout__form .checkout__input label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #000000;
+    }
+
+    /* nếu muốn hover focus input/select đẹp */
+    .checkout__form .checkout__input input:focus,
+    .checkout__form .checkout__input select:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+
+</style>
 <!-- Breadcrumb Section Begin -->
 <section class="breadcrumb-option">
     <div class="container">
@@ -43,7 +80,7 @@
                         <div class="col-lg-12">
                             <div class="checkout__input">
                                 <label for="ten">Tên</label>
-                                <input type="text" class="form-control" id="name" placeholder="Nhập tên" value="@loginInfor.Ten" required>
+                                <input type="text" class="form-control" id="name" placeholder="Nhập tên" value="@loginInfor.Ten"  required>
                                 <div class="invalid-feedback">Không để trống tên</div>
                             </div>
                         </div>
@@ -52,14 +89,14 @@
                         <div class="col-lg-6">
                             <div class="checkout__input">
                                 <label for="sdt">SĐT</label>
-                                <input type="text" class="form-control" id="phone" placeholder="Nhập số điện thoại" value="@loginInfor.SDT" required>
+                                <input type="text" class="form-control" id="phone" placeholder="Nhập số điện thoại" value="@loginInfor.SDT"  required>
                                 <div class="invalid-feedback">Không để trống SĐT</div>
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="checkout__input">
                                 <label for="email">Email</label>
-                                <input type="text" class="form-control" id="email" placeholder="Nhập email" value="@loginInfor.Email" required>
+                                <input type="text" class="form-control" id="email" placeholder="Nhập email" value="@loginInfor.Email"  required>
                                 <div class="invalid-feedback">Không để trống email</div>
                             </div>
                         </div>
@@ -68,7 +105,7 @@
                         <div class="col-lg-6">
                             <div class="checkout__input">
                                 <label for="province">Tỉnh</label>
-                                <select class="custom-select d-block w-100" id="province" required>
+                                <select class="custom-select d-block w-100" id="province"  required>
                                     <option value="">-- Chọn tỉnh --</option>
                                 </select>
                                 <div class="invalid-feedback">Vui lòng chọn tỉnh</div>
@@ -77,7 +114,7 @@
                         <div class="col-lg-6">
                             <div class="checkout__input">
                                 <label for="district">Huyện</label>
-                                <select class="custom-select d-block w-100" id="district" required>
+                                <select class="custom-select d-block w-100" id="district"  required>
                                     <option value="">-- Chọn huyện --</option>
                                 </select>
                                 <div class="invalid-feedback">Vui lòng chọn huyện</div>
@@ -88,7 +125,7 @@
                         <div class="col-lg-6">
                             <div class="checkout__input">
                                 <label for="ward">Xã</label>
-                                <select class="custom-select d-block w-100" id="ward" required>
+                                <select class="custom-select d-block w-100" id="ward"    required>
                                     <option value="">-- Chọn xã --</option>
                                 </select>
                                 <div class="invalid-feedback">Vui lòng chọn xã</div>
@@ -97,19 +134,25 @@
                         <div class="col-lg-6">
                             <div class="checkout__input">
                                 <label for="address">Địa chỉ</label>
-                                <input type="text" class="form-control" id="address" placeholder="Nhập địa chỉ chi tiết" required>
+                                <input type="text" class="form-control" id="address" placeholder="Nhập địa chỉ chi tiết"   required>
+
                                 <div class="invalid-feedback">Vui lòng nhập địa chỉ</div>
                             </div>
 
                         </div>
-                        <div class="checkout__input">
-                            <label>Chọn địa chỉ đã lưu</label>
-                            <select id="savedAddress" class="custom-select d-block w-100">
-                                <option value="">-- Chọn địa chỉ --</option>
-                            </select>
-                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-toggle="modal" data-target="#addAddressModal">
-                                + Thêm địa chỉ mới
-                            </button>
+                        
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-lg-12">
+                            <div class="checkout__input">
+                                <label>Chọn địa chỉ đã lưu</label>
+                                <select id="savedAddress" class="custom-select d-block w-100">
+                                    <option value="">-- Chọn địa chỉ --</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-toggle="modal" data-target="#addAddressModal">
+                                    + Thêm địa chỉ mới
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="modal fade" id="addAddressModal" tabindex="-1" role="dialog">
@@ -133,7 +176,7 @@
                                         <option value="">-- Chọn xã --</option>
                                     </select>
                                     <label>Địa chỉ chi tiết</label>
-                                    <input type="text" class="form-control" id="newChiTiet" placeholder="Nhập địa chỉ chi tiết">
+                                    <input type="text" class="form-control" id="newChiTiet" placeholder="Nhập địa chỉ chi tiết" >
                                     <div class="form-check mt-2">
                                         <input type="checkbox" class="form-check-input" id="isDefaultAddress">
                                         <label class="form-check-label">Đặt làm mặc định</label>
@@ -478,7 +521,7 @@
                     $('#addAddressModal').modal('hide');
                     loadSavedAddresses(); // Update saved addresses without reloading page
                     // Optionally reload page if needed
-                    // location.reload();
+                     location.reload();
                 },
                 error: function () {
                     alert("❌ Không thể thêm địa chỉ");
